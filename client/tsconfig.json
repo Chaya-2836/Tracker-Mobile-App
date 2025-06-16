@@ -3,10 +3,13 @@
   "compilerOptions": {
     "jsx": "react-native",
     "strict": true,
+    "types": ["react", "react-native"],
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["./*"]
     }
   },
   "include": [
