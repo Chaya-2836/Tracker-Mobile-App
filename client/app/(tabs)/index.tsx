@@ -78,6 +78,7 @@ export default function App() {
 
         <TrendChart title="Clicks Volume Trend (Last 7 Days)" data={clickTrend} />
         <TrendChart title="Impressions Volume Trend (Last 7 Days)" data={impressionTrend} />
+
       </ScrollView>
     </SafeAreaView>
   );
