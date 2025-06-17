@@ -8,6 +8,7 @@ export default function App() {
   const clickTrend = [20, 45, 28, 80, 99, 43, 50];
   const impressionTrend = [35, 20, 50, 70, 90, 100, 75];
 
+  
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
