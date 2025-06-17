@@ -4,10 +4,12 @@ const nameTable = `${nameDB}.attribution_end_user_events.end_user_events`
 exports.getAllImpressions = async (req, res) => {
     try {
         const query =
-        `SELECT EXTRACT(HOUR FROM event_time) as event_hour, COUNT(*) as impressions_count
+        `SELECT campaign_name, COUNT(*) as impressions_count
         FROM ${nameTable}
-        GROUP BY event_hour
-        ORDER BY event_hour;`
+        WHERE DATE(event_time) == CURRENT_DATE
+        AND engagement_type = "Impression"
+        GROUP BY campaign_id AND campaign_name
+        ORDER BY impressions_count;`
 
         const options = { query, location: "US" };
         const [job] = await bigquery.createQueryJob(options);
