@@ -10,10 +10,11 @@ const bigquery = new BigQuery({
 const nameDB = "platform-hackaton-2025";
 module.exports = { bigquery, nameDB };
 
-
 const impressionsRouter = require("./routes/impressionsRoutes")
+const clicksRouter = require("./routes/clicksRoutes");
 
 app.use("/impressions",impressionsRouter);
+app.use("/clicks", clicksRouter);
 
 app.get('/user', (req, res) => {
   res.json({ name: 'John Doe' }); 
