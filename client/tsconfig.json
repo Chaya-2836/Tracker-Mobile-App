@@ -3,12 +3,21 @@
   "compilerOptions": {
     "jsx": "react-native",
     "strict": true,
+<<<<<<< HEAD
     "types": ["react", "react-native"],
     "moduleResolution": "bundler",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "customConditions": ["react-native"],
+=======
+    "module": "node16",                
+    "moduleResolution": "node16",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "types": ["react", "react-native"],
+>>>>>>> 4a94940 (visual components addition)
     "paths": {
       "@/*": ["./*"]
     }

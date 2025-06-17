@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Text, View } from "react-native";
-import styles from "../app/styles/welcomeScreen";
+import { View, Text } from "react-native";
+import styles from "../app/styles/welcomeScreen"
 import fetchUser from "../scripts/fetchUser";
 
 type User = {
@@ -9,13 +9,13 @@ type User = {
 };
 
 export function WelcomeMessage() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<{ name?: string }>({});
 
   useEffect(() => {
     fetchUser()
-      .then((fetchedUser) => {
-        setUser(fetchedUser);
-      })
+      .then(
+        setUser
+      )
       .catch((err: unknown) => {
         console.error("Failed to fetch user:", err);
       });
