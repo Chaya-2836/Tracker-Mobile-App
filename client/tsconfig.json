@@ -3,11 +3,12 @@
   "compilerOptions": {
     "jsx": "react-native",
     "strict": true,
-    "types": ["react", "react-native"],
-    "moduleResolution": "node",
+    "module": "node16",                
+    "moduleResolution": "node16",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
+    "types": ["react", "react-native"],
     "paths": {
       "@/*": ["./*"]
     }
