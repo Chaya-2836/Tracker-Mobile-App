@@ -4,11 +4,11 @@ const nameTable = `${nameDB}.attribution_end_user_events.end_user_events`
 exports.getAllImpressions = async (req, res) => {
     try {
         const query =
-            `SELECT campaign_name, COUNT(*) as impressions_count
+        `SELECT campaign_name, COUNT(*) as impressions_count
         FROM ${nameTable}
-        WHERE DATE(event_time) == CURRENT_DATE
+        WHERE DATE(event_time) = CURRENT_DATE
         AND engagement_type = 'Impression'
-        GROUP BY campaign_id AND campaign_name
+        GROUP BY campaign_id , campaign_name
         ORDER BY impressions_count;`
 
         //במידה וזה מחולק רק לפי שעות
