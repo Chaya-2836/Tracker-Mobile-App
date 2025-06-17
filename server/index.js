@@ -1,6 +1,12 @@
+// server.js
+
 const express = require('express');
+const cors = require('cors');
 const app = express();
 const port = 3000;
+// פתרון בעיית ה cors
+app.use(cors());
+app.use(express.json());
 
 const { BigQuery } = require("@google-cloud/bigquery");
 //צריך להוסיף את ניתוב לקובץ ההרשאות
@@ -16,8 +22,9 @@ const clicksRouter = require("./routes/clicksRoutes");
 app.use("/impressions",impressionsRouter);
 app.use("/clicks", clicksRouter);
 
+// לצורך דוגמה 
 app.get('/user', (req, res) => {
-  res.json({ name: 'John Doe' }); 
+  res.json({ name: 'John Doe' });
 });
 
 app.listen(port, () => {
