@@ -1,15 +1,23 @@
 
-const { bigquery, nameDB} = require("../index");
+const { bigquery, nameDB } = require("../index");
 const nameTable = `${nameDB}.attribution_end_user_events.end_user_events`
 exports.getAllImpressions = async (req, res) => {
     try {
         const query =
-        `SELECT campaign_name, COUNT(*) as impressions_count
+            `SELECT campaign_name, COUNT(*) as impressions_count
         FROM ${nameTable}
         WHERE DATE(event_time) == CURRENT_DATE
-        AND engagement_type = "Impression"
+        AND engagement_type = 'Impression'
         GROUP BY campaign_id AND campaign_name
         ORDER BY impressions_count;`
+
+        //במידה וזה מחולק רק לפי שעות
+        // const query =
+        //     `SELECT EXTRACT(HOUR FROM event_time) AS event_hour, COUNT(*) AS click_count
+        //     FROM ${nameTable}
+        //     WHERE engagement_type = 'Impression'
+        //     GROUP BY event_hour
+        //     ORDER BY event_hour;`
 
         const options = { query, location: "US" };
         const [job] = await bigquery.createQueryJob(options);
