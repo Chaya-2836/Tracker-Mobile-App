@@ -14,11 +14,11 @@ export default function App() {
       <ScrollView>
         <Text style={styles.header}>Engagement Tracker</Text>
 
-        <StatCard title="Clicks Entered in the Last Day" value={120} />
-        <StatCard title="Impressions Entered in the Last Day" value={560} />
+        <StatCard title="Clicks Recorded Today" value={120} />
+        <StatCard title="Impressions Recorded Today" value={560} />
 
-        <TrendChart title="Clicks Volume Trend (Last 7 Days)" data={clickTrend} />
-        <TrendChart title="Impressions Trend (Last 7 Days)" data={impressionTrend} />
+        <TrendChart title="Click Volume Trend (Last 7 Days)" data={clickTrend} />
+        <TrendChart title="Impression Trend (Last 7 Days)" data={impressionTrend} />
       </ScrollView>
     </SafeAreaView>
   );
