@@ -1,6 +1,5 @@
 import { StyleSheet, Dimensions, Platform } from 'react-native';
 
-// Define ChartConfig locally
 type ChartConfig = {
   backgroundColor: string;
   backgroundGradientFrom: string;
@@ -12,41 +11,36 @@ type ChartConfig = {
   propsForDots?: object;
 };
 
-const { width: screenWidth } = Dimensions.get('window');
-
-// Consistent horizontal padding (5% on each side)
-const horizontalPadding = screenWidth * 0.05;
-
 const styles = StyleSheet.create({
   chartContainer: {
     backgroundColor: '#fff',
-    marginHorizontal: horizontalPadding,
     marginBottom: 20,
     padding: 16,
     borderRadius: 12,
-    overflow: 'hidden', // makes sure chart doesn't overflow
+    alignSelf: 'center',
+    overflow: 'hidden',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOpacity: 0.1,
+        shadowOpacity: 0.05,
         shadowOffset: { width: 0, height: 2 },
-        shadowRadius: 6,
+        shadowRadius: 8,
       },
       android: {
-        elevation: 4,
+        elevation: 3,
       },
     }),
   },
   title: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
-    marginBottom: 12,
+    marginBottom: 10,
     color: '#34495e',
     textAlign: 'center',
   },
   chart: {
-    marginTop: 10,
     borderRadius: 8,
+    marginTop: 10,
     alignSelf: 'center',
   },
 });
@@ -57,7 +51,7 @@ export const chartConfig: ChartConfig = {
   backgroundGradientTo: '#fff',
   decimalPlaces: 0,
   color: (opacity = 1) => `rgba(44, 98, 180, ${opacity})`,
-  labelColor: (opacity = 1) => `rgba(80, 80, 80, ${opacity})`,
+  labelColor: (opacity = 1) => `rgba(50, 50, 50, ${opacity})`,
   style: {
     borderRadius: 16,
   },
@@ -69,4 +63,3 @@ export const chartConfig: ChartConfig = {
 };
 
 export default styles;
-
