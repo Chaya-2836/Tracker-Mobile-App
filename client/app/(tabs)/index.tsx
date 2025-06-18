@@ -52,7 +52,7 @@ export default function App() {
         setClicksToday(clicksSum);
         setImpressionsToday(impressionsSum);
       } catch (err) {
-        console.error('שגיאה בשליפת נתונים יומיים', err);
+        console.error('Failed to fetch daily data', err);
       }
     }
 
