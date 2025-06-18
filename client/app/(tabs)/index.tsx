@@ -1,68 +1,94 @@
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, ScrollView, Text, View, TouchableOpacity } from 'react-native';
+import { SafeAreaView, ScrollView, Text, View, Button, ActivityIndicator, TouchableOpacity } from 'react-native';
 import StatCard from '../../components/statCard';
 import TrendChart from '../../components/TrendChart';
-import { getTodayStats, getWeeklyClickTrend, getWeeklyImpressionTrend } from '../Api/analytics';
+import {
+  getTodayStats,
+  getWeeklyClickTrendByDate,
+  getWeeklyImpressionTrendByDate,
+} from '../Api/analytics';
 import styles from '../styles/appStyles';
 
-interface DailyStat {
-  campaign_name: string;
-  impressions_count: string;
+interface TrendPoint {
+  event_date: string;
+  clicks_count?: number | string;
+  impressions_count?: number | string;
 }
 
-interface ClickTrend {
-  event_date: string;
-  clicks_count: number;
-}
-
-interface ImpressionTrend {
-  event_date: string;
-  impressions_count: number;
+interface CountRow {
+  clicks_count?: string;
+  impressions_count?: string;
 }
 
 export default function App() {
   const [clicksToday, setClicksToday] = useState<number>(0);
   const [impressionsToday, setImpressionsToday] = useState<number>(0);
-  const [clickTrend, setClickTrend] = useState<number[]>([]);
-  const [impressionTrend, setImpressionTrend] = useState<number[]>([]);
+  const [clickTrend, setClickTrend] = useState<{ label: string; value: number }[]>([]);
+  const [impressionTrend, setImpressionTrend] = useState<{ label: string; value: number }[]>([]);
   const [showClicks, setShowClicks] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
+
 
   const campaignName = "YourCampaignName";
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const { clicks, impressions }: { clicks: DailyStat[]; impressions: DailyStat[] } = await getTodayStats();
+        const { clicks, impressions }: { clicks: CountRow[]; impressions: CountRow[] } = await getTodayStats();
+
+        console.log('clicks (row):', clicks);
+        console.log('impressions (row):', impressions);
 
         const clicksSum = clicks.reduce(
-          (sum, row) => sum + (parseInt(row.impressions_count) || 0),
+          (sum: number, row: CountRow) => sum + (parseInt(row.clicks_count ?? '0') || 0),
           0
         );
+
         const impressionsSum = impressions.reduce(
-          (sum, row) => sum + (parseInt(row.impressions_count) || 0),
+          (sum: number, row: CountRow) => sum + (parseInt(row.impressions_count ?? '0') || 0),
           0
         );
 
         setClicksToday(clicksSum);
         setImpressionsToday(impressionsSum);
       } catch (err) {
-        console.error("Failed to fetch daily data.", err);
+        console.error('שגיאה בשליפת נתונים יומיים', err);
       }
     }
 
     async function fetchTrends() {
       try {
-        const clicksData: ClickTrend[] = await getWeeklyClickTrend(campaignName);
-        const impressionsData: ImpressionTrend[] = await getWeeklyImpressionTrend(campaignName);
+        setLoading(true); // מתחילים טעינה
+        const clicksData: TrendPoint[] = await getWeeklyClickTrendByDate();
+        const impressionsData: TrendPoint[] = await getWeeklyImpressionTrendByDate();
 
-        const clicksTrendData = clicksData.map(item => item.clicks_count);
-        const impressionsTrendData = impressionsData.map(item => item.impressions_count);
+        console.log('clicksData (row):', clicksData);
+        console.log('impressionsData (row):', impressionsData);
 
-        setClickTrend(clicksTrendData);
-        setImpressionTrend(impressionsTrendData);
+        const parsedClicks = clicksData.map(item => {
+          const value = Number(item.clicks_count);
+          return {
+            label: item.event_date,
+            value: isNaN(value) || !isFinite(value) ? 0 : value,
+          };
+        });
+
+        const parsedImpressions = impressionsData.map(item => {
+          const value = Number(item.impressions_count);
+          return {
+            label: item.event_date,
+            value: isNaN(value) || !isFinite(value) ? 0 : value,
+          };
+        });
+
+        setClickTrend(parsedClicks);
+        setImpressionTrend(parsedImpressions);
       } catch (err) {
-        console.error("Failed to fetch trends", err);
+        console.error('שגיאה בשליפת טרנדים', err);
       }
+       finally {
+      setLoading(false); // מסיים טעינה
+    }
     }
 
     fetchData();
@@ -93,19 +119,18 @@ export default function App() {
             </Text>
           </TouchableOpacity>
         </View>
-
-        {/* Stat Card and Chart */}
-        {showClicks ? (
-          <>
+       {loading ? (
+        <ActivityIndicator size="large" color="#0000ff" />
+      ) : (
+        showClicks ? (          <>
             <StatCard title="Clicks Recorded Today" value={clicksToday} />
             <TrendChart title="Click Volume Trend (Last 7 Days)" data={clickTrend} />
           </>
-        ) : (
-          <>
+
+        ) : (          <>
             <StatCard title="Impressions Recorded Today" value={impressionsToday} />
             <TrendChart title="Impression Volume Trend (Last 7 Days)" data={impressionTrend} />
-          </>
-        )}
+          </>))}
       </ScrollView>
     </SafeAreaView>
   );
