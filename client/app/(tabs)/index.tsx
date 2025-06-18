@@ -46,7 +46,7 @@ export default function App() {
         setClicksToday(clicksSum);
         setImpressionsToday(impressionsSum);
       } catch (err) {
-        console.error("שגיאה בשליפת נתונים יומיים", err);
+        console.error("Failed to fetch daily data.", err);
       }
     }
 
@@ -61,7 +61,7 @@ export default function App() {
         setClickTrend(clicksTrendData);
         setImpressionTrend(impressionsTrendData);
       } catch (err) {
-        console.error("שגיאה בשליפת טרנדים", err);
+        console.error("Failed to fetch trends", err);
       }
     }
 
@@ -74,8 +74,6 @@ export default function App() {
       <ScrollView>
         <Text style={styles.header}>Engagement Tracker</Text>
 
-        <StatCard title="Clicks Entered in the Last Day" value={clicksToday} />
-
         <View style={{ flexDirection: 'row', justifyContent: 'center', marginVertical: 10 }}>
           <Button title="Show Clicks" onPress={() => setShowClicks(true)} />
           <View style={{ width: 10 }} />
@@ -83,12 +81,12 @@ export default function App() {
         </View>
 
         {showClicks ? (<>
-          <TrendChart title="Clicks Volume Trend (Last 7 Days)" data={clickTrend} />
-           <StatCard title="Clicks Entered in the Last Day" value={clicksToday} /></>
+          <TrendChart title="Click Volume Trend (Last 7 Days)" data={clickTrend} />
+           <StatCard title="Clicks Recorded Today" value={clicksToday} /></>
 
         ) : (<>
-          <TrendChart title="Impressions Volume Trend (Last 7 Days)" data={impressionTrend} />
-          <StatCard title="Impressions Entered in the Last Day" value={impressionsToday} />
+          <TrendChart title="Impression Volume Trend (Last 7 Days)" data={impressionTrend} />
+          <StatCard title="Impressions Recorded Today" value={impressionsToday} />
 
         </>)}
       </ScrollView>
