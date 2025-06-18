@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, ScrollView, Text, View, Button, ActivityIndicator } from 'react-native';
+import { SafeAreaView, ScrollView, Text, View, Button, ActivityIndicator, TouchableOpacity } from 'react-native';
 import StatCard from '../../components/statCard';
 import TrendChart from '../../components/TrendChart';
 import {
@@ -29,7 +29,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
 
 
-  const campaignName = "YourCampaignName"; // שנה לפי הצורך
+  const campaignName = "YourCampaignName";
 
   useEffect(() => {
     async function fetchData() {
@@ -52,7 +52,7 @@ export default function App() {
         setClicksToday(clicksSum);
         setImpressionsToday(impressionsSum);
       } catch (err) {
-        console.error('שגיאה בשליפת נתונים יומיים', err);
+        console.error('Failed to fetch daily data', err);
       }
     }
 
@@ -100,23 +100,37 @@ export default function App() {
       <ScrollView>
         <Text style={styles.header}>Engagement Tracker</Text>
 
-        <View style={{ flexDirection: 'row', justifyContent: 'center', marginVertical: 10 }}>
-          <Button title="Show Clicks" onPress={() => setShowClicks(true)} />
-          <View style={{ width: 10 }} />
-          <Button title="Show Impressions" onPress={() => setShowClicks(false)} />
+        {/* Toggle Buttons */}
+        <View style={styles.buttonGroup}>
+          <TouchableOpacity
+            style={[styles.toggleButton, showClicks && styles.activeButton]}
+            onPress={() => setShowClicks(true)}
+          >
+            <Text style={[styles.buttonText, showClicks && styles.activeButtonText]}>
+              Show Clicks
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.toggleButton, !showClicks && styles.activeButton]}
+            onPress={() => setShowClicks(false)}
+          >
+            <Text style={[styles.buttonText, !showClicks && styles.activeButtonText]}>
+              Show Impressions
+            </Text>
+          </TouchableOpacity>
         </View>
        {loading ? (
         <ActivityIndicator size="large" color="#0000ff" />
       ) : (
-        showClicks ? (<>
-          <TrendChart title="Clicks Volume Trend (Last 7 Days)" data={clickTrend} />
-           <StatCard title="Clicks Entered in the Last Day" value={clicksToday} /></>
+        showClicks ? (          <>
+            <StatCard title="Clicks Recorded Today" value={clicksToday} />
+            <TrendChart title="Click Volume Trend (Last 7 Days)" data={clickTrend} />
+          </>
 
-        ) : (<>
-          <TrendChart title="Impression Volume Trend (Last 7 Days)" data={impressionTrend} />
-          <StatCard title="Impressions Recorded Today" value={impressionsToday} />
-
-        </>))}
+        ) : (          <>
+            <StatCard title="Impressions Recorded Today" value={impressionsToday} />
+            <TrendChart title="Impression Volume Trend (Last 7 Days)" data={impressionTrend} />
+          </>))}
       </ScrollView>
     </SafeAreaView>
   );
