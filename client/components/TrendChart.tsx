@@ -14,6 +14,9 @@ const TrendChart: React.FC<TrendChartProps> = ({ title, data }) => {
   const labels = data.map(item => item.label);
   const values = data.map(item => item.value);
 
+  const labels = data.map(item => item.label);
+  const values = data.map(item => item.value);
+
   return (
     <View style={[styles.chartContainer, { width: screenWidth * 0.9 }]}>
       <Text style={styles.title}>{title}</Text>
