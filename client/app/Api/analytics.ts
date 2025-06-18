@@ -5,18 +5,24 @@ export async function getTodayStats() {
     fetch(`${API_BASE}/clicks/allClicks`),
     fetch(`${API_BASE}/impressions/allImpressions`),
   ]);
+
   const clicks = await clicksRes.json();
   const impressions = await impressionsRes.json();
-  return { clicks, impressions };
+
+  return {
+    clicks: Array.isArray(clicks) ? clicks : [],
+    impressions: Array.isArray(impressions) ? impressions : [],
+  };
 }
 
-export async function getWeeklyClickTrend(campaignName: string) {
-  const res = await fetch(`${API_BASE}/clicks/ClicksByCampaign?campaign_name=${campaignName}`);
-  return await res.json();
+export async function getWeeklyClickTrendByDate() {
+  const res = await fetch(`${API_BASE}/clicks/ClicksByDate`);
+  const data = await res.json();
+  return Array.isArray(data) ? data : [];
 }
 
-// חדש: קבלת טרנד חשיפות לשבוע אחרון לפי קמפיין
-export async function getWeeklyImpressionTrend(campaignName: string) {
-  const res = await fetch(`${API_BASE}/impressions/ImpressionsByCampaign?campaign_name=${campaignName}`);
-  return await res.json();
+export async function getWeeklyImpressionTrendByDate() {
+  const res = await fetch(`${API_BASE}/impressions/ImpressionsByDate`);
+  const data = await res.json();
+  return Array.isArray(data) ? data : [];
 }
