@@ -16,7 +16,7 @@ exports.getAllImpressions = async (req, res) => {
         SELECT EXTRACT(DAY FROM event_time) AS event_day, COUNT(*) AS impression_count
         FROM ${nameTable}
         WHERE engagement_type = 'impression'
-        AND event_time >= TIMESTAMP_SUB(CURRENT_TIMESTAMP, INTERVAL 7 DAY)
+        AND  DATE(event_time) >= DATE_SUB(CURRENT_DATE, INTERVAL 7 DAY)
         GROUP BY event_day
         ORDER BY event_day;
         `;
