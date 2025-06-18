@@ -1,5 +1,4 @@
-const { BigQuery } = require('@google-cloud/bigquery');
-const bigquery = new BigQuery();
+const { bigquery, nameDB } = require("../index");
 
 const nameTable = `${nameDB}.attribution_end_user_events.end_user_events`;
 

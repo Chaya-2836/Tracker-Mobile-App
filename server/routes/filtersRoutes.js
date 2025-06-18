@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const filtersController = require('./controllers/filtersController');
+const filtersController = require('../controllers/filtersController');
 
 router.get('/campaigns', filtersController.getCampaigns);
 router.get('/platforms', filtersController.getPlatforms);
