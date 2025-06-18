@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, ScrollView, Text } from 'react-native';
+import { SafeAreaView, ScrollView, Text, View, Button } from 'react-native';
 import StatCard from '../../components/statCard';
 import TrendChart from '../../components/TrendChart';
 import { getTodayStats, getWeeklyClickTrend, getWeeklyImpressionTrend } from '../Api/analytics';
@@ -25,6 +25,7 @@ export default function App() {
   const [impressionsToday, setImpressionsToday] = useState<number>(0);
   const [clickTrend, setClickTrend] = useState<number[]>([]);
   const [impressionTrend, setImpressionTrend] = useState<number[]>([]);
+  const [showClicks, setShowClicks] = useState<boolean>(true); // מעבר בין קליקים ואימפרשנים
 
   const campaignName = "YourCampaignName"; // שנה לפי הצורך
 
@@ -74,11 +75,22 @@ export default function App() {
         <Text style={styles.header}>Engagement Tracker</Text>
 
         <StatCard title="Clicks Entered in the Last Day" value={clicksToday} />
-        <StatCard title="Impressions Entered in the Last Day" value={impressionsToday} />
 
-        <TrendChart title="Clicks Volume Trend (Last 7 Days)" data={clickTrend} />
-        <TrendChart title="Impressions Volume Trend (Last 7 Days)" data={impressionTrend} />
+        <View style={{ flexDirection: 'row', justifyContent: 'center', marginVertical: 10 }}>
+          <Button title="Show Clicks" onPress={() => setShowClicks(true)} />
+          <View style={{ width: 10 }} />
+          <Button title="Show Impressions" onPress={() => setShowClicks(false)} />
+        </View>
 
+        {showClicks ? (<>
+          <TrendChart title="Clicks Volume Trend (Last 7 Days)" data={clickTrend} />
+           <StatCard title="Clicks Entered in the Last Day" value={clicksToday} /></>
+
+        ) : (<>
+          <TrendChart title="Impressions Volume Trend (Last 7 Days)" data={impressionTrend} />
+          <StatCard title="Impressions Entered in the Last Day" value={impressionsToday} />
+
+        </>)}
       </ScrollView>
     </SafeAreaView>
   );
