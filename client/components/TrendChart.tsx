@@ -5,29 +5,31 @@ import styles, { chartConfig } from '../app/styles/trendChartStyles';
 
 interface TrendChartProps {
   title: string;
-  data: number[];
+  data: { label: string; value: number }[];
 }
 
 const TrendChart: React.FC<TrendChartProps> = ({ title, data }) => {
   const { width: screenWidth } = useWindowDimensions(); // auto-updates on resize/rotation
 
+  const labels = data.map(item => item.label);
+  const values = data.map(item => item.value);
+
   return (
     <View style={styles.chartContainer}>
       <Text style={styles.title}>{title}</Text>
-<LineChart
-  data={{
-    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-    datasets: [{ data }],
-  }}
-  width={screenWidth * 0.9} // 90% of screen to match container minus padding
-  height={220}
-  chartConfig={chartConfig}
-  style={styles.chart}
-/>
-
+      <LineChart
+        data={{
+          labels,
+          datasets: [{ data: values }],
+        }}
+        width={screenWidth * 0.9} // 90% of screen width
+        height={220}
+        chartConfig={chartConfig}
+        style={styles.chart}
+        bezier
+      />
     </View>
   );
 };
 
 export default TrendChart;
-
