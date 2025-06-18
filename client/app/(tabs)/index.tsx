@@ -45,7 +45,7 @@ export default function App() {
         setClicksToday(clicksSum);
         setImpressionsToday(impressionsSum);
       } catch (err) {
-        console.error("שגיאה בשליפת נתונים יומיים", err);
+        console.error("Failed to fetch daily data.", err);
       }
     }
 
@@ -60,7 +60,7 @@ export default function App() {
         setClickTrend(clicksTrendData);
         setImpressionTrend(impressionsTrendData);
       } catch (err) {
-        console.error("שגיאה בשליפת טרנדים", err);
+        console.error("Failed to fetch trends", err);
       }
     }
 
@@ -73,11 +73,11 @@ export default function App() {
       <ScrollView>
         <Text style={styles.header}>Engagement Tracker</Text>
 
-        <StatCard title="Clicks Entered in the Last Day" value={clicksToday} />
-        <StatCard title="Impressions Entered in the Last Day" value={impressionsToday} />
+        <StatCard title="Clicks Recorded Today" value={clicksToday} />
+        <StatCard title="Impressions Recorded Today" value={impressionsToday} />
 
-        <TrendChart title="Clicks Volume Trend (Last 7 Days)" data={clickTrend} />
-        <TrendChart title="Impressions Volume Trend (Last 7 Days)" data={impressionTrend} />
+        <TrendChart title="Click Volume Trend (Last 7 Days)" data={clickTrend} />
+        <TrendChart title="Impression Volume Trend (Last 7 Days)" data={impressionTrend} />
 
       </ScrollView>
     </SafeAreaView>
