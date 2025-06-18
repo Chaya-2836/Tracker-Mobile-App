@@ -4,8 +4,9 @@ const clicksController = require("../controllers/clicksController");
 
 
 router.get("/allClicks", clicksController.getAllClicks);
+router.get("/todayClicks", clicksController.getTodayClicks);
+//הפונקציות הנ"ל כרגע לא רלוונטיות
 router.get("/ClicksByCampaign", clicksController.getClicksByCampaign_name);
 router.get("/todayClicksByCampaign", clicksController.getTodayClicksByCampaign);
-router.get("/todayClicks", clicksController.getTodayClicks);
-
+//
 module.exports = router;
