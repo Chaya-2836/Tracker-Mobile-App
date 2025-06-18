@@ -14,7 +14,7 @@ exports.getAllImpressions = async (req, res) => {
 
         const query = `
         SELECT EXTRACT(DAY FROM event_time) AS event_day, COUNT(*) AS impression_count
-        FROM ${nameTable}
+        FROM \`${nameTable}\`
         WHERE engagement_type = 'impression'
         AND  DATE(event_time) >= DATE_SUB(CURRENT_DATE, INTERVAL 7 DAY)
         GROUP BY event_day
@@ -23,6 +23,8 @@ exports.getAllImpressions = async (req, res) => {
         const options = { query, location: "US" };
         const [job] = await bigquery.createQueryJob(options);
         const [rows] = await job.getQueryResults();
+        console.log("succesful");
+        
 
         res.status(200).json(rows);
     } catch (err) {
@@ -35,7 +37,7 @@ exports.getTodayImpressions = async (req, res) => {
     try {
         const query = `
         SELECT COUNT(*) as impression_count
-        FROM ${nameTable}
+        FROM \`${nameTable}\`
         WHERE engagement_type = 'impression'
         AND DATE(event_time) = CURRENT_DATE
         `
@@ -44,6 +46,7 @@ exports.getTodayImpressions = async (req, res) => {
         const [rows] = await job.getQueryResults();
 
         const count = rows[0]?.impression_count || 0;
+         console.log("succesful", count);
 
         res.type("text/plain").send(count.toString());
     } catch (err) {
