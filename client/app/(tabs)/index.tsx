@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, ScrollView, Text, View, Button } from 'react-native';
+import { SafeAreaView, ScrollView, Text, View, Button, ActivityIndicator } from 'react-native';
 import StatCard from '../../components/statCard';
 import TrendChart from '../../components/TrendChart';
 import {
@@ -26,6 +26,10 @@ export default function App() {
   const [clickTrend, setClickTrend] = useState<{ label: string; value: number }[]>([]);
   const [impressionTrend, setImpressionTrend] = useState<{ label: string; value: number }[]>([]);
   const [showClicks, setShowClicks] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
+
+
+  const campaignName = "YourCampaignName"; // שנה לפי הצורך
 
   useEffect(() => {
     async function fetchData() {
@@ -54,6 +58,7 @@ export default function App() {
 
     async function fetchTrends() {
       try {
+        setLoading(true); // מתחילים טעינה
         const clicksData: TrendPoint[] = await getWeeklyClickTrendByDate();
         const impressionsData: TrendPoint[] = await getWeeklyImpressionTrendByDate();
 
@@ -81,6 +86,9 @@ export default function App() {
       } catch (err) {
         console.error('שגיאה בשליפת טרנדים', err);
       }
+       finally {
+      setLoading(false); // מסיים טעינה
+    }
     }
 
     fetchData();
@@ -97,18 +105,18 @@ export default function App() {
           <View style={{ width: 10 }} />
           <Button title="Show Impressions" onPress={() => setShowClicks(false)} />
         </View>
+       {loading ? (
+        <ActivityIndicator size="large" color="#0000ff" />
+      ) : (
+        showClicks ? (<>
+          <TrendChart title="Clicks Volume Trend (Last 7 Days)" data={clickTrend} />
+           <StatCard title="Clicks Entered in the Last Day" value={clicksToday} /></>
 
-        {showClicks ? (
-          <>
-            <TrendChart title="Click Volume Trend (Last 7 Days)" data={clickTrend} />
-            <StatCard title="Clicks Recorded Today" value={clicksToday} />
-          </>
-        ) : (
-          <>
-            <TrendChart title="Impression Volume Trend (Last 7 Days)" data={impressionTrend} />
-            <StatCard title="Impressions Recorded Today" value={impressionsToday} />
-          </>
-        )}
+        ) : (<>
+          <TrendChart title="Impression Volume Trend (Last 7 Days)" data={impressionTrend} />
+          <StatCard title="Impressions Recorded Today" value={impressionsToday} />
+
+        </>))}
       </ScrollView>
     </SafeAreaView>
   );
