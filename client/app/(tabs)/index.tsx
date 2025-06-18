@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, ScrollView, Text, View, Button } from 'react-native';
+import { SafeAreaView, ScrollView, Text, View, TouchableOpacity } from 'react-native';
 import StatCard from '../../components/statCard';
 import TrendChart from '../../components/TrendChart';
 import { getTodayStats, getWeeklyClickTrend, getWeeklyImpressionTrend } from '../Api/analytics';
@@ -25,9 +25,9 @@ export default function App() {
   const [impressionsToday, setImpressionsToday] = useState<number>(0);
   const [clickTrend, setClickTrend] = useState<number[]>([]);
   const [impressionTrend, setImpressionTrend] = useState<number[]>([]);
-  const [showClicks, setShowClicks] = useState<boolean>(true); // מעבר בין קליקים ואימפרשנים
+  const [showClicks, setShowClicks] = useState<boolean>(true);
 
-  const campaignName = "YourCampaignName"; // שנה לפי הצורך
+  const campaignName = "YourCampaignName";
 
   useEffect(() => {
     async function fetchData() {
@@ -74,21 +74,38 @@ export default function App() {
       <ScrollView>
         <Text style={styles.header}>Engagement Tracker</Text>
 
-        <View style={{ flexDirection: 'row', justifyContent: 'center', marginVertical: 10 }}>
-          <Button title="Show Clicks" onPress={() => setShowClicks(true)} />
-          <View style={{ width: 10 }} />
-          <Button title="Show Impressions" onPress={() => setShowClicks(false)} />
+        {/* Toggle Buttons */}
+        <View style={styles.buttonGroup}>
+          <TouchableOpacity
+            style={[styles.toggleButton, showClicks && styles.activeButton]}
+            onPress={() => setShowClicks(true)}
+          >
+            <Text style={[styles.buttonText, showClicks && styles.activeButtonText]}>
+              Show Clicks
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.toggleButton, !showClicks && styles.activeButton]}
+            onPress={() => setShowClicks(false)}
+          >
+            <Text style={[styles.buttonText, !showClicks && styles.activeButtonText]}>
+              Show Impressions
+            </Text>
+          </TouchableOpacity>
         </View>
 
-        {showClicks ? (<>
-          <TrendChart title="Click Volume Trend (Last 7 Days)" data={clickTrend} />
-           <StatCard title="Clicks Recorded Today" value={clicksToday} /></>
-
-        ) : (<>
-          <TrendChart title="Impression Volume Trend (Last 7 Days)" data={impressionTrend} />
-          <StatCard title="Impressions Recorded Today" value={impressionsToday} />
-
-        </>)}
+        {/* Stat Card and Chart */}
+        {showClicks ? (
+          <>
+            <StatCard title="Clicks Recorded Today" value={clicksToday} />
+            <TrendChart title="Click Volume Trend (Last 7 Days)" data={clickTrend} />
+          </>
+        ) : (
+          <>
+            <StatCard title="Impressions Recorded Today" value={impressionsToday} />
+            <TrendChart title="Impression Volume Trend (Last 7 Days)" data={impressionTrend} />
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
