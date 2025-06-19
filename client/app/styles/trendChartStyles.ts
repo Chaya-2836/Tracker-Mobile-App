@@ -1,31 +1,51 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Dimensions, Platform } from 'react-native';
+
+type ChartConfig = {
+  backgroundColor: string;
+  backgroundGradientFrom: string;
+  backgroundGradientTo: string;
+  decimalPlaces?: number;
+  color: (opacity?: number) => string;
+  labelColor?: (opacity?: number) => string;
+  style?: object;
+  propsForDots?: object;
+};
 
 const styles = StyleSheet.create({
   chartContainer: {
     backgroundColor: '#fff',
-    marginHorizontal: 20,
     marginBottom: 20,
     padding: 16,
     borderRadius: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 8,
-    elevation: 2,
+    alignSelf: 'center',
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOpacity: 0.05,
+        shadowOffset: { width: 0, height: 2 },
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
   },
   title: {
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 10,
     color: '#34495e',
+    textAlign: 'center',
   },
   chart: {
     borderRadius: 8,
     marginTop: 10,
+    alignSelf: 'center',
   },
 });
 
-export const chartConfig = {
+export const chartConfig: ChartConfig = {
   backgroundColor: '#fff',
   backgroundGradientFrom: '#fff',
   backgroundGradientTo: '#fff',

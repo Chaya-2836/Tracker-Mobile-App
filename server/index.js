@@ -16,21 +16,17 @@ const bigquery = new BigQuery({
 const nameDB = "platform-hackaton-2025";
 module.exports = { bigquery, nameDB };
 
-const clicksRouter = require("./routes/clicksRoutes");
-const impressionsRouter = require("./routes/impressionsRoutes");
+const eventsSummaryRoutes = require("./routes/eventsSummaryRoutes");
+app.use("/events_summary", eventsSummaryRoutes);
 
-app.use("/impressions", impressionsRouter);
-app.use("/clicks", clicksRouter);
+// app.use("/impressions",impressionsRouter);
+// app.use("/clicks", clicksRouter);
 
 // לצורך דוגמה 
 app.get('/user', (req, res) => {
   res.json({ name: 'John Doe' });
 });
-app.get('/', (req, res) => {
-  console.log("helll");
-  res.send("hhhhhh")
-  ;
-});
+
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
 });

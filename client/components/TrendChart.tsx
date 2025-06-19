@@ -1,26 +1,28 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, useWindowDimensions } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
-import { Dimensions } from 'react-native';
 import styles, { chartConfig } from '../app/styles/trendChartStyles';
 
 interface TrendChartProps {
   title: string;
-  data: number[];
+  data: { label: string; value: number }[];
 }
 
-const screenWidth = Dimensions.get('window').width;
-
 const TrendChart: React.FC<TrendChartProps> = ({ title, data }) => {
+  const { width: screenWidth } = useWindowDimensions();
+
+  const labels = data.map(item => item.label);
+  const values = data.map(item => item.value);
+
   return (
-    <View style={styles.chartContainer}>
+    <View style={[styles.chartContainer, { width: screenWidth * 0.9 }]}>
       <Text style={styles.title}>{title}</Text>
       <LineChart
         data={{
-          labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-          datasets: [{ data }],
+          labels,
+          datasets: [{ data: values }],
         }}
-        width={screenWidth - 40}
+        width={screenWidth * 0.85}
         height={220}
         chartConfig={chartConfig}
         style={styles.chart}
