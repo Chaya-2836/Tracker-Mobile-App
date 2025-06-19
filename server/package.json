@@ -14,14 +14,11 @@
   "dependencies": {
     "@google-cloud/bigquery": "^8.1.0",
     "cors": "^2.8.5",
-<<<<<<< HEAD
-    "date-fns": "^4.1.0",
-    "express": "^5.1.0"
-=======
+
     "express": "^5.1.0",
     "firebase-admin": "^13.4.0",
     "node-cron": "^4.1.0",
     "date-fns": "^4.1.0"
->>>>>>> 214a53d14cd82937e9cf7ced3c33e454d638a492
+
   }
 }
