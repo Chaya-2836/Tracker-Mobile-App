@@ -1,0 +1,66 @@
+[33m92db0ef[m[33m ([m[1;36mHEAD -> [m[1;32mfeat/notify-threshold-alert[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Merge branch 'add-filter-menu'
+[33m8a9e513[m add filter menu
+[33m24d23ae[m Merge pull request #17 from Chaya-2836/feat/add-weekly-trend-filter
+[33m5cf37d6[m[33m ([m[1;31morigin/feat/add-weekly-trend-filter[m[33m, [m[1;32mfeat/add-weekly-trend-filter[m[33m)[m feat: add filters to weekly trend view
+[33md38ca84[m[33m ([m[1;32mmain[m[33m)[m dinamicfunction
+[33m8641f82[m dinamic function
+[33md6ee7d4[m Merge pull request #16 from Chaya-2836/UI
+[33mc8f3fc7[m[33m ([m[1;31morigin/UI[m[33m)[m duplicate code fix
+[33mec8d841[m Merge branch 'main' of https://github.com/Chaya-2836/Tracker-Mobile-App into UI
+[33m213dfeb[m styling
+[33ma6f5156[m styling
+[33m0c22335[m Merge pull request #15 from Chaya-2836/update_date
+[33m45b69f2[m[33m ([m[1;31morigin/update_date[m[33m, [m[1;32mupdate_date[m[33m)[m Merge branch 'main' into update_date
+[33mfe45ddf[m add loading symbol
+[33me9cc5c6[m update functions with date values
+[33m3119b78[m Merge pull request #13 from Chaya-2836/UI
+[33me9125ce[m title and format change
+[33m323a777[m Merge branch 'main' of https://github.com/Chaya-2836/Tracker-Mobile-App into UI
+[33m1ef61a0[m responsivity
+[33mf5ab4f3[m switch between impression and clic graphic
+[33mc5d4dd4[m Merge pull request #12 from Chaya-2836/feat/add-impressions-tracking
+[33m2f91fc8[m[33m ([m[1;31morigin/feat/add-impressions-tracking[m[33m)[m Add getTodayImpressions function for daily impression count
+[33m58421a7[m Add getTodayImpressions function for daily impression count
+[33m899e8b6[m graf by daies
+[33m7c268b8[m add todayClicks
+[33me8c1b6d[m Merge pull request #11 from Chaya-2836/feat/add-impressions-tracking
+[33m755c5a3[m change query in getAllImpressions
+[33m0ae45ba[m Merge pull request #10 from Chaya-2836/connect-client-and-server
+[33m298ef7c[m[33m ([m[1;31morigin/connect-client-and-server[m[33m, [m[1;32mconnect-client-and-server[m[33m)[m Merge branch 'main' into connect-client-and-server
+[33m7dc6fb5[m Connect client to server, Add weekly impression trend chart and backend route
+[33me1a9905[m Connect client and server and Add weekly impression trend API and client chart
+[33m6024238[m Merge pull request #9 from Chaya-2836/UI
+[33m4b04274[m Merge branch 'main' of https://github.com/Chaya-2836/Tracker-Mobile-App
+[33mc18bbc9[m add clicks
+[33m6f88ba5[m Installation
+[33m1f8cfdc[m Title edit
+[33mbcdf087[m Edit tsconfig
+[33m9998bfa[m[33m ([m[1;31morigin/graphics[m[33m)[m visual components
+[33m104f7d8[m visual components addition
+[33mb373131[m Merge pull request #8 from Chaya-2836/feat/add-impressions-tracking
+[33m100be82[m change in query
+[33m161d052[m Merge pull request #7 from Chaya-2836/feat/add-impressions-tracking
+[33m7a7fb2a[m Added a comment about an additional type of click data retrieval from the database
+[33mb45cde6[m Added a comment about an additional type of click data retrieval from the database
+[33m905ce58[m Merge branch 'main' of https://github.com/Chaya-2836/Tracker-Mobile-App
+[33m65e26dc[m Remove server/node_modules from repo
+[33mca27722[m Merge pull request #6 from Chaya-2836/feat/add-impressions-tracking
+[33m0b7f96a[m add .gitignore file
+[33m8b1c59b[m Updated SQL query in getAllImpressions function to retrieve impressions count by campaign and campaign name
+[33mb17b347[m Merge pull request #5 from Chaya-2836/cleanup-refactor
+[33m03cdd41[m[33m ([m[1;31morigin/cleanup-refactor[m[33m)[m Merge branch 'main' into cleanup-refactor
+[33mddebd38[m[33m ([m[1;32mcleanup-refactor[m[33m)[m Clean up unused components and simplify structure
+[33mb5ae817[m Save server changes
+[33m56cac61[m Merge pull request #4 from Chaya-2836/feat/add-impressions-tracking
+[33m5c46848[m feat: add controllers and routes directories, implement daily impressions count function
+[33m8bde616[m[33m ([m[1;32madd-server[m[33m)[m Merge pull request #3 from Chaya-2836/connection-server-client
+[33m6ce1424[m[33m ([m[1;31morigin/connection-server-client[m[33m)[m connection-server-client
+[33m3beab99[m Merge pull request #2 from Chaya-2836/feature/welcome-message
+[33m9e4f3aa[m[33m ([m[1;31morigin/feature/welcome-message[m[33m)[m add styles folder and initial styling file
+[33m4d7d404[m chore: install native-base and related dependencies
+[33m72948d1[m chore: install native-base and related dependencies
+[33m0bd8fd5[m Add a welcome message
+[33mcde7cfd[m add client
+[33m846f6eb[m Merge pull request #1 from Chaya-2836/add-server
+[33mfab7500[m[33m ([m[1;31morigin/add-server[m[33m)[m Add server folder with Node.js backend
+[33mebaa862[m Initial commit
