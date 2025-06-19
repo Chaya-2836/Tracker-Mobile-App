@@ -1,5 +1,4 @@
 import { StyleSheet, Dimensions, Platform } from 'react-native';
-import { blue } from 'react-native-reanimated/lib/typescript/Colors';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -9,7 +8,7 @@ const styles = StyleSheet.create({
     top: 40,
     right: 20,
     zIndex: 1000,
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     padding: 8,
     borderRadius: 30,
     shadowColor: '#000',

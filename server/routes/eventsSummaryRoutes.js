@@ -1,7 +1,8 @@
-const express = require('express');
+import express from 'express';
+import { getEventsSummary } from '../controllers/eventsSummaryController.js';
+
 const router = express.Router();
-const clicksController = require("../controllers/eventsSummaryController");
 
+router.get('/', getEventsSummary);
 
-router.get('/', clicksController.getEventsSummary);
-module.exports = router;
+export default router;

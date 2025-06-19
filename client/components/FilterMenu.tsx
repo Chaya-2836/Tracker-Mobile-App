@@ -12,7 +12,7 @@ import styles from '../app/styles/filterMenuStyle';
 
 const screenWidth = Dimensions.get('window').width;
 
-// Mapping UI labels to backend query params
+// Map UI labels to backend keys
 const filterKeys: { [label: string]: string } = {
   'Campaign': 'campaign_name',
   'Platform': 'platform',
@@ -21,6 +21,7 @@ const filterKeys: { [label: string]: string } = {
   'Engagement Type': 'engagement_type',
 };
 
+// API endpoints for each filter
 const endpoints: { [label: string]: string } = {
   'Campaign': '/api/getCampaigns',
   'Platform': '/api/getPlatforms',
@@ -41,6 +42,7 @@ export default function FilterMenu({ onApply, onClear }: Props) {
   const [expanded, setExpanded] = useState<{ [key: string]: boolean }>({});
   const slideAnim = useRef(new Animated.Value(screenWidth)).current;
 
+  // Slide panel animation toggle
   const togglePanel = () => {
     if (visible) {
       Animated.timing(slideAnim, {
@@ -58,18 +60,20 @@ export default function FilterMenu({ onApply, onClear }: Props) {
     }
   };
 
+  // Toggle section expanded/collapsed
   const toggleSection = (key: string) => {
-    setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
+    setExpanded(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
+  // Toggle selected option (single-select per category)
   const toggleOption = (label: string, option: string) => {
-    setSelected((prev) => {
+    setSelected(prev => {
       const current = prev[label];
       const newSelection = current?.[0] === option ? [] : [option];
 
       const updated = { ...prev, [label]: newSelection };
 
-      // Map selected labels to backend keys
+      // Map UI labels to backend keys for onApply callback
       const mappedSelection: { [key: string]: string[] } = {};
       Object.entries(updated).forEach(([label, val]) => {
         const param = filterKeys[label];
@@ -83,9 +87,11 @@ export default function FilterMenu({ onApply, onClear }: Props) {
     });
   };
 
+  // Check if option is selected
   const isSelected = (label: string, option: string) =>
     selected[label]?.includes(option);
 
+  // Fetch filter options from API endpoints
   const fetchFilterData = async () => {
     const newFilterOptions: { [label: string]: string[] } = {};
 
@@ -112,12 +118,13 @@ export default function FilterMenu({ onApply, onClear }: Props) {
   return (
     <>
       <TouchableOpacity onPress={togglePanel} style={styles.toggleButton}>
-        <Ionicons name="menu" size={30} color="" />
+        <Ionicons name="menu" size={30} color="#e91e63" />
       </TouchableOpacity>
 
       {visible && (
         <Animated.View style={[styles.panel, { left: slideAnim }]}>
           <Text style={styles.title}>Filters</Text>
+
           <ScrollView>
             {Object.entries(filterOptions).map(([label, options]) => (
               <View key={label} style={styles.inputGroup}>
@@ -134,7 +141,7 @@ export default function FilterMenu({ onApply, onClear }: Props) {
                 </TouchableOpacity>
 
                 {expanded[label] &&
-                  options.map((option) => (
+                  options.map(option => (
                     <TouchableOpacity
                       key={option}
                       onPress={() => toggleOption(label, option)}
