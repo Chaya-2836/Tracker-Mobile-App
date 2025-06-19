@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -12,13 +12,30 @@ import styles from '../app/styles/filterMenuStyle';
 
 const screenWidth = Dimensions.get('window').width;
 
+// Mapping UI labels to backend query params
+const filterKeys: { [label: string]: string } = {
+  'Campaign': 'campaign_name',
+  'Platform': 'platform',
+  'Media Source': 'media_source',
+  'Agency': 'agency',
+  'Engagement Type': 'engagement_type',
+};
+
+const endpoints: { [label: string]: string } = {
+  'Campaign': '/api/getCampaigns',
+  'Platform': '/api/getPlatforms',
+  'Media Source': '/api/getMediaSources',
+  'Agency': '/api/getAgencies',
+  'Engagement Type': '/api/getEngagementTypes',
+};
+
 type Props = {
-  filterOptions: { [key: string]: string[] };
   onApply: (selected: { [key: string]: string[] }) => void;
   onClear: () => void;
 };
 
-export default function FilterMenu({ filterOptions, onApply, onClear }: Props) {
+export default function FilterMenu({ onApply, onClear }: Props) {
+  const [filterOptions, setFilterOptions] = useState<{ [label: string]: string[] }>({});
   const [selected, setSelected] = useState<{ [key: string]: string[] }>({});
   const [visible, setVisible] = useState(false);
   const [expanded, setExpanded] = useState<{ [key: string]: boolean }>({});
@@ -45,31 +62,52 @@ export default function FilterMenu({ filterOptions, onApply, onClear }: Props) {
     setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-const toggleOption = (key: string, option: string) => {
-  setSelected((prev) => {
-    const current = prev[key];
-    let newSelection: string[];
+  const toggleOption = (label: string, option: string) => {
+    setSelected((prev) => {
+      const current = prev[label];
+      const newSelection = current?.[0] === option ? [] : [option];
 
-    if (current?.[0] === option) {
-      // If the option is already selected, deselect it (empty array)
-      newSelection = [];
-    } else {
-      // Otherwise, select only this option
-      newSelection = [option];
-    }
+      const updated = { ...prev, [label]: newSelection };
 
-    const newSelected = { ...prev, [key]: newSelection };
+      // Map selected labels to backend keys
+      const mappedSelection: { [key: string]: string[] } = {};
+      Object.entries(updated).forEach(([label, val]) => {
+        const param = filterKeys[label];
+        if (param && val.length > 0) {
+          mappedSelection[param] = val;
+        }
+      });
 
-    // Auto-apply whenever selection changes
-    onApply(newSelected);
+      onApply(mappedSelection);
+      return updated;
+    });
+  };
 
-    return newSelected;
-  });
-};
+  const isSelected = (label: string, option: string) =>
+    selected[label]?.includes(option);
 
+  const fetchFilterData = async () => {
+    const newFilterOptions: { [label: string]: string[] } = {};
 
-  const isSelected = (key: string, option: string) =>
-    selected[key]?.includes(option);
+    await Promise.all(
+      Object.entries(endpoints).map(async ([label, url]) => {
+        try {
+          const res = await fetch(url);
+          const data = await res.json();
+          newFilterOptions[label] = data;
+        } catch (err) {
+          console.error(`Failed to load ${label} filter options`, err);
+          newFilterOptions[label] = [];
+        }
+      })
+    );
+
+    setFilterOptions(newFilterOptions);
+  };
+
+  useEffect(() => {
+    fetchFilterData();
+  }, []);
 
   return (
     <>
@@ -81,34 +119,34 @@ const toggleOption = (key: string, option: string) => {
         <Animated.View style={[styles.panel, { left: slideAnim }]}>
           <Text style={styles.title}>Filters</Text>
           <ScrollView>
-            {Object.entries(filterOptions).map(([key, options]) => (
-              <View key={key} style={styles.inputGroup}>
+            {Object.entries(filterOptions).map(([label, options]) => (
+              <View key={label} style={styles.inputGroup}>
                 <TouchableOpacity
                   style={styles.sectionHeader}
-                  onPress={() => toggleSection(key)}
+                  onPress={() => toggleSection(label)}
                 >
-                  <Text style={styles.label}>{key}</Text>
+                  <Text style={styles.label}>{label}</Text>
                   <Ionicons
-                    name={expanded[key] ? 'chevron-up' : 'chevron-down'}
+                    name={expanded[label] ? 'chevron-up' : 'chevron-down'}
                     size={18}
                     color="#2c3e50"
                   />
                 </TouchableOpacity>
 
-                {expanded[key] &&
+                {expanded[label] &&
                   options.map((option) => (
                     <TouchableOpacity
                       key={option}
-                      onPress={() => toggleOption(key, option)}
+                      onPress={() => toggleOption(label, option)}
                       style={[
                         styles.optionItem,
-                        isSelected(key, option) && styles.optionItemSelected,
+                        isSelected(label, option) && styles.optionItemSelected,
                       ]}
                     >
                       <Text
                         style={[
                           styles.optionText,
-                          isSelected(key, option) && styles.optionTextSelected,
+                          isSelected(label, option) && styles.optionTextSelected,
                         ]}
                       >
                         {option}
