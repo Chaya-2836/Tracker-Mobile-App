@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import {SafeAreaView,ScrollView,Text,View,ActivityIndicator,TouchableOpacity,Alert,} from 'react-native';
+import {
+  SafeAreaView,
+  ScrollView,
+  Text,
+  View,
+  ActivityIndicator,
+  TouchableOpacity,
+  Alert,
+  Platform,
+} from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import StatCard from '../../components/statCard';
@@ -31,6 +40,11 @@ export default function App() {
   }, []);
 
   async function registerForPushNotifications() {
+    if (Platform.OS === 'web') {
+      console.log("Push notifications are disabled on web");
+      return;
+    }
+
     if (!Device.isDevice) {
       Alert.alert('Must use physical device');
       return;
@@ -66,9 +80,7 @@ export default function App() {
 
   async function fetchData() {
     try {
-      // getTodayStats מחזירה מספרים, לא מערכים
       const { clicks, impressions } = await getTodayStats();
-
       setClicksToday(clicks);
       setImpressionsToday(impressions);
     } catch (err) {
@@ -96,27 +108,28 @@ export default function App() {
     }
   }
 
+  // תואם לחתימה של FilterMenu: { [key: string]: string }
+  function handleFilterChange(rawSelected: { [key: string]: string[] }): void {
+    const selected: { [key: string]: string } = {};
 
+    for (const key in rawSelected) {
+      selected[key] = rawSelected[key][0] ?? '';
+    }
 
-//נתוני דמה רק כדי שלא יקרוס
- function handleFilterChange(selected: { [key: string]: string[] }): void {
     console.log('Filters Applied:', selected);
-    // פה אפשר להפעיל קריאה מחדש ל-API
+    // כאן אפשר להפעיל fetch חדש עם selected
   }
-  const campaignName = 'Campaign A'; // דוגמה לשם קמפיין, אפשר לשנות לפי הצורך
-
-
-
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
         <Text style={styles.header}>Engagement Tracker</Text>
-       <FilterMenu
-        onApply={handleFilterChange}
-        onClear={() => console.log('Filters cleared')}
-      />
-        {/* Toggle Buttons */}
+
+        <FilterMenu
+          onApply={handleFilterChange}
+          onClear={() => console.log('Filters cleared')}
+        />
+
         <View style={styles.buttonGroup}>
           <TouchableOpacity
             style={[styles.toggleButton, showClicks && styles.activeButton]}

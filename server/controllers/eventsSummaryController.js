@@ -1,11 +1,10 @@
-const { bigquery, nameDB } = require("../index");
-const { parseISO, isAfter } = require('date-fns'); 
+import { bigquery, nameDB } from '../config/bigqueryConfig.js';
+import { parseISO, isAfter } from 'date-fns';
 
-const nameTable = `${nameDB}.attribution_end_user_events.end_user_events`;
-
-
-exports.getEventsSummary = async (req, res) => {
+export async function getEventsSummary(req, res) {
   try {
+    const nameTable = `${nameDB}.attribution_end_user_events.end_user_events`;
+
     const filters = [];
     const params = {};
 
@@ -69,7 +68,9 @@ exports.getEventsSummary = async (req, res) => {
 
     const whereClause = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
 
-    let selectClause = "", groupClause = "";
+    let selectClause = "";
+    let groupClause = "";
+
     if (daysMode === 'day') {
       selectClause = `SELECT DATE(event_time) AS event_date, COUNT(*) AS count`;
     } else {
@@ -90,16 +91,21 @@ exports.getEventsSummary = async (req, res) => {
 
     const options = {
       query,
-      location: "US",
+      location: 'US',
       params,
     };
 
     const [job] = await bigquery.createQueryJob(options);
     const [rows] = await job.getQueryResults();
 
-    res.status(200).json(rows);
+    if (daysMode === 'day') {
+      const count = rows[0]?.count || 0;
+      res.type('text/plain').send(count.toString());
+    } else {
+      res.status(200).json(rows);
+    }
   } catch (err) {
-    console.error("😒 ERROR ב־getEventsSummary:", err);
-    res.status(500).json({ error: "אירעה שגיאה בעת ביצוע השאילתה" });
+    console.error('😒 ERROR ב־getEventsSummary:', err);
+    res.status(500).json({ error: 'אירעה שגיאה בעת ביצוע השאילתה' });
   }
-};
+}
