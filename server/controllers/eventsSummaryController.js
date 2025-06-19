@@ -16,6 +16,8 @@ export async function getEventsSummary(req, res) {
       engagement_type,
       daysMode = 'week',
       date,
+      unified_app_id,
+      user_agent
     } = req.query;
 
     if (campaign_name) {
@@ -34,7 +36,14 @@ export async function getEventsSummary(req, res) {
       filters.push(`agency = @agency`);
       params.agency = agency;
     }
-
+    if (unified_app_id) {
+      filters.push(`unified_app_id = @unified_app_id`);
+      params.unified_app_id = unified_app_id;
+    }
+    if (user_agent) {
+      filters.push(`user_agent = @user_agent`);
+      params.user_agent = user_agent;
+    }
     params.engagement_type = engagement_type || 'click';
     filters.push(`engagement_type = @engagement_type`);
 
@@ -53,16 +62,16 @@ export async function getEventsSummary(req, res) {
 
     if (daysMode === 'day') {
       if (useCurrentDate) {
-        filters.push(`DATE(event_time) = CURRENT_DATE()`);
+        filters.push(`DATE(event_time, "Asia/Jerusalem") = CURRENT_DATE("Asia/Jerusalem")`);
+        
       } else {
         filters.push(`DATE(event_time) = DATE(@date)`);
       }
     } else {
       if (useCurrentDate) {
-        filters.push(`event_time >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 7 DAY)`);
+        filters.push(`DATE(event_time) BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY) AND DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY)`);
       } else {
-        filters.push(`event_time >= TIMESTAMP_SUB(TIMESTAMP(@date), INTERVAL 6 DAY)`);
-        filters.push(`DATE(event_time) <= DATE(@date)`);
+        filters.push(`DATE(event_time) BETWEEN DATE_SUB(DATE(@date), INTERVAL 7 DAY) AND DATE_SUB(DATE(@date), INTERVAL 1 DAY)`);
       }
     }
 
@@ -72,7 +81,9 @@ export async function getEventsSummary(req, res) {
     let groupClause = "";
 
     if (daysMode === 'day') {
-      selectClause = `SELECT DATE(event_time) AS event_date, COUNT(*) AS count`;
+      selectClause = `SELECT DATE(event_time, "Asia/Jerusalem") AS event_date, COUNT(*) AS count`;
+      groupClause = `GROUP BY event_date ORDER BY event_date`;
+
     } else {
       selectClause = `
         SELECT 
