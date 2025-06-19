@@ -63,15 +63,15 @@ export async function getEventsSummary(req, res) {
     if (daysMode === 'day') {
       if (useCurrentDate) {
         filters.push(`DATE(event_time, "Asia/Jerusalem") = CURRENT_DATE("Asia/Jerusalem")`);
-
+        
       } else {
         filters.push(`DATE(event_time) = DATE(@date)`);
       }
     } else {
       if (useCurrentDate) {
-        filters.push(`DATE(event_time) BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 6 DAY) AND CURRENT_DATE()`);
+        filters.push(`DATE(event_time) BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY) AND DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY)`);
       } else {
-        filters.push(`DATE(event_time) BETWEEN DATE_SUB(DATE(@date), INTERVAL 6 DAY) AND DATE(@date)`);
+        filters.push(`DATE(event_time) BETWEEN DATE_SUB(DATE(@date), INTERVAL 7 DAY) AND DATE_SUB(DATE(@date), INTERVAL 1 DAY)`);
       }
     }
 
@@ -83,6 +83,7 @@ export async function getEventsSummary(req, res) {
     if (daysMode === 'day') {
       selectClause = `SELECT DATE(event_time, "Asia/Jerusalem") AS event_date, COUNT(*) AS count`;
       groupClause = `GROUP BY event_date ORDER BY event_date`;
+
 
     } else {
       selectClause = `
