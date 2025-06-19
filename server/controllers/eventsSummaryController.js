@@ -1,8 +1,8 @@
 const { bigquery, nameDB } = require("../index");
+const { parseISO, isAfter } = require('date-fns'); 
 
 const nameTable = `${nameDB}.attribution_end_user_events.end_user_events`;
 
-const { parseISO, isAfter } = require('date-fns'); // ודא שהותקן עם npm install date-fns
 
 exports.getEventsSummary = async (req, res) => {
   try {
