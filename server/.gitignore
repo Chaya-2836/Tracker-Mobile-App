@@ -43,3 +43,7 @@ build/
 
 # Debug
 debug.log
+
+
+#premission
+config/key.json
