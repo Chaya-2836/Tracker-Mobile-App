@@ -1,12 +1,13 @@
-const express = require("express");
-const router = express.Router();
-const { registerToken } = require("./push/pushService");
+import express from 'express';
+import { registerToken } from '../push/PushService.js';
 
-router.post("/register-token", (req, res) => {
+const router = express.Router();
+
+router.post('/register-token', (req, res) => {
   const { token } = req.body;
-  if (!token) return res.status(400).send("Missing token");
+  if (!token) return res.status(400).send('Missing token');
   registerToken(token);
-  res.send("Token registered successfully.");
+  res.send('Token registered successfully.');
 });
 
-module.exports = router;
+export default router;

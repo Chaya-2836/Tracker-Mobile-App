@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Alert,
+  Platform,
 } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
@@ -38,37 +39,41 @@ export default function App() {
   }, []);
 
   async function registerForPushNotifications() {
-    let token;
+    if (Platform.OS === 'web') {
+      console.log("Push notifications are disabled on web");
+      return;
+    }
 
-    if (Device.isDevice) {
-      const { status: existingStatus } = await Notifications.getPermissionsAsync();
-      let finalStatus = existingStatus;
-
-      if (existingStatus !== 'granted') {
-        const { status } = await Notifications.requestPermissionsAsync();
-        finalStatus = status;
-      }
-
-      if (finalStatus !== 'granted') {
-        Alert.alert('Permission denied', 'Cannot receive push notifications');
-        return;
-      }
-
-      token = (await Notifications.getExpoPushTokenAsync()).data;
-      console.log('📲 Expo Push Token:', token);
-
-      try {
-        await fetch('http://localhost:3000/push/register-token', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token }),
-        });
-        console.log('✅ Token sent to server');
-      } catch (err) {
-        console.error('❌ Failed to send token:', err);
-      }
-    } else {
+    if (!Device.isDevice) {
       Alert.alert('Must use physical device');
+      return;
+    }
+
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+
+    if (existingStatus !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+
+    if (finalStatus !== 'granted') {
+      Alert.alert('Permission denied', 'Cannot receive push notifications');
+      return;
+    }
+
+    const token = (await Notifications.getExpoPushTokenAsync()).data;
+    console.log('📲 Expo Push Token:', token);
+
+    try {
+      await fetch('http://localhost:3000/push/register-token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
+      });
+      console.log('✅ Token sent to server');
+    } catch (err) {
+      console.error('❌ Failed to send token:', err);
     }
   }
 
@@ -76,8 +81,8 @@ export default function App() {
     try {
       const { clicks, impressions } = await getTodayStats();
 
-      setClicksToday(typeof clicks === 'number' ? clicks : 0);
-      setImpressionsToday(typeof impressions === 'number' ? impressions : 0);
+      setClicksToday(clicks);
+      setImpressionsToday(impressions);
     } catch (err) {
       console.error('❌ Failed to fetch daily data:', err);
     }
