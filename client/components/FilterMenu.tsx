@@ -112,7 +112,7 @@ export default function FilterMenu({ onApply, onClear }: Props) {
   return (
     <>
       <TouchableOpacity onPress={togglePanel} style={styles.toggleButton}>
-        <Ionicons name="menu" size={30} color="#e91e63" />
+        <Ionicons name="menu" size={30} color="" />
       </TouchableOpacity>
 
       {visible && (
