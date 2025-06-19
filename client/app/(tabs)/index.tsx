@@ -132,8 +132,8 @@ export default function App() {
           <ActivityIndicator size="large" color="#0000ff" />
         ) : showClicks ? (
           <>
-            <TrendChart title="Clicks Volume Trend (Last 7 Days)" data={clickTrend} />
-            <StatCard title="Clicks Entered in the Last Day" value={clicksToday} />
+            <TrendChart title="Click Volume Trend (Last 7 Days)" data={clickTrend} />
+            <StatCard title="Clicks Recorded Today" value={clicksToday} />
           </>
         ) : (
           <>
