@@ -1,27 +1,34 @@
-// server.js
+import express from 'express';
+import cors from 'cors';
+import { BigQuery } from '@google-cloud/bigquery';
+import eventsSummaryRoutes from './routes/eventsSummaryRoutes.js';
+import filtersRoutes from './routes/filtersRoutes.js';
+import pushRoutes from './routes/pushRoutes.js';
+import { scheduleDailyCheck } from './push/PushService.js';
 
-const express = require('express');
-const cors = require('cors');
 const app = express();
 const port = 3000;
-// פתרון בעיית ה cors
+
 app.use(cors());
 app.use(express.json());
 
-const { BigQuery } = require("@google-cloud/bigquery");
-//צריך להוסיף את ניתוב לקובץ ההרשאות
+// אתחול BigQuery - עדכן את הנתיב לקובץ ההרשאות שלך במידה ויש
 const bigquery = new BigQuery({
-    keyFilename: ""
+  keyFilename: './firebase-service-account.json', // תשנה לפי מיקום הקובץ שלך
 });
-const nameDB = "platform-hackaton-2025";
-module.exports = { bigquery, nameDB };
 
-const eventsSummaryRoutes = require("./routes/eventsSummaryRoutes");
-app.use("/events_summary", eventsSummaryRoutes);
+const nameDB = 'platform-hackaton-2025';
 
-const filtersRoutes = require('./routes/filtersRoutes');
+// חשוב לייצא אותם לשימוש בקבצים אחרים
+export { bigquery, nameDB };
+
+// רישום ראוטים
+app.use('/events_summary', eventsSummaryRoutes);
 app.use('/filters', filtersRoutes);
+app.use('/push', pushRoutes);
 
+// קריאה לפונקציית בדיקת הפוש המתוזמנת
+scheduleDailyCheck();
 
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);

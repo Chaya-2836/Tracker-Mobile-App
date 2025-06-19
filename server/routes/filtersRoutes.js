@@ -1,11 +1,18 @@
-const express = require('express');
+import express from 'express';
+import {
+  getCampaigns,
+  getPlatforms,
+  getMediaSources,
+  getAgencies,
+  getEngagementTypes,
+} from '../controllers/filtersController.js';
+
 const router = express.Router();
-const filtersController = require('../controllers/filtersController');
 
-router.get('/campaigns', filtersController.getCampaigns);
-router.get('/platforms', filtersController.getPlatforms);
-router.get('/media-sources', filtersController.getMediaSources);
-router.get('/agencies', filtersController.getAgencies);
-router.get('/engagement-types', filtersController.getEngagementTypes);
+router.get('/campaigns', getCampaigns);
+router.get('/platforms', getPlatforms);
+router.get('/media-sources', getMediaSources);
+router.get('/agencies', getAgencies);
+router.get('/engagement-types', getEngagementTypes);
 
-module.exports = router;
+export default router;
