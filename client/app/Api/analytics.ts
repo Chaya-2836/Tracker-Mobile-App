@@ -2,6 +2,11 @@ const API_BASE = "http://localhost:8021/events_summary/";
 
 type DaysMode = 'day' | 'week';
 type Filters = Record<string, string>;
+type TrendPoint = {
+  label: Date;
+  value: number;
+};
+
 
 async function fetchEventSummary(
   type: string,
@@ -21,6 +26,26 @@ async function fetchEventSummary(
   }
 }
 
+function fillMissingDays(data: TrendPoint[]): TrendPoint[] {
+  const filled: TrendPoint[] = [];
+  const today = new Date();
+  for (let i = 1; i <= 7; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const iso = d.toISOString().slice(0, 10);
+    const existing = data.find(item => item.label.toISOString().slice(0, 10) === iso);
+    filled.unshift(
+      existing || { label: d, value: 0 }
+    );
+  }
+  return filled;
+};
+const convertToTrendPoints = (data: any[]): TrendPoint[] =>
+  data.map(item => ({
+    label: new Date(item.event_date),
+    value: Number(item.count) || 0,
+  }));
+
 // יומי - מחזיר מספרים
 export async function getTodayStats(filters: Filters = {}) {
   const [clicks, impressions] = await Promise.all([
@@ -39,17 +64,16 @@ export async function getWeeklyTrends(filters: Filters = {}) {
   ]);
 
   // ודא שאלה מערכים ולא מספרים
-  const clicksRow = Array.isArray(clicksRowResult) ? clicksRowResult : [];
-  const impressionsRow = Array.isArray(impressionsRowResult) ? impressionsRowResult : [];
+  let clicksRow = Array.isArray(clicksRowResult)
+    ? fillMissingDays(convertToTrendPoints(clicksRowResult))
+    : [];
 
-  const parse = (data: any[]): { label: string; value: number }[] =>
-    data.map(item => ({
-      label: item.event_date,
-      value: Number(item.count) || 0,
-    }));
+  let impressionsRow = Array.isArray(impressionsRowResult)
+    ? fillMissingDays(convertToTrendPoints(impressionsRowResult))
+    : [];
 
   return {
-    clicks: parse(clicksRow),
-    impressions: parse(impressionsRow),
+    clicks: clicksRow,
+    impressions: impressionsRow,
   };
 }
