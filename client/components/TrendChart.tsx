@@ -5,13 +5,13 @@ import styles, { chartConfig } from '../app/styles/trendChartStyles';
 
 interface TrendChartProps {
   title: string;
-  data: { label: string; value: number }[];
+  data: { label: Date; value: number }[];
 }
 
 const TrendChart: React.FC<TrendChartProps> = ({ title, data }) => {
   const { width: screenWidth } = useWindowDimensions(); // auto-updates on resize/rotation
 
-  const labels = data.map(item => item.label);
+  const labels = data.map(item => item.label.toLocaleDateString()) ;
   const values = data.map(item => item.value);
 
   return (
