@@ -1,20 +1,44 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, TouchableOpacity, Animated, Dimensions } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
+import React, { useEffect, useState, useRef } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Animated,
+  Dimensions,
+  ScrollView,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import styles from '../app/styles/filterMenuStyle'; 
+import styles from '../app/styles/filterMenuStyle';
 
 const screenWidth = Dimensions.get('window').width;
 
+// Mapping UI labels to backend query params
+const filterKeys: { [label: string]: string } = {
+  'Campaign': 'campaign_name',
+  'Platform': 'platform',
+  'Media Source': 'media_source',
+  'Agency': 'agency',
+  'Engagement Type': 'engagement_type',
+};
+
+const endpoints: { [label: string]: string } = {
+  'Campaign': '/api/getCampaigns',
+  'Platform': '/api/getPlatforms',
+  'Media Source': '/api/getMediaSources',
+  'Agency': '/api/getAgencies',
+  'Engagement Type': '/api/getEngagementTypes',
+};
+
 type Props = {
-  filterOptions: { [key: string]: string[] };
-  onApply: (selected: { [key: string]: string }) => void;
+  onApply: (selected: { [key: string]: string[] }) => void;
   onClear: () => void;
 };
 
-export default function FilterMenu({ filterOptions, onApply, onClear }: Props) {
-  const [selected, setSelected] = useState<{ [key: string]: string }>({});
+export default function FilterMenu({ onApply, onClear }: Props) {
+  const [filterOptions, setFilterOptions] = useState<{ [label: string]: string[] }>({});
+  const [selected, setSelected] = useState<{ [key: string]: string[] }>({});
   const [visible, setVisible] = useState(false);
+  const [expanded, setExpanded] = useState<{ [key: string]: boolean }>({});
   const slideAnim = useRef(new Animated.Value(screenWidth)).current;
 
   const togglePanel = () => {
@@ -27,16 +51,63 @@ export default function FilterMenu({ filterOptions, onApply, onClear }: Props) {
     } else {
       setVisible(true);
       Animated.timing(slideAnim, {
-        toValue: screenWidth - 250,
+        toValue: screenWidth - 260,
         duration: 300,
         useNativeDriver: false,
       }).start();
     }
   };
 
-  const handleChange = (key: string, value: string) => {
-    setSelected(prev => ({ ...prev, [key]: value }));
+  const toggleSection = (key: string) => {
+    setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
   };
+
+  const toggleOption = (label: string, option: string) => {
+    setSelected((prev) => {
+      const current = prev[label];
+      const newSelection = current?.[0] === option ? [] : [option];
+
+      const updated = { ...prev, [label]: newSelection };
+
+      // Map selected labels to backend keys
+      const mappedSelection: { [key: string]: string[] } = {};
+      Object.entries(updated).forEach(([label, val]) => {
+        const param = filterKeys[label];
+        if (param && val.length > 0) {
+          mappedSelection[param] = val;
+        }
+      });
+
+      onApply(mappedSelection);
+      return updated;
+    });
+  };
+
+  const isSelected = (label: string, option: string) =>
+    selected[label]?.includes(option);
+
+  const fetchFilterData = async () => {
+    const newFilterOptions: { [label: string]: string[] } = {};
+
+    await Promise.all(
+      Object.entries(endpoints).map(async ([label, url]) => {
+        try {
+          const res = await fetch(url);
+          const data = await res.json();
+          newFilterOptions[label] = data;
+        } catch (err) {
+          console.error(`Failed to load ${label} filter options`, err);
+          newFilterOptions[label] = [];
+        }
+      })
+    );
+
+    setFilterOptions(newFilterOptions);
+  };
+
+  useEffect(() => {
+    fetchFilterData();
+  }, []);
 
   return (
     <>
@@ -47,39 +118,54 @@ export default function FilterMenu({ filterOptions, onApply, onClear }: Props) {
       {visible && (
         <Animated.View style={[styles.panel, { left: slideAnim }]}>
           <Text style={styles.title}>Filters</Text>
-
-          {Object.entries(filterOptions).map(([key, options]) => (
-            <View key={key} style={styles.inputGroup}>
-              <Text style={styles.label}>{key}</Text>
-              <View style={styles.pickerWrapper}>
-                <Picker
-                  selectedValue={selected[key] || ''}
-                  onValueChange={value => handleChange(key, value)}
-                  style={styles.picker}
+          <ScrollView>
+            {Object.entries(filterOptions).map(([label, options]) => (
+              <View key={label} style={styles.inputGroup}>
+                <TouchableOpacity
+                  style={styles.sectionHeader}
+                  onPress={() => toggleSection(label)}
                 >
-                  <Picker.Item label="Select..." value="" />
-                  {options.map(option => (
-                    <Picker.Item key={option} label={option} value={option} />
-                  ))}
-                </Picker>
-              </View>
-            </View>
-          ))}
+                  <Text style={styles.label}>{label}</Text>
+                  <Ionicons
+                    name={expanded[label] ? 'chevron-up' : 'chevron-down'}
+                    size={18}
+                    color="#2c3e50"
+                  />
+                </TouchableOpacity>
 
-          <View style={styles.buttonRow}>
-            <TouchableOpacity style={styles.applyBtn} onPress={() => onApply(selected)}>
-              <Text style={styles.btnText}>Apply</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.clearBtn}
-              onPress={() => {
-                setSelected({});
-                onClear();
-              }}
-            >
-              <Text style={styles.btnText}>Clear</Text>
-            </TouchableOpacity>
-          </View>
+                {expanded[label] &&
+                  options.map((option) => (
+                    <TouchableOpacity
+                      key={option}
+                      onPress={() => toggleOption(label, option)}
+                      style={[
+                        styles.optionItem,
+                        isSelected(label, option) && styles.optionItemSelected,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.optionText,
+                          isSelected(label, option) && styles.optionTextSelected,
+                        ]}
+                      >
+                        {option}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+              </View>
+            ))}
+          </ScrollView>
+
+          <TouchableOpacity
+            style={styles.clearBtn}
+            onPress={() => {
+              setSelected({});
+              onClear();
+            }}
+          >
+            <Text style={styles.btnText}>Clear Filters</Text>
+          </TouchableOpacity>
         </Animated.View>
       )}
     </>
