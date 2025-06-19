@@ -1,28 +1,54 @@
-const API_BASE = "http://localhost:3000";
+const API_BASE = "http://localhost:3000/events-summary";
 
-export async function getTodayStats() {
-  const [clicksRes, impressionsRes] = await Promise.all([
-    fetch(`${API_BASE}/clicks/allClicks`),
-    fetch(`${API_BASE}/impressions/allImpressions`),
+type DaysMode = 'day' | 'week';
+type Filters = Record<string, string>;
+
+async function fetchEventSummary(
+  type: string,
+  daysMode: DaysMode,
+  filters: Filters = {}
+): Promise<number | any[]> {
+  const query = new URLSearchParams({ engagement_type: type, daysMode, ...filters });
+  const res = await fetch(`${API_BASE}?${query.toString()}`);
+
+  if (daysMode === 'day') {
+    const countText = await res.text();
+    return parseInt(countText, 10) || 0;
+  } else {
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  }
+}
+
+// יומי - מחזיר מספרים
+export async function getTodayStats(filters: Filters = {}) {
+  const [clicks, impressions] = await Promise.all([
+    fetchEventSummary('click', 'day', filters) as Promise<number>,
+    fetchEventSummary('impression', 'day', filters) as Promise<number>
   ]);
 
-  const clicks = await clicksRes.json();
-  const impressions = await impressionsRes.json();
+  return { clicks, impressions };
+}
+
+// שבועי - מחזיר מערכים
+export async function getWeeklyTrends(filters: Filters = {}) {
+  const [clicksRowResult, impressionsRowResult] = await Promise.all([
+    fetchEventSummary('click', 'week', filters),
+    fetchEventSummary('impression', 'week', filters)
+  ]);
+
+  // ודא שאלה מערכים ולא מספרים
+  const clicksRow = Array.isArray(clicksRowResult) ? clicksRowResult : [];
+  const impressionsRow = Array.isArray(impressionsRowResult) ? impressionsRowResult : [];
+
+  const parse = (data: any[]): { label: string; value: number }[] =>
+    data.map(item => ({
+      label: item.event_date,
+      value: Number(item.count) || 0,
+    }));
 
   return {
-    clicks: Array.isArray(clicks) ? clicks : [],
-    impressions: Array.isArray(impressions) ? impressions : [],
+    clicks: parse(clicksRow),
+    impressions: parse(impressionsRow),
   };
-}
-
-export async function getWeeklyClickTrendByDate() {
-  const res = await fetch(`${API_BASE}/clicks/ClicksByDate`);
-  const data = await res.json();
-  return Array.isArray(data) ? data : [];
-}
-
-export async function getWeeklyImpressionTrendByDate() {
-  const res = await fetch(`${API_BASE}/impressions/ImpressionsByDate`);
-  const data = await res.json();
-  return Array.isArray(data) ? data : [];
 }
