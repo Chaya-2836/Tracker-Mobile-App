@@ -18,6 +18,7 @@ import {
   getWeeklyTrends,
 } from '../Api/analytics';
 import styles from '../styles/appStyles';
+import FilterMenu from '@/components/FilterMenu';
 
 interface TrendPoint {
   label: Date;
@@ -80,7 +81,6 @@ export default function App() {
   async function fetchData() {
     try {
       const { clicks, impressions } = await getTodayStats();
-
       setClicksToday(clicks);
       setImpressionsToday(impressions);
     } catch (err) {
@@ -108,12 +108,28 @@ export default function App() {
     }
   }
 
+  // תואם לחתימה של FilterMenu: { [key: string]: string }
+  function handleFilterChange(rawSelected: { [key: string]: string[] }): void {
+    const selected: { [key: string]: string } = {};
+
+    for (const key in rawSelected) {
+      selected[key] = rawSelected[key][0] ?? '';
+    }
+
+    console.log('Filters Applied:', selected);
+    // כאן אפשר להפעיל fetch חדש עם selected
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
         <Text style={styles.header}>Engagement Tracker</Text>
 
-        {/* Toggle Buttons */}
+        <FilterMenu
+          onApply={handleFilterChange}
+          onClear={() => console.log('Filters cleared')}
+        />
+
         <View style={styles.buttonGroup}>
           <TouchableOpacity
             style={[styles.toggleButton, showClicks && styles.activeButton]}

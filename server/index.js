@@ -12,15 +12,17 @@ const port = 3000;
 app.use(cors());
 app.use(express.json());
 
-// // אתחול BigQuery - עדכן את הנתיב הנכון לקובץ ההרשאות שלך
-// const bigquery = new BigQuery({
-//   keyFilename: './firebase-service-account.json',
-// });
+// אתחול BigQuery - עדכן את הנתיב לקובץ ההרשאות שלך במידה ויש
+const bigquery = new BigQuery({
+  keyFilename: './firebase-service-account.json', // תשנה לפי מיקום הקובץ שלך
+});
 
-// const nameDB = 'platform-hackaton-2025';
+const nameDB = 'platform-hackaton-2025';
 
-// export { bigquery, nameDB };
+// חשוב לייצא אותם לשימוש בקבצים אחרים
+export { bigquery, nameDB };
 
+// רישום ראוטים
 app.use('/events_summary', eventsSummaryRoutes);
 app.use('/filters', filtersRoutes);
 app.use('/push', pushRoutes);

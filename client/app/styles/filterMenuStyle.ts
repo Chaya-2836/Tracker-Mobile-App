@@ -17,11 +17,12 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 6,
   },
+
   panel: {
     position: 'absolute',
     top: 0,
     bottom: 0,
-    width: 250,
+    width: 260,
     backgroundColor: '#fff',
     padding: 16,
     borderLeftWidth: 1,
@@ -33,49 +34,68 @@ const styles = StyleSheet.create({
     elevation: 8,
     zIndex: 999,
   },
+
   title: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '600',
-    marginBottom: 15,
+    marginBottom: 16,
     color: '#34495e',
   },
+
   inputGroup: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
+
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    backgroundColor: '#f4f6f8',
+    borderRadius: 6,
+  },
+
   label: {
-    marginBottom: 6,
+    fontSize: 16,
     fontWeight: '500',
     color: '#2c3e50',
   },
-  pickerWrapper: {
-    borderWidth: 1,
-    borderColor: '#2c62b4',
+
+  optionItem: {
+    paddingVertical: 8,
+    paddingHorizontal: 10,
     borderRadius: 6,
+    marginTop: 6,
+    backgroundColor: '#f0f4f7',
   },
-  picker: {
-    height: 40,
-    width: '100%',
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 24,
-  },
-  applyBtn: {
+
+  optionItemSelected: {
     backgroundColor: '#2c62b4',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 5,
   },
+
+  optionText: {
+    color: '#34495e',
+    fontSize: 14,
+  },
+
+  optionTextSelected: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+
   clearBtn: {
+    marginTop: 24,
     backgroundColor: '#95a5a6',
     paddingVertical: 10,
     paddingHorizontal: 16,
-    borderRadius: 5,
+    borderRadius: 6,
   },
+
   btnText: {
     color: '#fff',
     fontWeight: '600',
+    textAlign: 'center',
   },
 });
 

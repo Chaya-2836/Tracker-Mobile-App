@@ -1,4 +1,5 @@
 import { bigquery, nameDB } from '../config/bigqueryConfig.js';
+import { parseISO, isAfter } from 'date-fns';
 
 export async function getEventsSummary(req, res) {
   try {
@@ -7,45 +8,71 @@ export async function getEventsSummary(req, res) {
     const filters = [];
     const params = {};
 
-    if (req.query.campaign_name) {
+    const {
+      campaign_name,
+      platform,
+      media_source,
+      agency,
+      engagement_type,
+      daysMode = 'week',
+      date,
+    } = req.query;
+
+    if (campaign_name) {
       filters.push(`campaign_name = @campaign_name`);
-      params.campaign_name = req.query.campaign_name;
+      params.campaign_name = campaign_name;
     }
-
-    if (req.query.platform) {
+    if (platform) {
       filters.push(`platform = @platform`);
-      params.platform = req.query.platform;
+      params.platform = platform;
     }
-
-    if (req.query.media_source) {
+    if (media_source) {
       filters.push(`media_source = @media_source`);
-      params.media_source = req.query.media_source;
+      params.media_source = media_source;
     }
-
-    if (req.query.agency) {
+    if (agency) {
       filters.push(`agency = @agency`);
-      params.agency = req.query.agency;
+      params.agency = agency;
     }
 
-    const engagementType = req.query.engagement_type || 'click';
+    params.engagement_type = engagement_type || 'click';
     filters.push(`engagement_type = @engagement_type`);
-    params.engagement_type = engagementType;
 
-    const daysMode = req.query.daysMode || 'week';
-
-    if (daysMode === 'day') {
-      filters.push(`event_time >= TIMESTAMP(CURRENT_DATE())`);
-    } else {
-      filters.push(`event_time >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 7 DAY)`);
+    let useCurrentDate = true;
+    if (date) {
+      try {
+        const parsedDate = parseISO(date);
+        if (!isAfter(parsedDate, new Date())) {
+          useCurrentDate = false;
+          params.date = date;
+        }
+      } catch (e) {
+        console.warn('⚠️ תאריך לא תקין. ייעשה שימוש בתאריך של היום.');
+      }
     }
 
-    const whereClause = filters.length > 0 ? `WHERE ${filters.join(' AND ')}` : '';
+    if (daysMode === 'day') {
+      if (useCurrentDate) {
+        filters.push(`DATE(event_time) = CURRENT_DATE()`);
+      } else {
+        filters.push(`DATE(event_time) = DATE(@date)`);
+      }
+    } else {
+      if (useCurrentDate) {
+        filters.push(`event_time >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 7 DAY)`);
+      } else {
+        filters.push(`event_time >= TIMESTAMP_SUB(TIMESTAMP(@date), INTERVAL 6 DAY)`);
+        filters.push(`DATE(event_time) <= DATE(@date)`);
+      }
+    }
 
-    let selectClause = '';
-    let groupClause = '';
+    const whereClause = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
+
+    let selectClause = "";
+    let groupClause = "";
 
     if (daysMode === 'day') {
-      selectClause = `SELECT COUNT(*) AS count`;
+      selectClause = `SELECT DATE(event_time) AS event_date, COUNT(*) AS count`;
     } else {
       selectClause = `
         SELECT 
