@@ -62,7 +62,8 @@ export async function getEventsSummary(req, res) {
 
     if (daysMode === 'day') {
       if (useCurrentDate) {
-        filters.push(`DATE(event_time) = CURRENT_DATE()`);
+        filters.push(`DATE(event_time, "Asia/Jerusalem") = CURRENT_DATE("Asia/Jerusalem")`);
+        
       } else {
         filters.push(`DATE(event_time) = DATE(@date)`);
       }
@@ -80,9 +81,8 @@ export async function getEventsSummary(req, res) {
     let groupClause = "";
 
     if (daysMode === 'day') {
-      selectClause = `SELECT DATE(event_time) AS event_date, COUNT(*) AS count`;
+      selectClause = `SELECT DATE(event_time, "Asia/Jerusalem") AS event_date, COUNT(*) AS count`;
       groupClause = `GROUP BY event_date ORDER BY event_date`;
-
 
     } else {
       selectClause = `

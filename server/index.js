@@ -13,14 +13,14 @@ app.use(cors());
 app.use(express.json());
 
 // אתחול BigQuery - עדכן את הנתיב לקובץ ההרשאות שלך במידה ויש
-const bigquery = new BigQuery({
-    keyFilename: "./config/key.json"
-});
+// const bigquery = new BigQuery({
+//     keyFilename: "./config/key.json"
+// });
 
 const nameDB = 'platform-hackaton-2025';
 
 // חשוב לייצא אותם לשימוש בקבצים אחרים
-export { bigquery, nameDB };
+export {  nameDB };
 
 // רישום ראוטים
 app.use('/events_summary', eventsSummaryRoutes);

@@ -12,8 +12,9 @@ async function fetchEventSummary(
   const res = await fetch(`${API_BASE}?${query.toString()}`);
 
   if (daysMode === 'day') {
-    const data = await res.json();
-    return data?.[0]?.count || 0;
+    const text = await res.text(); // <-- שימי לב: res.text()
+    return Number(text) || 0;
+
   } else {
     const data = await res.json();
     return Array.isArray(data) ? data : [];
