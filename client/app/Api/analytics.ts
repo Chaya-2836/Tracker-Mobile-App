@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:3000/events-summary";
+const API_BASE = "http://localhost:8021/events_summary/";
 
 type DaysMode = 'day' | 'week';
 type Filters = Record<string, string>;
@@ -12,8 +12,8 @@ async function fetchEventSummary(
   const res = await fetch(`${API_BASE}?${query.toString()}`);
 
   if (daysMode === 'day') {
-    const countText = await res.text();
-    return parseInt(countText, 10) || 0;
+    const data = await res.json();
+    return data?.[0]?.count || 0;
   } else {
     const data = await res.json();
     return Array.isArray(data) ? data : [];

@@ -1,5 +1,5 @@
 const { bigquery, nameDB } = require("../index");
-const { parseISO, isAfter } = require('date-fns'); 
+const { parseISO, isAfter } = require('date-fns');
 
 const nameTable = `${nameDB}.attribution_end_user_events.end_user_events`;
 
@@ -37,11 +37,11 @@ exports.getEventsSummary = async (req, res) => {
       filters.push(`agency = @agency`);
       params.agency = agency;
     }
-    if(unified_app_id){
+    if (unified_app_id) {
       filters.push(`unified_app_id = @unified_app_id`);
       params.unified_app_id = unified_app_id;
     }
-    if(user_agent){
+    if (user_agent) {
       filters.push(`user_agent = @user_agent`);
       params.user_agent = user_agent;
     }
@@ -81,6 +81,9 @@ exports.getEventsSummary = async (req, res) => {
     let selectClause = "", groupClause = "";
     if (daysMode === 'day') {
       selectClause = `SELECT DATE(event_time) AS event_date, COUNT(*) AS count`;
+      groupClause = `GROUP BY event_date ORDER BY event_date`;
+
+
     } else {
       selectClause = `
         SELECT 
