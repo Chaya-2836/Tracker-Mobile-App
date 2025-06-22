@@ -5,15 +5,17 @@ import {
   View,
   ActivityIndicator,
   Dimensions,
+  TouchableOpacity,
 } from 'react-native';
-import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
+import { TabView, TabBar } from 'react-native-tab-view';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
+
 import styles from '../styles/appStyles';
 import StatCard from '../../components/statCard';
 import TrendChart from '../../components/TrendChart';
 import { getTodayStats, getWeeklyTrends } from '../Api/analytics';
-import FilterMenu from '@/components/FilterMenu';
+import FilterSidebar from '../../components/FilterSideBar';
 
 interface TrendPoint {
   label: Date;
@@ -23,12 +25,14 @@ interface TrendPoint {
 const initialLayout = { width: Dimensions.get('window').width };
 
 export default function App() {
-  const [clicksToday, setClicksToday] = useState<number>(0);
-  const [impressionsToday, setImpressionsToday] = useState<number>(0);
+  const [clicksToday, setClicksToday] = useState(0);
+  const [impressionsToday, setImpressionsToday] = useState(0);
   const [clickTrend, setClickTrend] = useState<TrendPoint[]>([]);
   const [impressionTrend, setImpressionTrend] = useState<TrendPoint[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
   const [index, setIndex] = useState(0);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   const [routes] = useState([
     { key: 'clicks', title: 'Clicks' },
     { key: 'impressions', title: 'Impressions' },
@@ -64,8 +68,8 @@ export default function App() {
       const { clicks, impressions } = await getTodayStats();
       setClicksToday(clicks);
       setImpressionsToday(impressions);
-    } catch (err) {
-      console.error('❌ Failed to fetch daily data:', err);
+    } catch {
+      console.error('Failed to fetch daily stats');
     }
   }
 
@@ -74,72 +78,71 @@ export default function App() {
       setLoading(true);
       const { clicks, impressions } = await getWeeklyTrends();
       const toPoints = (arr: any[]) =>
-        arr.map(item => ({ label: new Date(item.label), value: Number(item.value || 0) }));
-
+        arr.map(item => ({
+          label: new Date(item.label),
+          value: Number(item.value || 0),
+        }));
       setClickTrend(toPoints(clicks));
       setImpressionTrend(toPoints(impressions));
-    } catch (err) {
-      console.error('❌ Failed to fetch weekly trends:', err);
+    } catch {
+      console.error('Failed to fetch weekly trends');
     } finally {
       setLoading(false);
     }
   }
 
-  function handleFilterChange(rawSelected: { [key: string]: string[] }) {
-    const selected: { [key: string]: string } = {};
-    for (const key in rawSelected) {
-      selected[key] = rawSelected[key][0] ?? '';
-    }
-    console.log('Filters Applied:', selected);
+  function handleFilterChange(filters: { [key: string]: string[] }) {
+    console.log('Filters applied:', filters);
   }
 
-  const ClicksRoute = () =>
-    loading ? (
-      <ActivityIndicator size="large" color="#0000ff" />
-    ) : (
-      <>
-        <StatCard title="Clicks Recorded Today" value={clicksToday} />
-        <TrendChart title="Click Volume Trend (Last 7 Days)" data={clickTrend} />
-      </>
-    );
+  const renderScene = ({ route }: any) => {
+    if (loading) return <ActivityIndicator size="large" color="#0000ff" />;
+return route.key === 'clicks' ? (
+  <View style={{ paddingTop: 12 }}> {/* Add spacing between TabBar and cards */}
+    <StatCard title="Clicks Recorded Today" value={clicksToday} />
+    <TrendChart title="Click Volume Trend (Last 7 Days)" data={clickTrend} />
+  </View>
+) : (
+  <View style={{ paddingTop: 12 }}>
+    <StatCard title="Impressions Recorded Today" value={impressionsToday} />
+    <TrendChart title="Impression Volume Trend (Last 7 Days)" data={impressionTrend} />
+  </View>
+);
 
-  const ImpressionsRoute = () =>
-    loading ? (
-      <ActivityIndicator size="large" color="#0000ff" />
-    ) : (
-      <>
-        <StatCard title="Impressions Recorded Today" value={impressionsToday} />
-        <TrendChart title="Impression Volume Trend (Last 7 Days)" data={impressionTrend} />
-      </>
-    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.header}>Engagement Tracker</Text>
-      <FilterMenu onApply={handleFilterChange} onClear={() => console.log('Filters cleared')} />
+      {/* Title and Filter Button Row */}
+      <View style={styles.headerRow}>
+        <TouchableOpacity
+          onPress={() => setIsSidebarOpen(true)}
+          style={styles.filterButton}
+        >
+          <Text style={styles.filterButtonText}>Filter By</Text>
+        </TouchableOpacity>
+        <Text style={styles.header}>Engagement Tracker</Text>
+      </View>
 
-<TabView
-  navigationState={{ index, routes }}
-  renderScene={SceneMap({
-    clicks: ClicksRoute,
-    impressions: ImpressionsRoute,
-  })}
-  onIndexChange={setIndex}
-  initialLayout={initialLayout}
-  swipeEnabled={false} // ✅ Disables swipe gesture
-  animationEnabled={false} // ✅ Disables transition animation (important)
-  renderTabBar={props => (
-    <TabBar
-      {...props}
-      indicatorStyle={{ backgroundColor: '#2c62b4' }}
-      style={{ backgroundColor: '#ecf0f1' }}
-      labelStyle={{ color: '#2c3e50', fontWeight: '600' }}
-      activeColor="#2c62b4"
-      inactiveColor="#7f8c8d"
-    />
-  )}
-/>
+      {/* Tabs */}
+<View style={{ marginTop: 15 }}> {/* Give enough room for the filter button */}
+  <TabView
+    navigationState={{ index, routes }}
+    renderScene={renderScene}
+    onIndexChange={setIndex}
+    initialLayout={initialLayout}
+    swipeEnabled={false}
+    animationEnabled={false}
+    renderTabBar={props => <TabBar {...props} {...styles.tabBarOverride} />}
+  />
+</View>
 
+      <FilterSidebar
+        visible={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        onApply={handleFilterChange}
+        onClear={() => console.log('Cleared')}
+      />
     </SafeAreaView>
   );
 }
