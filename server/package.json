@@ -1,9 +1,10 @@
 {
   "name": "server",
   "version": "1.0.0",
+  "type": "module",          
+
   "description": "",
   "main": "index.js",
-  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js"
@@ -14,14 +15,8 @@
   "dependencies": {
     "@google-cloud/bigquery": "^8.1.0",
     "cors": "^2.8.5",
-<<<<<<< HEAD
     "date-fns": "^4.1.0",
-    "express": "^5.1.0"
-=======
     "express": "^5.1.0",
-    "firebase-admin": "^13.4.0",
-    "node-cron": "^4.1.0",
-    "date-fns": "^4.1.0"
->>>>>>> 214a53d14cd82937e9cf7ced3c33e454d638a492
+    "node-cron": "^4.1.0"
   }
 }
