@@ -80,12 +80,12 @@ export default function App() {
   async function fetchTrends(selectedFilters: { [key: string]: string[] }){
     try {
       setLoading(true);
-      const { clicks, impressions } = await getWeeklyTrends();
+      const { clicks, impressions } = await getWeeklyTrends(selectedFilters);
 
       const convertToTrendPoints = (data: any[]): TrendPoint[] =>
         data.map(item => ({
-          label: new Date(item.label),
-          value: Number(item.value) || 0,
+         label: new Date(item.event_date),   
+        value: Number(item.count) || 0,
         }));
 
       setClickTrend(Array.isArray(clicks) ? convertToTrendPoints(clicks) : []);
@@ -97,10 +97,6 @@ export default function App() {
     }
   }
 
-  // מפעיל fetch ראשוני כשנטען
-  useEffect(() => {
-    fetchTrends(filters);
-  }, []);
 
   // נקרא כשמתעדכנים הפילטרים מ-FilterMenu
   const handleApply = (selectedFilters: { [key: string]: string[] }) => {
@@ -124,7 +120,7 @@ export default function App() {
 
         <FilterMenu
           onApply={handleApply}
-          onClear={() => handleClear}
+          onClear={ handleClear}
         />
 
         <View style={styles.buttonGroup}>
