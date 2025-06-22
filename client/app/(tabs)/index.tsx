@@ -1,23 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import {
   SafeAreaView,
-  ScrollView,
   Text,
   View,
   ActivityIndicator,
-  TouchableOpacity,
-  Alert,
-  Platform,
+  Dimensions,
 } from 'react-native';
+import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
+import styles from '../styles/appStyles';
 import StatCard from '../../components/statCard';
 import TrendChart from '../../components/TrendChart';
-import {
-  getTodayStats,
-  getWeeklyTrends,
-} from '../Api/analytics';
-import styles from '../styles/appStyles';
+import { getTodayStats, getWeeklyTrends } from '../Api/analytics';
 import FilterMenu from '@/components/FilterMenu';
 
 interface TrendPoint {
@@ -25,13 +20,19 @@ interface TrendPoint {
   value: number;
 }
 
+const initialLayout = { width: Dimensions.get('window').width };
+
 export default function App() {
   const [clicksToday, setClicksToday] = useState<number>(0);
   const [impressionsToday, setImpressionsToday] = useState<number>(0);
   const [clickTrend, setClickTrend] = useState<TrendPoint[]>([]);
   const [impressionTrend, setImpressionTrend] = useState<TrendPoint[]>([]);
-  const [showClicks, setShowClicks] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(true);
+  const [index, setIndex] = useState(0);
+  const [routes] = useState([
+    { key: 'clicks', title: 'Clicks' },
+    { key: 'impressions', title: 'Impressions' },
+  ]);
 
   useEffect(() => {
     registerForPushNotifications();
@@ -39,43 +40,22 @@ export default function App() {
     fetchTrends();
   }, []);
 
-
   async function registerForPushNotifications() {
-    if (Platform.OS === 'web') {
-      console.log("Push notifications are disabled on web");
-      return;
-    }
-
-    if (!Device.isDevice) {
-      Alert.alert('Must use physical device');
-      return;
-    }
-
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
-
-    if (existingStatus !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
-    }
-
-    if (finalStatus !== 'granted') {
-      Alert.alert('Permission denied', 'Cannot receive push notifications');
-      return;
-    }
-
-    const token = (await Notifications.getExpoPushTokenAsync()).data;
-    console.log('📲 Expo Push Token:', token);
-
-    try {
-      await fetch('http://localhost:3000/push/register-token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token }),
-      });
-      console.log('✅ Token sent to server');
-    } catch (err) {
-      console.error('❌ Failed to send token:', err);
+    if (Device.isDevice) {
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+      if (finalStatus === 'granted') {
+        const token = (await Notifications.getExpoPushTokenAsync()).data;
+        await fetch('http://localhost:3000/push/register-token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token }),
+        });
+      }
     }
   }
 
@@ -93,14 +73,11 @@ export default function App() {
     try {
       setLoading(true);
       const { clicks, impressions } = await getWeeklyTrends();
-      const convertToTrendPoints = (data: any[]): TrendPoint[] =>
-        data.map(item => ({
-          label: new Date(item.label),
-          value: Number(item.value) || 0,
-        }));
+      const toPoints = (arr: any[]) =>
+        arr.map(item => ({ label: new Date(item.label), value: Number(item.value || 0) }));
 
-      setClickTrend(Array.isArray(clicks) ? convertToTrendPoints(clicks) : []);
-      setImpressionTrend(Array.isArray(impressions) ? convertToTrendPoints(impressions) : []);
+      setClickTrend(toPoints(clicks));
+      setImpressionTrend(toPoints(impressions));
     } catch (err) {
       console.error('❌ Failed to fetch weekly trends:', err);
     } finally {
@@ -108,62 +85,61 @@ export default function App() {
     }
   }
 
-  // תואם לחתימה של FilterMenu: { [key: string]: string }
-  function handleFilterChange(rawSelected: { [key: string]: string[] }): void {
+  function handleFilterChange(rawSelected: { [key: string]: string[] }) {
     const selected: { [key: string]: string } = {};
-
     for (const key in rawSelected) {
       selected[key] = rawSelected[key][0] ?? '';
     }
-
     console.log('Filters Applied:', selected);
-    // כאן אפשר להפעיל fetch חדש עם selected
   }
+
+  const ClicksRoute = () =>
+    loading ? (
+      <ActivityIndicator size="large" color="#0000ff" />
+    ) : (
+      <>
+        <StatCard title="Clicks Recorded Today" value={clicksToday} />
+        <TrendChart title="Click Volume Trend (Last 7 Days)" data={clickTrend} />
+      </>
+    );
+
+  const ImpressionsRoute = () =>
+    loading ? (
+      <ActivityIndicator size="large" color="#0000ff" />
+    ) : (
+      <>
+        <StatCard title="Impressions Recorded Today" value={impressionsToday} />
+        <TrendChart title="Impression Volume Trend (Last 7 Days)" data={impressionTrend} />
+      </>
+    );
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView>
-        <Text style={styles.header}>Engagement Tracker</Text>
+      <Text style={styles.header}>Engagement Tracker</Text>
+      <FilterMenu onApply={handleFilterChange} onClear={() => console.log('Filters cleared')} />
 
-        <FilterMenu
-          onApply={handleFilterChange}
-          onClear={() => console.log('Filters cleared')}
-        />
+<TabView
+  navigationState={{ index, routes }}
+  renderScene={SceneMap({
+    clicks: ClicksRoute,
+    impressions: ImpressionsRoute,
+  })}
+  onIndexChange={setIndex}
+  initialLayout={initialLayout}
+  swipeEnabled={false} // ✅ Disables swipe gesture
+  animationEnabled={false} // ✅ Disables transition animation (important)
+  renderTabBar={props => (
+    <TabBar
+      {...props}
+      indicatorStyle={{ backgroundColor: '#2c62b4' }}
+      style={{ backgroundColor: '#ecf0f1' }}
+      labelStyle={{ color: '#2c3e50', fontWeight: '600' }}
+      activeColor="#2c62b4"
+      inactiveColor="#7f8c8d"
+    />
+  )}
+/>
 
-        <View style={styles.buttonGroup}>
-          <TouchableOpacity
-            style={[styles.toggleButton, showClicks && styles.activeButton]}
-            onPress={() => setShowClicks(true)}
-          >
-            <Text style={[styles.buttonText, showClicks && styles.activeButtonText]}>
-              Show Clicks
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.toggleButton, !showClicks && styles.activeButton]}
-            onPress={() => setShowClicks(false)}
-          >
-            <Text style={[styles.buttonText, !showClicks && styles.activeButtonText]}>
-              Show Impressions
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {loading ? (
-          <ActivityIndicator size="large" color="#0000ff" />
-        ) : showClicks ? (
-          <>
-            <StatCard title="Clicks Recorded Today" value={clicksToday} />
-            <TrendChart title="Click Volume Trend (Last 7 Days)" data={clickTrend} />
-          </>
-        ) : (
-          <>
-            <StatCard title="Impressions Recorded Today" value={impressionsToday} />
-            <TrendChart title="Impression Volume Trend (Last 7 Days)" data={impressionTrend} />
-          </>
-        )}
-      </ScrollView>
     </SafeAreaView>
   );
 }

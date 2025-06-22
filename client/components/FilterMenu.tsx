@@ -6,28 +6,20 @@ import {
   Animated,
   Dimensions,
   ScrollView,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import styles from '../app/styles/filterMenuStyle';
+import { fetchAllFilters } from '../app/Api/filters';
 
 const screenWidth = Dimensions.get('window').width;
 
-// Map UI labels to backend keys
 const filterKeys: { [label: string]: string } = {
-  'Campaign': 'campaign_name',
-  'Platform': 'platform',
+  Campaign: 'campaign_name',
+  Platform: 'platform',
   'Media Source': 'media_source',
-  'Agency': 'agency',
+  Agency: 'agency',
   'Engagement Type': 'engagement_type',
-};
-
-// API endpoints for each filter
-const endpoints: { [label: string]: string } = {
-  'Campaign': '/api/getCampaigns',
-  'Platform': '/api/getPlatforms',
-  'Media Source': '/api/getMediaSources',
-  'Agency': '/api/getAgencies',
-  'Engagement Type': '/api/getEngagementTypes',
 };
 
 type Props = {
@@ -42,7 +34,6 @@ export default function FilterMenu({ onApply, onClear }: Props) {
   const [expanded, setExpanded] = useState<{ [key: string]: boolean }>({});
   const slideAnim = useRef(new Animated.Value(screenWidth)).current;
 
-  // Slide panel animation toggle
   const togglePanel = () => {
     if (visible) {
       Animated.timing(slideAnim, {
@@ -60,20 +51,15 @@ export default function FilterMenu({ onApply, onClear }: Props) {
     }
   };
 
-  // Toggle section expanded/collapsed
   const toggleSection = (key: string) => {
-    setExpanded(prev => ({ ...prev, [key]: !prev[key] }));
+    setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  // Toggle selected option (single-select per category)
   const toggleOption = (label: string, option: string) => {
-    setSelected(prev => {
-      const current = prev[label];
-      const newSelection = current?.[0] === option ? [] : [option];
-
+    setSelected((prev) => {
+      const newSelection = prev[label]?.[0] === option ? [] : [option];
       const updated = { ...prev, [label]: newSelection };
 
-      // Map UI labels to backend keys for onApply callback
       const mappedSelection: { [key: string]: string[] } = {};
       Object.entries(updated).forEach(([label, val]) => {
         const param = filterKeys[label];
@@ -87,44 +73,21 @@ export default function FilterMenu({ onApply, onClear }: Props) {
     });
   };
 
-  // Check if option is selected
-  const isSelected = (label: string, option: string) =>
-    selected[label]?.includes(option);
-
-  // Fetch filter options from API endpoints
-  const fetchFilterData = async () => {
-    const newFilterOptions: { [label: string]: string[] } = {};
-
-    await Promise.all(
-      Object.entries(endpoints).map(async ([label, url]) => {
-        try {
-          const res = await fetch(url);
-          const data = await res.json();
-          newFilterOptions[label] = data;
-        } catch (err) {
-          console.error(`Failed to load ${label} filter options`, err);
-          newFilterOptions[label] = [];
-        }
-      })
-    );
-
-    setFilterOptions(newFilterOptions);
-  };
+  const isSelected = (label: string, option: string) => selected[label]?.includes(option);
 
   useEffect(() => {
-    fetchFilterData();
+    fetchAllFilters().then(setFilterOptions).catch(console.error);
   }, []);
 
   return (
     <>
       <TouchableOpacity onPress={togglePanel} style={styles.toggleButton}>
-        <Ionicons name="menu" size={30} color="#e91e63" />
+        <Ionicons name="menu" size={30} color="#000" />
       </TouchableOpacity>
 
       {visible && (
         <Animated.View style={[styles.panel, { left: slideAnim }]}>
           <Text style={styles.title}>Filters</Text>
-
           <ScrollView>
             {Object.entries(filterOptions).map(([label, options]) => (
               <View key={label} style={styles.inputGroup}>
@@ -141,7 +104,7 @@ export default function FilterMenu({ onApply, onClear }: Props) {
                 </TouchableOpacity>
 
                 {expanded[label] &&
-                  options.map(option => (
+                  options.map((option) => (
                     <TouchableOpacity
                       key={option}
                       onPress={() => toggleOption(label, option)}
