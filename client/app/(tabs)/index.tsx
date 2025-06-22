@@ -39,6 +39,7 @@ export default function App() {
     fetchTrends();
   }, []);
 
+
   async function registerForPushNotifications() {
     if (Platform.OS === 'web') {
       console.log("Push notifications are disabled on web");
@@ -92,7 +93,6 @@ export default function App() {
     try {
       setLoading(true);
       const { clicks, impressions } = await getWeeklyTrends();
-
       const convertToTrendPoints = (data: any[]): TrendPoint[] =>
         data.map(item => ({
           label: new Date(item.label),
