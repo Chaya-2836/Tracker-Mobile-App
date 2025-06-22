@@ -6,20 +6,26 @@ import {
   Animated,
   Dimensions,
   ScrollView,
-  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import styles from '../app/styles/filterMenuStyle';
-import { fetchAllFilters } from '../app/Api/filters';
 
 const screenWidth = Dimensions.get('window').width;
 
 const filterKeys: { [label: string]: string } = {
-  Campaign: 'campaign_name',
-  Platform: 'platform',
+  'Campaign': 'campaign_name',
+  'Platform': 'platform',
   'Media Source': 'media_source',
-  Agency: 'agency',
+  'Agency': 'agency',
   'Engagement Type': 'engagement_type',
+};
+
+const endpoints: { [label: string]: string } = {
+  'Campaign': '/api/getCampaigns',
+  'Platform': '/api/getPlatforms',
+  'Media Source': '/api/getMediaSources',
+  'Agency': '/api/getAgencies',
+  'Engagement Type': '/api/getEngagementTypes',
 };
 
 type Props = {
@@ -32,32 +38,35 @@ export default function FilterMenu({ onApply, onClear }: Props) {
   const [selected, setSelected] = useState<{ [key: string]: string[] }>({});
   const [visible, setVisible] = useState(false);
   const [expanded, setExpanded] = useState<{ [key: string]: boolean }>({});
-  const slideAnim = useRef(new Animated.Value(screenWidth)).current;
 
-  const togglePanel = () => {
-    if (visible) {
-      Animated.timing(slideAnim, {
-        toValue: screenWidth,
-        duration: 300,
-        useNativeDriver: false,
-      }).start(() => setVisible(false));
-    } else {
-      setVisible(true);
-      Animated.timing(slideAnim, {
-        toValue: screenWidth - 260,
-        duration: 300,
-        useNativeDriver: false,
-      }).start();
-    }
-  };
+ const slideAnim = useRef(new Animated.Value(260)).current;
+
+const togglePanel = () => {
+  if (visible) {
+    Animated.timing(slideAnim, {
+      toValue: 260, // Slide out to the right
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => setVisible(false));
+  } else {
+    setVisible(true);
+    Animated.timing(slideAnim, {
+      toValue: 0, // Slide in
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }
+};
+
 
   const toggleSection = (key: string) => {
-    setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
+    setExpanded(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
   const toggleOption = (label: string, option: string) => {
-    setSelected((prev) => {
-      const newSelection = prev[label]?.[0] === option ? [] : [option];
+    setSelected(prev => {
+      const current = prev[label];
+      const newSelection = current?.[0] === option ? [] : [option];
       const updated = { ...prev, [label]: newSelection };
 
       const mappedSelection: { [key: string]: string[] } = {};
@@ -73,21 +82,39 @@ export default function FilterMenu({ onApply, onClear }: Props) {
     });
   };
 
-  const isSelected = (label: string, option: string) => selected[label]?.includes(option);
+  const isSelected = (label: string, option: string) =>
+    selected[label]?.includes(option);
+
+  const fetchFilterData = async () => {
+    const newFilterOptions: { [label: string]: string[] } = {};
+
+    await Promise.all(
+      Object.entries(endpoints).map(async ([label, url]) => {
+        try {
+          const res = await fetch(url);
+          const data = await res.json();
+          newFilterOptions[label] = data;
+        } catch (err) {
+          console.error(`Failed to load ${label} filter options`, err);
+          newFilterOptions[label] = [];
+        }
+      })
+    );
+
+    setFilterOptions(newFilterOptions);
+  };
 
   useEffect(() => {
-    fetchAllFilters().then(setFilterOptions).catch(console.error);
+    fetchFilterData();
   }, []);
 
   return (
     <>
-      <TouchableOpacity onPress={togglePanel} style={styles.toggleButton}>
-        <Ionicons name="menu" size={30} color="#000" />
-      </TouchableOpacity>
-
       {visible && (
-        <Animated.View style={[styles.panel, { left: slideAnim }]}>
+<Animated.View style={[styles.panel, { transform: [{ translateX: slideAnim }] }]}>
+
           <Text style={styles.title}>Filters</Text>
+
           <ScrollView>
             {Object.entries(filterOptions).map(([label, options]) => (
               <View key={label} style={styles.inputGroup}>
@@ -104,7 +131,7 @@ export default function FilterMenu({ onApply, onClear }: Props) {
                 </TouchableOpacity>
 
                 {expanded[label] &&
-                  options.map((option) => (
+                  options.map(option => (
                     <TouchableOpacity
                       key={option}
                       onPress={() => toggleOption(label, option)}
@@ -138,6 +165,11 @@ export default function FilterMenu({ onApply, onClear }: Props) {
           </TouchableOpacity>
         </Animated.View>
       )}
+
+      {/* Toggle button - fixed to bottom-right corner */}
+      <TouchableOpacity onPress={togglePanel} style={styles.floatingToggleButton}>
+        <Ionicons name={visible ? 'close' : 'menu'} size={30} color="#000" />
+      </TouchableOpacity>
     </>
   );
 }
