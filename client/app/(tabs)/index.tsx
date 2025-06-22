@@ -75,7 +75,6 @@ export default function App() {
       setImpressionsToday(impressions);
 
       const trends = await getWeeklyTrends();
-
       const convertToTrendPoints = (data: any[]): TrendPoint[] =>
         data.map(item => ({
           label: new Date(item.label),
