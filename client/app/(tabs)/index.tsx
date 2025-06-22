@@ -24,7 +24,8 @@ export default function App() {
 
   useEffect(() => {
     registerForPushNotifications();
-    fetchData(filters);
+    fetchData();
+    fetchTrends(filters);
   }, []);
 
   async function registerForPushNotifications() {
@@ -66,45 +67,51 @@ export default function App() {
     }
   }
 
-    const fetchData = async (selectedFilters: { [key: string]: string[] }) => {
-    setLoading(true);
+  async function fetchData() {
     try {
-      // כאן את יכולה לקרוא ל־API אמיתי שיחזיר את הנתונים לפי הפילטרים
       const { clicks, impressions } = await getTodayStats();
       setClicksToday(clicks);
       setImpressionsToday(impressions);
+    } catch (err) {
+      console.error('❌ Failed to fetch daily data:', err);
+    }
+  }
 
-      const trends = await getWeeklyTrends();
+  async function fetchTrends(selectedFilters: { [key: string]: string[] }){
+    try {
+      setLoading(true);
+      const { clicks, impressions } = await getWeeklyTrends();
+
       const convertToTrendPoints = (data: any[]): TrendPoint[] =>
         data.map(item => ({
           label: new Date(item.label),
           value: Number(item.value) || 0,
         }));
 
-      setClickTrend(Array.isArray(trends.clicks) ? convertToTrendPoints(trends.clicks) : []);
-      setImpressionTrend(Array.isArray(trends.impressions) ? convertToTrendPoints(trends.impressions) : []);
+      setClickTrend(Array.isArray(clicks) ? convertToTrendPoints(clicks) : []);
+      setImpressionTrend(Array.isArray(impressions) ? convertToTrendPoints(impressions) : []);
     } catch (err) {
-      console.error('Failed to fetch filtered data:', err);
+      console.error('❌ Failed to fetch weekly trends:', err);
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   // מפעיל fetch ראשוני כשנטען
   useEffect(() => {
-    fetchData(filters);
+    fetchTrends(filters);
   }, []);
 
   // נקרא כשמתעדכנים הפילטרים מ-FilterMenu
   const handleApply = (selectedFilters: { [key: string]: string[] }) => {
     setFilters(selectedFilters);
-    fetchData(selectedFilters);
+    fetchTrends(selectedFilters);
   };
 
   // נקרא כשמנקים את הפילטרים
   const handleClear = () => {
     setFilters({});
-    fetchData({});
+    fetchTrends({});
   };
 
   
