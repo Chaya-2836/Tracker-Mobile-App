@@ -69,10 +69,7 @@ export default function App() {
     const fetchData = async (selectedFilters: { [key: string]: string[] }) => {
     setLoading(true);
     try {
-      // כאן את יכולה לקרוא ל־API אמיתי שיחזיר את הנתונים לפי הפילטרים
-      const { clicks, impressions } = await getTodayStats();
-      setClicksToday(clicks);
-      setImpressionsToday(impressions);
+     
 
       const trends = await getWeeklyTrends();
       const convertToTrendPoints = (data: any[]): TrendPoint[] =>
