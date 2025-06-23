@@ -12,7 +12,7 @@ scrollWrapper: {
 },
 dropdownContainer: {
   marginRight: 8,
-  minWidth: 130,
+  minWidth: 1,
 },
   dropdownHeader: {
     flexDirection: 'row',

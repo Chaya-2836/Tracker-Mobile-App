@@ -14,7 +14,7 @@ type Props = {
   selected: { [label: string]: string[] };
   onSelect: (s: { [label: string]: string[] }) => void;
   expanded: { [label: string]: boolean };
-  onToggleExpand: (e: { [label: string]: boolean }) => void;
+  onToggleExpand: (label: string) => void;
   searchText: { [label: string]: string };
   onSearchTextChange: (t: { [label: string]: string }) => void;
   onClear: () => void;
@@ -43,32 +43,26 @@ export default function FilterBar({
     onSelect(updated);
   };
 
-  const toggleExpand = (label: string) => {
-    onToggleExpand({ ...expanded, [label]: !expanded[label] });
-  };
-
   return (
     <View style={styles.filterBarContainer}>
-<ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scrollWrapper}>
-  <View style={styles.filterByTextContainer}>
-    <Text style={styles.filterByText}>Filter By:</Text>
-  </View>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scrollWrapper}>
+        <View style={styles.filterByTextContainer}>
+          <Text style={styles.filterByText}>Filter By:</Text>
+        </View>
 
-  {FILTER_ORDER.map(label => (
-    <View key={label} style={[styles.dropdownContainer && { marginLeft: 4 }]}>
-
-<TouchableOpacity onPress={() => toggleExpand(label)} style={styles.dropdownHeader}>
-  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-    <Text style={styles.dropdownText}>{label}</Text>
-    <Ionicons
-      name={expanded[label] ? 'chevron-up' : 'chevron-down'}
-      size={16}
-      color="#2c3e50"
-      style={{ marginLeft: 7 }}
-    />
-  </View>
-</TouchableOpacity>
-
+        {FILTER_ORDER.map(label => (
+          <View key={label} style={[styles.dropdownContainer, { marginHorizontal: 6 }]}>
+            <TouchableOpacity onPress={() => onToggleExpand(label)} style={styles.dropdownHeader}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={styles.dropdownText}>{label}</Text>
+                <Ionicons
+                  name={expanded[label] ? 'chevron-up' : 'chevron-down'}
+                  size={16}
+                  color="#2c3e50"
+                  style={{ marginLeft: 12 }}
+                />
+              </View>
+            </TouchableOpacity>
 
             {expanded[label] && (
               <View style={styles.dropdownPanel}>
@@ -87,11 +81,7 @@ export default function FilterBar({
                       onPress={() => toggleOption(label, option)}
                     >
                       <Ionicons
-                        name={
-                          selected[label]?.includes(option)
-                            ? 'checkbox-outline'
-                            : 'square-outline'
-                        }
+                        name={selected[label]?.includes(option) ? 'checkbox-outline' : 'square-outline'}
                         size={20}
                         color="#2c3e50"
                       />

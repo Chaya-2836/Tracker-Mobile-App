@@ -15,6 +15,7 @@ import StatCard from '../../components/statCard';
 import TrendChart from '../../components/TrendChart';
 import { getTodayStats, getWeeklyTrends } from '../Api/analytics';
 import FilterBar from '../../components/FilterMenu';
+import { fetchAllFilters } from '../Api/filters';
 
 interface TrendPoint {
   label: Date;
@@ -31,13 +32,11 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [index, setIndex] = useState(0);
 
-  // Tabs
   const [routes] = useState([
     { key: 'clicks', title: 'Clicks' },
     { key: 'impressions', title: 'Impressions' },
   ]);
 
-  // Filters (lifted state)
   const [filterOptions, setFilterOptions] = useState<{ [label: string]: string[] }>({});
   const [selectedFilters, setSelectedFilters] = useState<{ [label: string]: string[] }>({});
   const [expandedSections, setExpandedSections] = useState<{ [label: string]: boolean }>({});
@@ -98,31 +97,19 @@ export default function App() {
   }
 
   async function fetchFilterData() {
-    const endpoints = {
-      'Campaign': '/api/getCampaigns',
-      'Platform': '/api/getPlatforms',
-      'Media Source': '/api/getMediaSources',
-      'Agency': '/api/getAgencies',
-    };
-    const newOptions: { [label: string]: string[] } = {};
-    await Promise.all(
-      Object.entries(endpoints).map(async ([label, url]) => {
-        try {
-          const res = await fetch(url);
-          const data = await res.json();
-          newOptions[label] = data;
-        } catch (err) {
-          console.error(`Failed to fetch options for ${label}`, err);
-          newOptions[label] = [];
-        }
-      })
-    );
-    setFilterOptions(newOptions);
+    try {
+      const allFilters = await fetchAllFilters();
+      setFilterOptions(allFilters);
+    } catch (err) {
+      console.error('Failed to fetch filters:', err);
+    }
   }
 
-  const handleFilterChange = (filters: { [key: string]: string[] }) => {
-    console.log('Filters applied:', filters);
-    // TODO: use this to fetch or filter chart data if needed
+  const toggleExpand = (label: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [label]: !prev[label],
+    }));
   };
 
   const renderScene = ({ route }: any) => {
@@ -135,7 +122,7 @@ export default function App() {
           selected={selectedFilters}
           onSelect={setSelectedFilters}
           expanded={expandedSections}
-          onToggleExpand={setExpandedSections}
+          onToggleExpand={toggleExpand}
           searchText={searchTexts}
           onSearchTextChange={setSearchTexts}
           onClear={() => {
@@ -143,7 +130,6 @@ export default function App() {
             setSearchTexts({});
           }}
         />
-
         {route.key === 'clicks' ? (
           <View style={{ paddingTop: 12 }}>
             <StatCard title="Clicks Recorded Today" value={clicksToday} />
@@ -161,12 +147,10 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
       <View style={styles.headerRow}>
         <Text style={styles.header}>Engagement Tracker</Text>
       </View>
 
-      {/* Tabs and scenes */}
       <View style={{ flex: 1 }}>
         <TabView
           navigationState={{ index, routes }}
@@ -175,14 +159,16 @@ export default function App() {
           initialLayout={initialLayout}
           swipeEnabled={false}
           animationEnabled={false}
-          renderTabBar={props =>   <TabBar
-    {...props}
-    indicatorStyle={styles.tabBarIndicator}
-    style={styles.tabBarStyle}
-    labelStyle={styles.tabBarLabel}
-    activeColor="#2c62b4"
-    inactiveColor="#7f8c8d"
-  />}
+          renderTabBar={props => (
+            <TabBar
+              {...props}
+              indicatorStyle={styles.tabBarIndicator}
+              style={styles.tabBarStyle}
+              labelStyle={styles.tabBarLabel}
+              activeColor="#2c62b4"
+              inactiveColor="#7f8c8d"
+            />
+          )}
         />
       </View>
     </SafeAreaView>
