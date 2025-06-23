@@ -28,27 +28,6 @@ header: {
   color: '#2c3e50',
   marginBottom: 4,
 },
-filterButton: {
-  position: 'absolute',
-  top: 30, // was 24 → now 30 for more space below the title
-  left: 16,
-  backgroundColor: '#fff',
-  paddingVertical: 5,
-  paddingHorizontal: 10,
-  borderRadius: 4,
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 1 },
-  shadowOpacity: 0.1,
-  shadowRadius: 2,
-  elevation: 2,
-},
-
-
-filterButtonText: {
-  color: '#555',
-  fontSize: 13,
-  fontWeight: '500',
-},
 
   tabBarOverride: {
     indicatorStyle: { backgroundColor: '#2c62b4' },

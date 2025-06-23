@@ -5,7 +5,6 @@ import {
   View,
   ActivityIndicator,
   Dimensions,
-  TouchableOpacity,
 } from 'react-native';
 import { TabView, TabBar } from 'react-native-tab-view';
 import * as Notifications from 'expo-notifications';
@@ -15,7 +14,7 @@ import styles from '../styles/appStyles';
 import StatCard from '../../components/statCard';
 import TrendChart from '../../components/TrendChart';
 import { getTodayStats, getWeeklyTrends } from '../Api/analytics';
-import FilterSidebar from '../../components/FilterSideBar';
+import FilterBar from '../../components/FilterMenu';
 
 interface TrendPoint {
   label: Date;
@@ -31,17 +30,24 @@ export default function App() {
   const [impressionTrend, setImpressionTrend] = useState<TrendPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [index, setIndex] = useState(0);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  // Tabs
   const [routes] = useState([
     { key: 'clicks', title: 'Clicks' },
     { key: 'impressions', title: 'Impressions' },
   ]);
 
+  // Filters (lifted state)
+  const [filterOptions, setFilterOptions] = useState<{ [label: string]: string[] }>({});
+  const [selectedFilters, setSelectedFilters] = useState<{ [label: string]: string[] }>({});
+  const [expandedSections, setExpandedSections] = useState<{ [label: string]: boolean }>({});
+  const [searchTexts, setSearchTexts] = useState<{ [label: string]: string }>({});
+
   useEffect(() => {
     registerForPushNotifications();
     fetchData();
     fetchTrends();
+    fetchFilterData();
   }, []);
 
   async function registerForPushNotifications() {
@@ -91,58 +97,87 @@ export default function App() {
     }
   }
 
-  function handleFilterChange(filters: { [key: string]: string[] }) {
-    console.log('Filters applied:', filters);
+  async function fetchFilterData() {
+    const endpoints = {
+      'Campaign': '/api/getCampaigns',
+      'Platform': '/api/getPlatforms',
+      'Media Source': '/api/getMediaSources',
+      'Agency': '/api/getAgencies',
+    };
+    const newOptions: { [label: string]: string[] } = {};
+    await Promise.all(
+      Object.entries(endpoints).map(async ([label, url]) => {
+        try {
+          const res = await fetch(url);
+          const data = await res.json();
+          newOptions[label] = data;
+        } catch (err) {
+          console.error(`Failed to fetch options for ${label}`, err);
+          newOptions[label] = [];
+        }
+      })
+    );
+    setFilterOptions(newOptions);
   }
+
+  const handleFilterChange = (filters: { [key: string]: string[] }) => {
+    console.log('Filters applied:', filters);
+    // TODO: use this to fetch or filter chart data if needed
+  };
 
   const renderScene = ({ route }: any) => {
     if (loading) return <ActivityIndicator size="large" color="#0000ff" />;
-return route.key === 'clicks' ? (
-  <View style={{ paddingTop: 12 }}> {/* Add spacing between TabBar and cards */}
-    <StatCard title="Clicks Recorded Today" value={clicksToday} />
-    <TrendChart title="Click Volume Trend (Last 7 Days)" data={clickTrend} />
-  </View>
-) : (
-  <View style={{ paddingTop: 12 }}>
-    <StatCard title="Impressions Recorded Today" value={impressionsToday} />
-    <TrendChart title="Impression Volume Trend (Last 7 Days)" data={impressionTrend} />
-  </View>
-);
 
+    return (
+      <View style={{ flex: 1 }}>
+        <FilterBar
+          options={filterOptions}
+          selected={selectedFilters}
+          onSelect={setSelectedFilters}
+          expanded={expandedSections}
+          onToggleExpand={setExpandedSections}
+          searchText={searchTexts}
+          onSearchTextChange={setSearchTexts}
+          onClear={() => {
+            setSelectedFilters({});
+            setSearchTexts({});
+          }}
+        />
+
+        {route.key === 'clicks' ? (
+          <View style={{ paddingTop: 12 }}>
+            <StatCard title="Clicks Recorded Today" value={clicksToday} />
+            <TrendChart title="Click Volume Trend (Last 7 Days)" data={clickTrend} />
+          </View>
+        ) : (
+          <View style={{ paddingTop: 12 }}>
+            <StatCard title="Impressions Recorded Today" value={impressionsToday} />
+            <TrendChart title="Impression Volume Trend (Last 7 Days)" data={impressionTrend} />
+          </View>
+        )}
+      </View>
+    );
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Title and Filter Button Row */}
+      {/* Header */}
       <View style={styles.headerRow}>
-        <TouchableOpacity
-          onPress={() => setIsSidebarOpen(true)}
-          style={styles.filterButton}
-        >
-          <Text style={styles.filterButtonText}>Filter By</Text>
-        </TouchableOpacity>
         <Text style={styles.header}>Engagement Tracker</Text>
       </View>
 
-      {/* Tabs */}
-<View style={{ marginTop: 15 }}> {/* Give enough room for the filter button */}
-  <TabView
-    navigationState={{ index, routes }}
-    renderScene={renderScene}
-    onIndexChange={setIndex}
-    initialLayout={initialLayout}
-    swipeEnabled={false}
-    animationEnabled={false}
-    renderTabBar={props => <TabBar {...props} {...styles.tabBarOverride} />}
-  />
-</View>
-
-      <FilterSidebar
-        visible={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-        onApply={handleFilterChange}
-        onClear={() => console.log('Cleared')}
-      />
+      {/* Tabs and scenes */}
+      <View style={{ flex: 1 }}>
+        <TabView
+          navigationState={{ index, routes }}
+          renderScene={renderScene}
+          onIndexChange={setIndex}
+          initialLayout={initialLayout}
+          swipeEnabled={false}
+          animationEnabled={false}
+          renderTabBar={props => <TabBar {...props} {...styles.tabBarOverride} />}
+        />
+      </View>
     </SafeAreaView>
   );
 }
