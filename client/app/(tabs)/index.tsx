@@ -1,22 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  Text,
-  View,
-  ActivityIndicator,
-  TouchableOpacity,
-  Alert,
-  Platform,
-} from 'react-native';
+import {SafeAreaView,ScrollView,Text,View,ActivityIndicator,TouchableOpacity,Alert,Platform,} from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import StatCard from '../../components/statCard';
 import TrendChart from '../../components/TrendChart';
-import {
-  getTodayStats,
-  getWeeklyTrends,
-} from '../Api/analytics';
+import {getTodayStats,getWeeklyTrends,} from '../Api/analytics';
 import styles from '../styles/appStyles';
 import FilterMenu from '@/components/FilterMenu';
 
@@ -32,13 +20,12 @@ export default function App() {
   const [impressionTrend, setImpressionTrend] = useState<TrendPoint[]>([]);
   const [showClicks, setShowClicks] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(true);
+  const [filters, setFilters] = useState<{ [key: string]: string[] }>({});
 
   useEffect(() => {
     registerForPushNotifications();
-    fetchData();
-    fetchTrends();
+    fetchData(filters);
   }, []);
-
 
   async function registerForPushNotifications() {
     if (Platform.OS === 'web') {
@@ -79,46 +66,50 @@ export default function App() {
     }
   }
 
-  async function fetchData() {
+    const fetchData = async (selectedFilters: { [key: string]: string[] }) => {
+    setLoading(true);
     try {
-      const { clicks, impressions } = await getTodayStats();
-      setClicksToday(clicks);
-      setImpressionsToday(impressions);
-    } catch (err) {
-      console.error('❌ Failed to fetch daily data:', err);
-    }
-  }
+     
 
-  async function fetchTrends() {
-    try {
-      setLoading(true);
-      const { clicks, impressions } = await getWeeklyTrends();
+      // Convert string[] values to comma-separated strings for Filters type
+      const filtersForTrends = Object.fromEntries(
+        Object.entries(selectedFilters).map(([key, value]) => [key, Array.isArray(value) ? value.join(',') : value])
+      );
+      const trends = await getWeeklyTrends(filtersForTrends);
       const convertToTrendPoints = (data: any[]): TrendPoint[] =>
         data.map(item => ({
           label: new Date(item.label),
           value: Number(item.value) || 0,
         }));
 
-      setClickTrend(Array.isArray(clicks) ? convertToTrendPoints(clicks) : []);
-      setImpressionTrend(Array.isArray(impressions) ? convertToTrendPoints(impressions) : []);
+      setClickTrend(Array.isArray(trends.clicks) ? convertToTrendPoints(trends.clicks) : []);
+      setImpressionTrend(Array.isArray(trends.impressions) ? convertToTrendPoints(trends.impressions) : []);
     } catch (err) {
-      console.error('❌ Failed to fetch weekly trends:', err);
+      console.error('Failed to fetch filtered data:', err);
     } finally {
       setLoading(false);
     }
-  }
+  };
 
-  // תואם לחתימה של FilterMenu: { [key: string]: string }
-  function handleFilterChange(rawSelected: { [key: string]: string[] }): void {
-    const selected: { [key: string]: string } = {};
+  // מפעיל fetch ראשוני כשנטען
+  useEffect(() => {
+    fetchData(filters);
+  }, []);
 
-    for (const key in rawSelected) {
-      selected[key] = rawSelected[key][0] ?? '';
-    }
+  // נקרא כשמתעדכנים הפילטרים מ-FilterMenu
+  const handleApply = (selectedFilters: { [key: string]: string[] }) => {
+    setFilters(selectedFilters);
+    fetchData(selectedFilters);
+  };
 
-    console.log('Filters Applied:', selected);
-    // כאן אפשר להפעיל fetch חדש עם selected
-  }
+  // נקרא כשמנקים את הפילטרים
+  const handleClear = () => {
+    setFilters({});
+    handleApply({});
+  };
+
+  
+  
 
   return (
     <SafeAreaView style={styles.container}>
@@ -126,8 +117,8 @@ export default function App() {
         <Text style={styles.header}>Engagement Tracker</Text>
 
         <FilterMenu
-          onApply={handleFilterChange}
-          onClear={() => console.log('Filters cleared')}
+          onApply={handleApply}
+          onClear={handleClear}
         />
 
         <View style={styles.buttonGroup}>
