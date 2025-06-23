@@ -24,8 +24,7 @@ export default function App() {
 
   useEffect(() => {
     registerForPushNotifications();
-    fetchData();
-    fetchTrends(filters);
+    fetchData(filters);
   }, []);
 
   async function registerForPushNotifications() {
@@ -67,47 +66,45 @@ export default function App() {
     }
   }
 
-  async function fetchData() {
+    const fetchData = async (selectedFilters: { [key: string]: string[] }) => {
+    setLoading(true);
     try {
+      // כאן את יכולה לקרוא ל־API אמיתי שיחזיר את הנתונים לפי הפילטרים
       const { clicks, impressions } = await getTodayStats();
       setClicksToday(clicks);
       setImpressionsToday(impressions);
-    } catch (err) {
-      console.error('❌ Failed to fetch daily data:', err);
-    }
-  }
 
-  async function fetchTrends(selectedFilters: { [key: string]: string[] }){
-    try {
-      setLoading(true);
-      const { clicks, impressions } = await getWeeklyTrends(selectedFilters);
-
+      const trends = await getWeeklyTrends();
       const convertToTrendPoints = (data: any[]): TrendPoint[] =>
         data.map(item => ({
-         label: new Date(item.event_date),   
-        value: Number(item.count) || 0,
+          label: new Date(item.label),
+          value: Number(item.value) || 0,
         }));
 
-      setClickTrend(Array.isArray(clicks) ? convertToTrendPoints(clicks) : []);
-      setImpressionTrend(Array.isArray(impressions) ? convertToTrendPoints(impressions) : []);
+      setClickTrend(Array.isArray(trends.clicks) ? convertToTrendPoints(trends.clicks) : []);
+      setImpressionTrend(Array.isArray(trends.impressions) ? convertToTrendPoints(trends.impressions) : []);
     } catch (err) {
-      console.error('❌ Failed to fetch weekly trends:', err);
+      console.error('Failed to fetch filtered data:', err);
     } finally {
       setLoading(false);
     }
-  }
+  };
 
+  // מפעיל fetch ראשוני כשנטען
+  useEffect(() => {
+    fetchData(filters);
+  }, []);
 
   // נקרא כשמתעדכנים הפילטרים מ-FilterMenu
   const handleApply = (selectedFilters: { [key: string]: string[] }) => {
     setFilters(selectedFilters);
-    fetchTrends(selectedFilters);
+    fetchData(selectedFilters);
   };
 
   // נקרא כשמנקים את הפילטרים
   const handleClear = () => {
     setFilters({});
-    fetchTrends({});
+    fetchData({});
   };
 
   
@@ -120,7 +117,7 @@ export default function App() {
 
         <FilterMenu
           onApply={handleApply}
-          onClear={ handleClear}
+          onClear={() => handleClear}
         />
 
         <View style={styles.buttonGroup}>
