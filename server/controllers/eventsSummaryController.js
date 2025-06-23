@@ -31,8 +31,7 @@ export async function getEventsSummary(req, res) {
         filters.push(`${paramName} IN UNNEST(@${paramName})`);
         params[paramName] = list;
       }
-    }
-
+    
     // עבור כל הפרמטרים הרב-ערכיים:
     handleArrayParam('campaign_name', campaign_name);
     handleArrayParam('platform', platform);
