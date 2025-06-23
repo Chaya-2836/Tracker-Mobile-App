@@ -17,7 +17,9 @@ export async function getEventsSummary(req, res) {
       daysMode = 'week',
       date,
       unified_app_id,
-      user_agent
+      user_agent,
+      fromDate,
+      toDate
     } = req.query;
 
     // עוזר פונקציה לסינון כללי
@@ -56,14 +58,22 @@ export async function getEventsSummary(req, res) {
       }
     }
 
-    if (daysMode === 'day') {
+    // ✅ טווח מותאם אישית
+    if (fromDate && toDate) {
+      filters.push(`DATE(event_time) BETWEEN DATE(@fromDate) AND DATE(@toDate)`);
+      params.fromDate = fromDate;
+      params.toDate = toDate;
+    }
+    // ✅ יום נוכחי או לפי תאריך יחיד
+    else if (daysMode === 'day') {
       if (useCurrentDate) {
         filters.push(`DATE(event_time, "Asia/Jerusalem") = CURRENT_DATE("Asia/Jerusalem")`);
-        
       } else {
         filters.push(`DATE(event_time) = DATE(@date)`);
       }
-    } else {
+    }
+    // ✅ ברירת מחדל — שבוע אחרון
+    else {
       if (useCurrentDate) {
         filters.push(`DATE(event_time) BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY) AND DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY)`);
       } else {
@@ -79,8 +89,6 @@ export async function getEventsSummary(req, res) {
     if (daysMode === 'day') {
       selectClause = `SELECT DATE(event_time, "Asia/Jerusalem") AS event_date, COUNT(*) AS count`;
       groupClause = `GROUP BY event_date ORDER BY event_date`;
-
-
     } else {
       selectClause = `
         SELECT 
