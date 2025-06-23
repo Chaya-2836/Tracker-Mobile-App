@@ -175,7 +175,14 @@ export default function App() {
           initialLayout={initialLayout}
           swipeEnabled={false}
           animationEnabled={false}
-          renderTabBar={props => <TabBar {...props} {...styles.tabBarOverride} />}
+          renderTabBar={props =>   <TabBar
+    {...props}
+    indicatorStyle={styles.tabBarIndicator}
+    style={styles.tabBarStyle}
+    labelStyle={styles.tabBarLabel}
+    activeColor="#2c62b4"
+    inactiveColor="#7f8c8d"
+  />}
         />
       </View>
     </SafeAreaView>

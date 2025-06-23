@@ -1,6 +1,13 @@
-import { StyleSheet } from 'react-native';
-
-const styles = StyleSheet.create({
+import { StyleSheet, ViewStyle, TextStyle } from 'react-native';
+interface AppStyles {
+  container: ViewStyle;
+  headerRow: ViewStyle;
+  header: TextStyle;
+  tabBarIndicator: ViewStyle;
+  tabBarStyle: ViewStyle;
+  tabBarLabel: TextStyle;
+}
+const styles = StyleSheet.create<AppStyles>({
 headerContainer: {
   paddingHorizontal: 16,
   paddingTop: 20,
@@ -29,12 +36,18 @@ header: {
   marginBottom: 4,
 },
 
-  tabBarOverride: {
-    indicatorStyle: { backgroundColor: '#2c62b4' },
-    style: { backgroundColor: '#ecf0f1' },
-    labelStyle: { color: '#2c3e50', fontWeight: '600' },
-    activeColor: '#2c62b4',
-    inactiveColor: '#7f8c8d',
+
+  tabBarIndicator: {
+    backgroundColor: '#2c62b4',
+  },
+
+  tabBarStyle: {
+    backgroundColor: '#ecf0f1',
+  },
+
+  tabBarLabel: {
+    color: '#2c3e50',
+    fontWeight: '600',
   },
 });
 
