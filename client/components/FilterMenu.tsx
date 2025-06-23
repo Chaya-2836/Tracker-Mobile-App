@@ -118,6 +118,8 @@ export default function FilterMenu({ onApply, onClear }: Props) {
                 <TouchableOpacity
                   style={styles.sectionHeader}
                   onPress={() => toggleSection(label)}
+
+                  
                 >
                   <Text style={styles.label}>{label}</Text>
                   <Ionicons
