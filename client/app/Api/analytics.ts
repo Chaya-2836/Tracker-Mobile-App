@@ -26,20 +26,22 @@ async function fetchEventSummary(
   }
 }
 
-function fillMissingDays(data: TrendPoint[]): TrendPoint[] {
+function fillMissingDays(data: TrendPoint[], from?: Date, to?: Date): TrendPoint[] {
   const filled: TrendPoint[] = [];
-  const today = new Date();
-  for (let i = 1; i <= 7; i++) {
-    const d = new Date(today);
-    d.setDate(d.getDate() - i);
-    const iso = d.toISOString().slice(0, 10);
+
+  const start = from ?? new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const end = to ?? new Date();
+
+  const cursor = new Date(start);
+  while (cursor <= end) {
+    const iso = cursor.toISOString().slice(0, 10);
     const existing = data.find(item => item.label.toISOString().slice(0, 10) === iso);
-    filled.unshift(
-      existing || { label: d, value: 0 }
-    );
+    filled.push(existing || { label: new Date(cursor), value: 0 });
+    cursor.setDate(cursor.getDate() + 1);
   }
+
   return filled;
-};
+}
 const convertToTrendPoints = (data: any[]): TrendPoint[] =>
   data.map(item => ({
     label: new Date(item.event_date),
@@ -63,13 +65,15 @@ export async function getWeeklyTrends(filters: Filters = {}) {
     fetchEventSummary('impression', 'week', filters)
   ]);
 
+  const from = filters.fromDate ? new Date(filters.fromDate) : undefined;
+  const to = filters.toDate ? new Date(filters.toDate) : undefined;
   // ודא שאלה מערכים ולא מספרים
   let clicksRow = Array.isArray(clicksRowResult)
-    ? fillMissingDays(convertToTrendPoints(clicksRowResult))
+    ? fillMissingDays(convertToTrendPoints(clicksRowResult), from, to)
     : [];
 
   let impressionsRow = Array.isArray(impressionsRowResult)
-    ? fillMissingDays(convertToTrendPoints(impressionsRowResult))
+    ? fillMissingDays(convertToTrendPoints(impressionsRowResult), from, to)
     : [];
 
   return {
