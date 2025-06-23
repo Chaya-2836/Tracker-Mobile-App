@@ -14,7 +14,7 @@ import styles from '../styles/appStyles';
 import StatCard from '../../components/statCard';
 import TrendChart from '../../components/TrendChart';
 import { getTodayStats, getWeeklyTrends } from '../Api/analytics';
-import FilterBar from '../../components/FilterMenu'; 
+import FilterBar from '../../components/FilterMenu';
 
 interface TrendPoint {
   label: Date;
@@ -31,25 +31,25 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [index, setIndex] = useState(0);
 
+  // Tabs
   const [routes] = useState([
     { key: 'clicks', title: 'Clicks' },
     { key: 'impressions', title: 'Impressions' },
   ]);
 
-  // Filter state
+  // Filters (lifted state)
   const [filterOptions, setFilterOptions] = useState<{ [label: string]: string[] }>({});
   const [selectedFilters, setSelectedFilters] = useState<{ [label: string]: string[] }>({});
   const [expandedSections, setExpandedSections] = useState<{ [label: string]: boolean }>({});
   const [searchTexts, setSearchTexts] = useState<{ [label: string]: string }>({});
 
-  // ⏳ Initial lifecycle
   useEffect(() => {
     registerForPushNotifications();
-    fetchTodayStats();
+    fetchData();
+    fetchTrends();
     fetchFilterData();
   }, []);
 
-  // Push token registration
   async function registerForPushNotifications() {
     if (Device.isDevice) {
       const { status: existingStatus } = await Notifications.getPermissionsAsync();
@@ -69,7 +69,7 @@ export default function App() {
     }
   }
 
-  async function fetchTodayStats() {
+  async function fetchData() {
     try {
       const { clicks, impressions } = await getTodayStats();
       setClicksToday(clicks);
@@ -79,44 +79,50 @@ export default function App() {
     }
   }
 
-  async function fetchFilterData() {
-    // if needed, fetch options here or defer to FilterBar
-  }
-
-  const fetchTrendData = async (filters: { [key: string]: string[] }) => {
-    setLoading(true);
+  async function fetchTrends() {
     try {
-      const formattedFilters = Object.fromEntries(
-        Object.entries(filters).map(([k, v]) => [k, v.join(',')])
-      );
-
-      const { clicks, impressions } = await getWeeklyTrends(formattedFilters);
-
-      const toTrendPoints = (data: any[]): TrendPoint[] =>
-        data.map(item => ({
+      setLoading(true);
+      const { clicks, impressions } = await getWeeklyTrends();
+      const toPoints = (arr: any[]) =>
+        arr.map(item => ({
           label: new Date(item.label),
           value: Number(item.value || 0),
         }));
-
-      setClickTrend(Array.isArray(clicks) ? toTrendPoints(clicks) : []);
-      setImpressionTrend(Array.isArray(impressions) ? toTrendPoints(impressions) : []);
-    } catch (err) {
-      console.error('Failed to fetch filtered trend data', err);
+      setClickTrend(toPoints(clicks));
+      setImpressionTrend(toPoints(impressions));
+    } catch {
+      console.error('Failed to fetch weekly trends');
     } finally {
       setLoading(false);
     }
-  };
+  }
 
-  // Apply filters from FilterBar
-  const handleApply = (filters: { [key: string]: string[] }) => {
-    setSelectedFilters(filters);
-    fetchTrendData(filters);
-  };
+  async function fetchFilterData() {
+    const endpoints = {
+      'Campaign': '/api/getCampaigns',
+      'Platform': '/api/getPlatforms',
+      'Media Source': '/api/getMediaSources',
+      'Agency': '/api/getAgencies',
+    };
+    const newOptions: { [label: string]: string[] } = {};
+    await Promise.all(
+      Object.entries(endpoints).map(async ([label, url]) => {
+        try {
+          const res = await fetch(url);
+          const data = await res.json();
+          newOptions[label] = data;
+        } catch (err) {
+          console.error(`Failed to fetch options for ${label}`, err);
+          newOptions[label] = [];
+        }
+      })
+    );
+    setFilterOptions(newOptions);
+  }
 
-  const handleClear = () => {
-    setSelectedFilters({});
-    setSearchTexts({});
-    fetchTrendData({});
+  const handleFilterChange = (filters: { [key: string]: string[] }) => {
+    console.log('Filters applied:', filters);
+    // TODO: use this to fetch or filter chart data if needed
   };
 
   const renderScene = ({ route }: any) => {
@@ -132,8 +138,10 @@ export default function App() {
           onToggleExpand={setExpandedSections}
           searchText={searchTexts}
           onSearchTextChange={setSearchTexts}
-          onClear={handleClear}
-          onApply={handleApply}
+          onClear={() => {
+            setSelectedFilters({});
+            setSearchTexts({});
+          }}
         />
 
         {route.key === 'clicks' ? (
@@ -153,10 +161,12 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Header */}
       <View style={styles.headerRow}>
         <Text style={styles.header}>Engagement Tracker</Text>
       </View>
 
+      {/* Tabs and scenes */}
       <View style={{ flex: 1 }}>
         <TabView
           navigationState={{ index, routes }}
@@ -165,18 +175,7 @@ export default function App() {
           initialLayout={initialLayout}
           swipeEnabled={false}
           animationEnabled={false}
-renderTabBar={props => (
-  <TabBar
-    {...props}
-    indicatorStyle={styles.tabBarIndicator}
-    style={styles.tabBarStyle}
-    labelStyle={styles.tabBarLabel}
-    activeColor="#2c62b4"
-    inactiveColor="#7f8c8d"
-  />
-)}
-
-
+          renderTabBar={props => <TabBar {...props} {...styles.tabBarOverride} />}
         />
       </View>
     </SafeAreaView>

@@ -1,22 +1,19 @@
-import { StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import { StyleSheet } from 'react-native';
 
-interface AppStyles {
-  container: ViewStyle;
-  headerRow: ViewStyle;
-  header: TextStyle;
-  tabBarIndicator: ViewStyle;
-  tabBarStyle: ViewStyle;
-  tabBarLabel: TextStyle;
-}
-const styles = StyleSheet.create<AppStyles>({
-  // SafeAreaView container
+const styles = StyleSheet.create({
+headerContainer: {
+  paddingHorizontal: 16,
+  paddingTop: 20,
+  paddingBottom: 16, // was 5 → now 16 to add space below the button
+  alignItems: 'center',
+  position: 'relative',
+},
+
   container: {
     flex: 1,
     backgroundColor: '#f7f9fc',
     paddingTop: 20,
   },
-
-  // Header row (wrapper for the main title)
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -24,28 +21,21 @@ const styles = StyleSheet.create<AppStyles>({
     paddingHorizontal: 16,
     marginBottom: 8,
   },
+header: {
+  fontSize: 26,
+  fontWeight: '700',
+  textAlign: 'center',
+  color: '#2c3e50',
+  marginBottom: 4,
+},
 
-  // Title text
-  header: {
-    fontSize: 26,
-    fontWeight: '700',
-    textAlign: 'center',
-    color: '#2c3e50',
-    marginBottom: 4,
-  },
-
-  // TabBar styles (broken out by key)
-  tabBarIndicator: {
-    backgroundColor: '#2c62b4',
-  },
-  tabBarStyle: {
-    backgroundColor: '#ecf0f1',
-  },
-  tabBarLabel: {
-    color: '#2c3e50',
-    fontWeight: '600',
+  tabBarOverride: {
+    indicatorStyle: { backgroundColor: '#2c62b4' },
+    style: { backgroundColor: '#ecf0f1' },
+    labelStyle: { color: '#2c3e50', fontWeight: '600' },
+    activeColor: '#2c62b4',
+    inactiveColor: '#7f8c8d',
   },
 });
-
 
 export default styles;
