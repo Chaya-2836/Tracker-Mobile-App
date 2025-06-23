@@ -1,18 +1,12 @@
 import express from 'express';
-import {
-  getCampaigns,
-  getPlatforms,
-  getMediaSources,
-  getAgencies,
-  getEngagementTypes,
-} from '../controllers/filtersController.js';
+import { filterController } from '../controllers/filtersController.js';
 
 const router = express.Router();
 
-router.get('/campaigns', getCampaigns);
-router.get('/platforms', getPlatforms);
-router.get('/media-sources', getMediaSources);
-router.get('/agencies', getAgencies);
-router.get('/engagement-types', getEngagementTypes);
+router.get('/campaigns', filterController.getCampaigns);
+router.get('/platforms', filterController.getPlatforms);
+router.get('/media-sources', filterController.getMediaSources);
+router.get('/agencies', filterController.getAgencies);
+router.get('/engagement-types', filterController.getEngagementTypes);
 
 export default router;
