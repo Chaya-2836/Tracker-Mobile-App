@@ -26,6 +26,8 @@ export {  nameDB };
 app.use('/events_summary', eventsSummaryRoutes);
 app.use('/filters', filtersRoutes);
 app.use('/push', pushRoutes);
+app.use('/api', apiRoutes);
+
 
 // קריאה לפונקציית בדיקת הפוש המתוזמנת
 scheduleDailyCheck();

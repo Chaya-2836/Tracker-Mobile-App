@@ -22,31 +22,25 @@ export async function getEventsSummary(req, res) {
       toDate
     } = req.query;
 
-    if (campaign_name) {
-      filters.push(`campaign_name = @campaign_name`);
-      params.campaign_name = campaign_name;
-    }
-    if (platform) {
-      filters.push(`platform = @platform`);
-      params.platform = platform;
-    }
-    if (media_source) {
-      filters.push(`media_source = @media_source`);
-      params.media_source = media_source;
-    }
-    if (agency) {
-      filters.push(`agency = @agency`);
-      params.agency = agency;
-    }
-    if (unified_app_id) {
-      filters.push(`unified_app_id = @unified_app_id`);
-      params.unified_app_id = unified_app_id;
-    }
-    if (user_agent) {
-      filters.push(`user_agent = @user_agent`);
-      params.user_agent = user_agent;
-    }
+    // עוזר פונקציה לסינון כללי
+    function handleArrayParam(paramName, paramValue) {
+      if (paramValue) {
+        const list = Array.isArray(paramValue)
+          ? paramValue
+          : paramValue.split(',').map(s => s.trim());
+        filters.push(`${paramName} IN UNNEST(@${paramName})`);
+        params[paramName] = list;
+      }
+    
+    // עבור כל הפרמטרים הרב-ערכיים:
+    handleArrayParam('campaign_name', campaign_name);
+    handleArrayParam('platform', platform);
+    handleArrayParam('media_source', media_source);
+    handleArrayParam('agency', agency);
+    handleArrayParam('unified_app_id', unified_app_id);
+    handleArrayParam('user_agent', user_agent);
 
+    // סוג ההתקשרות
     params.engagement_type = engagement_type || 'click';
     filters.push(`engagement_type = @engagement_type`);
 
