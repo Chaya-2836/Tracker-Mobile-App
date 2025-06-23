@@ -71,7 +71,11 @@ export default function App() {
     try {
      
 
-      const trends = await getWeeklyTrends();
+      // Convert string[] values to comma-separated strings for Filters type
+      const filtersForTrends = Object.fromEntries(
+        Object.entries(selectedFilters).map(([key, value]) => [key, Array.isArray(value) ? value.join(',') : value])
+      );
+      const trends = await getWeeklyTrends(filtersForTrends);
       const convertToTrendPoints = (data: any[]): TrendPoint[] =>
         data.map(item => ({
           label: new Date(item.label),
@@ -101,7 +105,7 @@ export default function App() {
   // נקרא כשמנקים את הפילטרים
   const handleClear = () => {
     setFilters({});
-    fetchData({});
+    handleApply({});
   };
 
   
@@ -114,7 +118,7 @@ export default function App() {
 
         <FilterMenu
           onApply={handleApply}
-          onClear={() => handleClear}
+          onClear={handleClear}
         />
 
         <View style={styles.buttonGroup}>
