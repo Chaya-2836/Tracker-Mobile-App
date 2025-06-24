@@ -46,7 +46,7 @@ export default function App() {
   useEffect(() => {
     registerForPushNotifications();
     fetchData();
-    fetchTrends();
+    fetchTrends({});
     fetchFilterData();
   }, []);
 
@@ -79,10 +79,17 @@ export default function App() {
     }
   }
 
-  async function fetchTrends() {
+  async function fetchTrends(filters: { [key: string]: string[] }) {
     try {
       setLoading(true);
-      const { clicks, impressions } = await getWeeklyTrends();
+      // const { clicks, impressions } = await getWeeklyTrends();
+      const filtersAsQuery = Object.fromEntries(
+        Object.entries(filters).map(([key, val]) => [
+          key.toLowerCase().replace(/\s+/g, '_'),
+          val.join(',')
+        ])
+      );
+      const { clicks, impressions } = await getWeeklyTrends(filtersAsQuery);
       const toPoints = (arr: any[]) =>
         arr.map(item => ({
           label: new Date(item.label),
@@ -133,14 +140,22 @@ export default function App() {
         <FilterBar
           options={filterOptions}
           selected={selectedFilters}
-          onSelect={setSelectedFilters}
+          onSelect={(filters) => {
+            setSelectedFilters(filters);
+            fetchTrends(filters); // ← זה הקסם
+          }}
           expanded={expandedSections}
           onToggleExpand={setExpandedSections}
           searchText={searchTexts}
           onSearchTextChange={setSearchTexts}
+          // onClear={() => {
+          //   setSelectedFilters({});
+          //   setSearchTexts({});
+          // }}
           onClear={() => {
             setSelectedFilters({});
             setSearchTexts({});
+            fetchTrends({}); // ← שליפת כל הדאטה בלי פילטרים
           }}
         />
 
@@ -175,14 +190,14 @@ export default function App() {
           initialLayout={initialLayout}
           swipeEnabled={false}
           animationEnabled={false}
-          renderTabBar={props =>   <TabBar
-    {...props}
-    indicatorStyle={styles.tabBarIndicator}
-    style={styles.tabBarStyle}
-    labelStyle={styles.tabBarLabel}
-    activeColor="#2c62b4"
-    inactiveColor="#7f8c8d"
-  />}
+          renderTabBar={props => <TabBar
+            {...props}
+            indicatorStyle={styles.tabBarIndicator}
+            style={styles.tabBarStyle}
+            labelStyle={styles.tabBarLabel}
+            activeColor="#2c62b4"
+            inactiveColor="#7f8c8d"
+          />}
         />
       </View>
     </SafeAreaView>
