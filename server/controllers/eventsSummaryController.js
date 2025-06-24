@@ -21,6 +21,7 @@ export async function getEventsSummary(req, res) {
       fromDate,
       toDate
     } = req.query;
+    console.log('🧾 req.query:', req.query);
 
     if (campaign_name) {
       filters.push(`campaign_name = @campaign_name`);
@@ -68,6 +69,8 @@ export async function getEventsSummary(req, res) {
       filters.push(`DATE(event_time) BETWEEN DATE(@fromDate) AND DATE(@toDate)`);
       params.fromDate = fromDate;
       params.toDate = toDate;
+      console.log("fromDate to Date");
+
     }
     // ✅ יום נוכחי או לפי תאריך יחיד
     else if (daysMode === 'day') {

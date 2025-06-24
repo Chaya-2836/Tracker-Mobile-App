@@ -31,6 +31,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [index, setIndex] = useState(0);
 
+
   // Tabs
   const [routes] = useState([
     { key: 'clicks', title: 'Clicks' },
@@ -40,7 +41,17 @@ export default function App() {
   // Filters (lifted state)
   const [filterOptions, setFilterOptions] = useState<{ [label: string]: string[] }>({});
   const [selectedFilters, setSelectedFilters] = useState<{ [label: string]: string[] }>({});
-  const [expandedSections, setExpandedSections] = useState<{ [label: string]: boolean }>({});
+  const FILTER_ORDER = ['Campaign', 'Platform', 'Media Source', 'Agency', 'Date Range'];
+  const [expandedSections, setExpandedSections] = useState<{ [label: string]: boolean }>(
+    Object.fromEntries(FILTER_ORDER.map(label => [label, false]))
+  );
+  const handleToggleExpand = (updates: { [label: string]: boolean }) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      ...updates,
+    }));
+  };
+
   const [searchTexts, setSearchTexts] = useState<{ [label: string]: string }>({});
 
   useEffect(() => {
@@ -84,10 +95,12 @@ export default function App() {
       setLoading(true);
       // const { clicks, impressions } = await getWeeklyTrends();
       const filtersAsQuery = Object.fromEntries(
-        Object.entries(filters).map(([key, val]) => [
-          key.toLowerCase().replace(/\s+/g, '_'),
-          val.join(',')
-        ])
+        Object.entries(filters).map(([key, val]) => {
+          const keyNormalized = key === 'fromDate' || key === 'toDate'
+            ? key // ← שמרי על case כפי שהוא
+            : key.toLowerCase().replace(/\s+/g, '_');
+          return [keyNormalized, val.join(',')];
+        })
       );
       const { clicks, impressions } = await getWeeklyTrends(filtersAsQuery);
       const toPoints = (arr: any[]) =>
@@ -132,6 +145,20 @@ export default function App() {
     // TODO: use this to fetch or filter chart data if needed
   };
 
+  const formatDate = (iso: string) => {
+    return new Date(iso).toLocaleDateString('en-CA'); // התאריך בפורמט YYYY-MM-DD לפי אזור זמן שלך
+  };
+
+  const getChartTitle = (filters: { [key: string]: string[] }) => {
+    const from = filters.fromDate?.[0];
+    const to = filters.toDate?.[0];
+
+    if (from && to) {
+      return `Click Volume Trend (${formatDate(from)} → ${formatDate(to)})`;
+    }
+
+    return 'Click Volume Trend (Last 7 Days)';
+  };
   const renderScene = ({ route }: any) => {
     if (loading) return <ActivityIndicator size="large" color="#0000ff" />;
 
@@ -145,7 +172,7 @@ export default function App() {
             fetchTrends(filters); // ← זה הקסם
           }}
           expanded={expandedSections}
-          onToggleExpand={setExpandedSections}
+          onToggleExpand={handleToggleExpand}
           searchText={searchTexts}
           onSearchTextChange={setSearchTexts}
           // onClear={() => {
@@ -162,7 +189,10 @@ export default function App() {
         {route.key === 'clicks' ? (
           <View style={{ paddingTop: 12 }}>
             <StatCard title="Clicks Recorded Today" value={clicksToday} />
-            <TrendChart title="Click Volume Trend (Last 7 Days)" data={clickTrend} />
+            <TrendChart
+              title={getChartTitle(selectedFilters)}
+              data={clickTrend}
+            />
           </View>
         ) : (
           <View style={{ paddingTop: 12 }}>
