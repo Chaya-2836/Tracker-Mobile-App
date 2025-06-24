@@ -1,160 +1,235 @@
 import React, { useEffect, useState } from 'react';
-import {SafeAreaView,ScrollView,Text,View,ActivityIndicator,TouchableOpacity,Alert,Platform,} from 'react-native';
+import {
+  SafeAreaView,
+  Text,
+  View,
+  ActivityIndicator,
+  Dimensions,
+} from 'react-native';
+import { TabView, TabBar } from 'react-native-tab-view';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
+
+import styles from '../styles/appStyles';
 import StatCard from '../../components/statCard';
 import TrendChart from '../../components/TrendChart';
-import {getTodayStats,getWeeklyTrends,} from '../Api/analytics';
-import styles from '../styles/appStyles';
-import FilterMenu from '@/components/FilterMenu';
+import { getTodayStats, getWeeklyTrends } from '../Api/analytics';
+import FilterBar from '../../components/FilterMenu';
 
 interface TrendPoint {
   label: Date;
   value: number;
 }
 
+const initialLayout = { width: Dimensions.get('window').width };
+
 export default function App() {
-  const [clicksToday, setClicksToday] = useState<number>(0);
-  const [impressionsToday, setImpressionsToday] = useState<number>(0);
+  const [clicksToday, setClicksToday] = useState(0);
+  const [impressionsToday, setImpressionsToday] = useState(0);
   const [clickTrend, setClickTrend] = useState<TrendPoint[]>([]);
   const [impressionTrend, setImpressionTrend] = useState<TrendPoint[]>([]);
-  const [showClicks, setShowClicks] = useState<boolean>(true);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [filters, setFilters] = useState<{ [key: string]: string[] }>({});
+  const [loading, setLoading] = useState(true);
+  const [index, setIndex] = useState(0);
+
+
+  // Tabs
+  const [routes] = useState([
+    { key: 'clicks', title: 'Clicks' },
+    { key: 'impressions', title: 'Impressions' },
+  ]);
+
+  // Filters (lifted state)
+  const [filterOptions, setFilterOptions] = useState<{ [label: string]: string[] }>({});
+  const [selectedFilters, setSelectedFilters] = useState<{ [label: string]: string[] }>({});
+  const FILTER_ORDER = ['Campaign', 'Platform', 'Media Source', 'Agency', 'Date Range'];
+  const [expandedSections, setExpandedSections] = useState<{ [label: string]: boolean }>(
+    Object.fromEntries(FILTER_ORDER.map(label => [label, false]))
+  );
+  const handleToggleExpand = (updates: { [label: string]: boolean }) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      ...updates,
+    }));
+  };
+
+  const [searchTexts, setSearchTexts] = useState<{ [label: string]: string }>({});
 
   useEffect(() => {
     registerForPushNotifications();
-    fetchData(filters);
+    fetchData();
+    fetchTrends({});
+    fetchFilterData();
   }, []);
 
   async function registerForPushNotifications() {
-    if (Platform.OS === 'web') {
-      console.log("Push notifications are disabled on web");
-      return;
-    }
-
-    if (!Device.isDevice) {
-      Alert.alert('Must use physical device');
-      return;
-    }
-
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
-
-    if (existingStatus !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
-    }
-
-    if (finalStatus !== 'granted') {
-      Alert.alert('Permission denied', 'Cannot receive push notifications');
-      return;
-    }
-
-    const token = (await Notifications.getExpoPushTokenAsync()).data;
-    console.log('📲 Expo Push Token:', token);
-
-    try {
-      await fetch('http://localhost:3000/push/register-token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token }),
-      });
-      console.log('✅ Token sent to server');
-    } catch (err) {
-      console.error('❌ Failed to send token:', err);
+    if (Device.isDevice) {
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+      if (finalStatus === 'granted') {
+        const token = (await Notifications.getExpoPushTokenAsync()).data;
+        await fetch('http://localhost:3000/push/register-token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token }),
+        });
+      }
     }
   }
 
-    const fetchData = async (selectedFilters: { [key: string]: string[] }) => {
-    setLoading(true);
+  async function fetchData() {
     try {
-     
+      const { clicks, impressions } = await getTodayStats();
+      setClicksToday(clicks);
+      setImpressionsToday(impressions);
+    } catch {
+      console.error('Failed to fetch daily stats');
+    }
+  }
 
-      // Convert string[] values to comma-separated strings for Filters type
-      const filtersForTrends = Object.fromEntries(
-        Object.entries(selectedFilters).map(([key, value]) => [key, Array.isArray(value) ? value.join(',') : value])
+  async function fetchTrends(filters: { [key: string]: string[] }) {
+    try {
+      setLoading(true);
+      // const { clicks, impressions } = await getWeeklyTrends();
+      const filtersAsQuery = Object.fromEntries(
+        Object.entries(filters).map(([key, val]) => {
+          const keyNormalized = key === 'fromDate' || key === 'toDate'
+            ? key // ← שמרי על case כפי שהוא
+            : key.toLowerCase().replace(/\s+/g, '_');
+          return [keyNormalized, val.join(',')];
+        })
       );
-      const trends = await getWeeklyTrends(filtersForTrends);
-      const convertToTrendPoints = (data: any[]): TrendPoint[] =>
-        data.map(item => ({
+      const { clicks, impressions } = await getWeeklyTrends(filtersAsQuery);
+      const toPoints = (arr: any[]) =>
+        arr.map(item => ({
           label: new Date(item.label),
-          value: Number(item.value) || 0,
+          value: Number(item.value || 0),
         }));
-
-      setClickTrend(Array.isArray(trends.clicks) ? convertToTrendPoints(trends.clicks) : []);
-      setImpressionTrend(Array.isArray(trends.impressions) ? convertToTrendPoints(trends.impressions) : []);
-    } catch (err) {
-      console.error('Failed to fetch filtered data:', err);
+      setClickTrend(toPoints(clicks));
+      setImpressionTrend(toPoints(impressions));
+    } catch {
+      console.error('Failed to fetch weekly trends');
     } finally {
       setLoading(false);
     }
+  }
+
+  async function fetchFilterData() {
+    const endpoints = {
+      'Campaign': '/api/getCampaigns',
+      'Platform': '/api/getPlatforms',
+      'Media Source': '/api/getMediaSources',
+      'Agency': '/api/getAgencies',
+    };
+    const newOptions: { [label: string]: string[] } = {};
+    await Promise.all(
+      Object.entries(endpoints).map(async ([label, url]) => {
+        try {
+          const res = await fetch(url);
+          const data = await res.json();
+          newOptions[label] = data;
+        } catch (err) {
+          console.error(`Failed to fetch options for ${label}`, err);
+          newOptions[label] = [];
+        }
+      })
+    );
+    setFilterOptions(newOptions);
+  }
+
+  const handleFilterChange = (filters: { [key: string]: string[] }) => {
+    console.log('Filters applied:', filters);
+    // TODO: use this to fetch or filter chart data if needed
   };
 
-  // מפעיל fetch ראשוני כשנטען
-  useEffect(() => {
-    fetchData(filters);
-  }, []);
-
-  // נקרא כשמתעדכנים הפילטרים מ-FilterMenu
-  const handleApply = (selectedFilters: { [key: string]: string[] }) => {
-    setFilters(selectedFilters);
-    fetchData(selectedFilters);
+  const formatDate = (iso: string) => {
+    return new Date(iso).toLocaleDateString('en-CA'); // התאריך בפורמט YYYY-MM-DD לפי אזור זמן שלך
   };
 
-  // נקרא כשמנקים את הפילטרים
-  const handleClear = () => {
-    setFilters({});
-    handleApply({});
-  };
+  const getChartTitle = (filters: { [key: string]: string[] }) => {
+    const from = filters.fromDate?.[0];
+    const to = filters.toDate?.[0];
 
-  
-  
+    if (from && to) {
+      return `Click Volume Trend (${formatDate(from)} → ${formatDate(to)})`;
+    }
+
+    return 'Click Volume Trend (Last 7 Days)';
+  };
+  const renderScene = ({ route }: any) => {
+    if (loading) return <ActivityIndicator size="large" color="#0000ff" />;
+
+    return (
+      <View style={{ flex: 1 }}>
+        <FilterBar
+          options={filterOptions}
+          selected={selectedFilters}
+          onSelect={(filters) => {
+            setSelectedFilters(filters);
+            fetchTrends(filters); // ← זה הקסם
+          }}
+          expanded={expandedSections}
+          onToggleExpand={handleToggleExpand}
+          searchText={searchTexts}
+          onSearchTextChange={setSearchTexts}
+          // onClear={() => {
+          //   setSelectedFilters({});
+          //   setSearchTexts({});
+          // }}
+          onClear={() => {
+            setSelectedFilters({});
+            setSearchTexts({});
+            fetchTrends({}); // ← שליפת כל הדאטה בלי פילטרים
+          }}
+        />
+
+        {route.key === 'clicks' ? (
+          <View style={{ paddingTop: 12 }}>
+            <StatCard title="Clicks Recorded Today" value={clicksToday} />
+            <TrendChart
+              title={getChartTitle(selectedFilters)}
+              data={clickTrend}
+            />
+          </View>
+        ) : (
+          <View style={{ paddingTop: 12 }}>
+            <StatCard title="Impressions Recorded Today" value={impressionsToday} />
+            <TrendChart title="Impression Volume Trend (Last 7 Days)" data={impressionTrend} />
+          </View>
+        )}
+      </View>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView>
+      {/* Header */}
+      <View style={styles.headerRow}>
         <Text style={styles.header}>Engagement Tracker</Text>
+      </View>
 
-        <FilterMenu
-          onApply={handleApply}
-          onClear={handleClear}
+      {/* Tabs and scenes */}
+      <View style={{ flex: 1 }}>
+        <TabView
+          navigationState={{ index, routes }}
+          renderScene={renderScene}
+          onIndexChange={setIndex}
+          initialLayout={initialLayout}
+          swipeEnabled={false}
+          animationEnabled={false}
+          renderTabBar={props => <TabBar
+            {...props}
+            indicatorStyle={styles.tabBarIndicator}
+            style={styles.tabBarStyle}
+            labelStyle={styles.tabBarLabel}
+            activeColor="#2c62b4"
+            inactiveColor="#7f8c8d"
+          />}
         />
-
-        <View style={styles.buttonGroup}>
-          <TouchableOpacity
-            style={[styles.toggleButton, showClicks && styles.activeButton]}
-            onPress={() => setShowClicks(true)}
-          >
-            <Text style={[styles.buttonText, showClicks && styles.activeButtonText]}>
-              Show Clicks
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.toggleButton, !showClicks && styles.activeButton]}
-            onPress={() => setShowClicks(false)}
-          >
-            <Text style={[styles.buttonText, !showClicks && styles.activeButtonText]}>
-              Show Impressions
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {loading ? (
-          <ActivityIndicator size="large" color="#0000ff" />
-        ) : showClicks ? (
-          <>
-            <StatCard title="Clicks Recorded Today" value={clicksToday} />
-            <TrendChart title="Click Volume Trend (Last 7 Days)" data={clickTrend} />
-          </>
-        ) : (
-          <>
-            <StatCard title="Impressions Recorded Today" value={impressionsToday} />
-            <TrendChart title="Impression Volume Trend (Last 7 Days)" data={impressionTrend} />
-          </>
-        )}
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }

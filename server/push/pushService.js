@@ -48,7 +48,10 @@ async function sendPush(token, title, body) {
 }
 
 function scheduleDailyCheck() {
-  if (!firebaseReady) return;
+  if (!firebaseReady) {
+    setInterval(() => { }, 1000 * 60 * 60); // מחזיק את התהליך בלי לעשות כלום
+    return;
+  }
 
   cron.schedule('0 10 * * *', async () => {
     console.log('⏰ Running daily engagement check...');
