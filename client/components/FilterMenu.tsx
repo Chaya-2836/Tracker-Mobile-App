@@ -1,26 +1,36 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   TextInput,
   ScrollView,
+  TouchableWithoutFeedback,
+  LayoutRectangle,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import styles from '../app/styles/filterMenuStyles';
 
+const FILTER_ORDER = ['Campaign', 'Platform', 'Media Source', 'Agency'];
+
+const filterKeys: { [label: string]: string } = {
+  Campaign: 'campaign_name',
+  Platform: 'platform',
+  'Media Source': 'media_source',
+  Agency: 'agency',
+};
+
 type Props = {
   options: { [label: string]: string[] };
   selected: { [label: string]: string[] };
-  onSelect: (s: { [label: string]: string[] }) => void;
+  onSelect: (s: { [key: string]: string[] }) => void;
   expanded: { [label: string]: boolean };
   onToggleExpand: (label: string) => void;
   searchText: { [label: string]: string };
   onSearchTextChange: (t: { [label: string]: string }) => void;
   onClear: () => void;
+  onApply: (mapped: { [key: string]: string[] }) => void;
 };
-
-const FILTER_ORDER = ['Campaign', 'Platform', 'Media Source', 'Agency'];
 
 export default function FilterBar({
   options,
@@ -31,71 +41,155 @@ export default function FilterBar({
   searchText,
   onSearchTextChange,
   onClear,
+  onApply,
 }: Props) {
-  const toggleOption = (label: string, option: string) => {
-    const already = selected[label]?.includes(option);
-    const updated = {
-      ...selected,
-      [label]: already
-        ? selected[label].filter(o => o !== option)
-        : [...(selected[label] || []), option],
-    };
-    onSelect(updated);
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [buttonLayouts, setButtonLayouts] = useState<{ [label: string]: LayoutRectangle }>({});
+  const [pending, setPending] = useState<{ [key: string]: string[] }>({ ...selected });
+
+  const toggleDropdown = (label: string) => {
+    if (activeFilter === label) {
+      setActiveFilter(null);
+    } else {
+      setActiveFilter(label);
+    }
   };
 
-  return (
-    <View style={styles.filterBarContainer}>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scrollWrapper}>
-        <View style={styles.filterByTextContainer}>
-          <Text style={styles.filterByText}>Filter By:</Text>
-        </View>
+  const handleLayout = (label: string, layout: LayoutRectangle) => {
+    setButtonLayouts(prev => ({ ...prev, [label]: layout }));
+  };
 
-        {FILTER_ORDER.map(label => (
-          <View key={label} style={[styles.dropdownContainer, { marginHorizontal: 6 }]}>
-            <TouchableOpacity onPress={() => onToggleExpand(label)} style={styles.dropdownHeader}>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+  const toggleOption = (label: string, option: string) => {
+    const already = pending[label]?.includes(option);
+    const updated = {
+      ...pending,
+      [label]: already
+        ? pending[label].filter(o => o !== option)
+        : [...(pending[label] || []), option],
+    };
+    setPending(updated);
+  };
+
+  const handleApply = () => {
+    onSelect(pending);
+    const mapped: { [key: string]: string[] } = {};
+    Object.entries(pending).forEach(([label, val]) => {
+      const param = filterKeys[label];
+      if (param && val.length > 0) {
+        mapped[param] = val;
+      }
+    });
+    onApply(mapped);
+    setActiveFilter(null);
+  };
+
+  const isSelected = (label: string, option: string) =>
+    pending[label]?.includes(option);
+
+  const anchor = activeFilter ? buttonLayouts[activeFilter] : null;
+
+  return (
+    <TouchableWithoutFeedback onPress={() => setActiveFilter(null)}>
+      <View style={styles.overlayContainer}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.scrollWrapper}
+        >
+          <View style={styles.filterByTextContainer}>
+            <Text style={styles.filterByText}>Filter By:</Text>
+          </View>
+
+          {FILTER_ORDER.map(label => (
+            <View
+              key={label}
+              style={styles.dropdownWrapper}
+              onLayout={e => handleLayout(label, e.nativeEvent.layout)}
+            >
+              <TouchableOpacity
+                onPress={e => {
+                  e.stopPropagation?.();
+                  toggleDropdown(label);
+                }}
+                style={styles.dropdownHeader}
+              >
                 <Text style={styles.dropdownText}>{label}</Text>
                 <Ionicons
-                  name={expanded[label] ? 'chevron-up' : 'chevron-down'}
+                  name={activeFilter === label ? 'chevron-up' : 'chevron-down'}
                   size={16}
                   color="#2c3e50"
-                  style={{ marginLeft: 12 }}
                 />
-              </View>
-            </TouchableOpacity>
+              </TouchableOpacity>
+            </View>
+          ))}
 
-            {expanded[label] && (
-              <View style={styles.dropdownPanel}>
-                <TextInput
-                  style={styles.searchInput}
-                  placeholder={`Search ${label}`}
-                  value={searchText[label] || ''}
-                  onChangeText={text => onSearchTextChange({ ...searchText, [label]: text })}
-                />
-                {(options[label] || [])
-                  .filter(opt => opt.toLowerCase().includes((searchText[label] || '').toLowerCase()))
+          <TouchableOpacity style={styles.actionBtn} onPress={onClear}>
+            <Text style={styles.btnText}>Clear</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionBtn} onPress={handleApply}>
+            <Text style={styles.btnText}>Apply</Text>
+          </TouchableOpacity>
+        </ScrollView>
+
+        {activeFilter && anchor && (
+          <TouchableWithoutFeedback onPress={() => {}}>
+            <View
+              style={[
+                styles.floatingDropdown,
+                {
+                  top: anchor.y + anchor.height + 6,
+                  left: anchor.x,
+                  width: anchor.width + 20,
+                },
+              ]}
+            >
+              <TextInput
+                style={styles.searchInput}
+                placeholder={`Search ${activeFilter}`}
+                value={searchText[activeFilter] || ''}
+                onChangeText={text =>
+                  onSearchTextChange({ ...searchText, [activeFilter]: text })
+                }
+              />
+              <ScrollView style={styles.dropdownScroll}>
+                {(options[activeFilter] || [])
+                  .filter(opt =>
+                    opt.toLowerCase().includes((searchText[activeFilter] || '').toLowerCase())
+                  )
                   .map(option => (
                     <TouchableOpacity
                       key={option}
-                      style={styles.optionRow}
-                      onPress={() => toggleOption(label, option)}
+                      style={[
+                        styles.optionItem,
+                        isSelected(activeFilter, option) && styles.optionItemSelected,
+                      ]}
+                      onPress={() => toggleOption(activeFilter, option)}
                     >
+                      <Text
+                        style={[
+                          styles.optionText,
+                          isSelected(activeFilter, option) && styles.optionTextSelected,
+                        ]}
+                      >
+                        {option}
+                      </Text>
                       <Ionicons
-                        name={selected[label]?.includes(option) ? 'checkbox-outline' : 'square-outline'}
+                        name={
+                          isSelected(activeFilter, option)
+                            ? 'checkbox-outline'
+                            : 'square-outline'
+                        }
                         size={20}
                         color="#2c3e50"
+                        style={styles.optionIcon}
                       />
-                      <Text style={styles.optionText}>{option}</Text>
                     </TouchableOpacity>
                   ))}
-              </View>
-            )}
-          </View>
-        ))}
-        <TouchableOpacity style={styles.clearButton} onPress={onClear}>
-          <Text style={styles.clearButtonText}>Clear All</Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </View>
+              </ScrollView>
+            </View>
+          </TouchableWithoutFeedback>
+        )}
+      </View>
+    </TouchableWithoutFeedback>
   );
 }
