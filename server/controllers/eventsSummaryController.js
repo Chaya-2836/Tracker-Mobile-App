@@ -109,12 +109,20 @@ export async function getEventsSummary(req, res) {
       ${whereClause}
       ${groupClause}
     `;
-
+    console.log('📦 Final PARAMS to BigQuery:', params);
+    // הסר את כל הפרמטרים שהם undefined
+    Object.entries(params).forEach(([key, val]) => {
+      if (val === undefined) {
+        console.log(`⚠️ הסרתי param מיותר: ${key} = undefined`);
+        delete params[key];
+      }
+    });
     const options = {
       query,
       location: 'US',
       params,
     };
+    console.log('🧪 PARAMS:', params);
 
     const [job] = await bigquery.createQueryJob(options);
     const [rows] = await job.getQueryResults();

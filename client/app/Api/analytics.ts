@@ -13,7 +13,15 @@ async function fetchEventSummary(
   daysMode: DaysMode,
   filters: Filters = {}
 ): Promise<number | any[]> {
+  if (
+    daysMode === 'week' &&
+    !(filters.fromDate && filters.toDate)
+  ) {
+    delete filters.date;
+  }
   const query = new URLSearchParams({ engagement_type: type, daysMode, ...filters });
+  console.log("query ", query);
+  
   const res = await fetch(`${API_BASE}?${query.toString()}`);
 
   if (daysMode === 'day') {
