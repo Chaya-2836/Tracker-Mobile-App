@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   TextInput,
   ScrollView,
-  TouchableWithoutFeedback,
   LayoutRectangle,
+  Dimensions,
+  Modal,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import styles from '../app/styles/filterMenuStyles';
@@ -44,20 +46,14 @@ export default function FilterBar({
   onApply,
 }: Props) {
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
-  const [buttonLayouts, setButtonLayouts] = useState<{ [label: string]: LayoutRectangle }>({});
   const [pending, setPending] = useState<{ [key: string]: string[] }>({ ...selected });
+  const [buttonLayouts, setButtonLayouts] = useState<{ [label: string]: LayoutRectangle }>({});
+  const [showSidebar, setShowSidebar] = useState(false);
+  const screenWidth = Dimensions.get('window').width;
+  const isSmallScreen = screenWidth < 500;
 
-  const toggleDropdown = (label: string) => {
-    if (activeFilter === label) {
-      setActiveFilter(null);
-    } else {
-      setActiveFilter(label);
-    }
-  };
-
-  const handleLayout = (label: string, layout: LayoutRectangle) => {
-    setButtonLayouts(prev => ({ ...prev, [label]: layout }));
-  };
+  const isSelected = (label: string, option: string) =>
+    pending[label]?.includes(option);
 
   const toggleOption = (label: string, option: string) => {
     const already = pending[label]?.includes(option);
@@ -81,13 +77,110 @@ export default function FilterBar({
     });
     onApply(mapped);
     setActiveFilter(null);
+    setShowSidebar(false);
   };
 
-  const isSelected = (label: string, option: string) =>
-    pending[label]?.includes(option);
+  const renderFilterSection = (label: string) => (
+    <View key={label} style={{ marginBottom: 16 }}>
+      <Text style={styles.dropdownText}>{label}</Text>
+      <TextInput
+        style={styles.searchInput}
+        placeholder={`Search ${label}`}
+        value={searchText[label] || ''}
+        onChangeText={text =>
+          onSearchTextChange({ ...searchText, [label]: text })
+        }
+      />
+      <ScrollView style={styles.dropdownScroll}>
+        {(options[label] || [])
+          .filter(opt =>
+            opt.toLowerCase().includes((searchText[label] || '').toLowerCase())
+          )
+          .map(option => (
+            <TouchableOpacity
+              key={option}
+              style={[
+                styles.optionItem,
+                isSelected(label, option) && styles.optionItemSelected,
+              ]}
+              onPress={() => toggleOption(label, option)}
+            >
+              <Text
+                style={[
+                  styles.optionText,
+                  isSelected(label, option) && styles.optionTextSelected,
+                ]}
+              >
+                {option}
+              </Text>
+              <Ionicons
+                name={
+                  isSelected(label, option)
+                    ? 'checkbox-outline'
+                    : 'square-outline'
+                }
+                size={20}
+                color="#2c3e50"
+                style={styles.optionIcon}
+              />
+            </TouchableOpacity>
+          ))}
+      </ScrollView>
+    </View>
+  );
+
+  const handleLayout = (label: string, layout: LayoutRectangle) => {
+    setButtonLayouts(prev => ({ ...prev, [label]: layout }));
+  };
 
   const anchor = activeFilter ? buttonLayouts[activeFilter] : null;
 
+  // Small screen version
+  if (isSmallScreen) {
+    return (
+      <View style={{ padding: 10 }}>
+        <TouchableOpacity
+          onPress={() => setShowSidebar(true)}
+          style={[styles.dropdownHeader, { width: 100, alignSelf: 'flex-start' }]}
+        >
+          <Text style={styles.dropdownText}>Filters</Text>
+          <Ionicons name="funnel-outline" size={16} color="#2c3e50" />
+        </TouchableOpacity>
+
+        <Modal visible={showSidebar} animationType="slide" transparent>
+          <TouchableWithoutFeedback onPress={() => setShowSidebar(false)}>
+            <View style={{
+              flex: 1,
+              backgroundColor: 'rgba(0,0,0,0.4)',
+              justifyContent: 'flex-end',
+            }}>
+              <View style={{
+                height: '80%',
+                backgroundColor: '#fff',
+                padding: 16,
+                borderTopLeftRadius: 12,
+                borderTopRightRadius: 12,
+              }}>
+                <ScrollView>
+                  {FILTER_ORDER.map(renderFilterSection)}
+                </ScrollView>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 12 }}>
+                  <TouchableOpacity onPress={onClear} style={styles.actionBtn}>
+                    <Text style={styles.btnText}>Clear</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={handleApply} style={styles.actionBtn}>
+                    <Text style={styles.btnText}>Apply</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
+      </View>
+    );
+  }
+
+  // Large screen version with dropdowns
   return (
     <TouchableWithoutFeedback onPress={() => setActiveFilter(null)}>
       <View style={styles.overlayContainer}>
@@ -107,10 +200,7 @@ export default function FilterBar({
               onLayout={e => handleLayout(label, e.nativeEvent.layout)}
             >
               <TouchableOpacity
-                onPress={e => {
-                  e.stopPropagation?.();
-                  toggleDropdown(label);
-                }}
+                onPress={() => setActiveFilter(prev => (prev === label ? null : label))}
                 style={styles.dropdownHeader}
               >
                 <Text style={styles.dropdownText}>{label}</Text>
@@ -132,62 +222,61 @@ export default function FilterBar({
         </ScrollView>
 
         {activeFilter && anchor && (
-          <TouchableWithoutFeedback onPress={() => {}}>
-            <View
-              style={[
-                styles.floatingDropdown,
-                {
-                  top: anchor.y + anchor.height + 6,
-                  left: anchor.x,
-                  width: anchor.width + 20,
-                },
-              ]}
-            >
-              <TextInput
-                style={styles.searchInput}
-                placeholder={`Search ${activeFilter}`}
-                value={searchText[activeFilter] || ''}
-                onChangeText={text =>
-                  onSearchTextChange({ ...searchText, [activeFilter]: text })
-                }
-              />
-              <ScrollView style={styles.dropdownScroll}>
-                {(options[activeFilter] || [])
-                  .filter(opt =>
-                    opt.toLowerCase().includes((searchText[activeFilter] || '').toLowerCase())
-                  )
-                  .map(option => (
-                    <TouchableOpacity
-                      key={option}
+          <View
+            style={[
+              styles.floatingDropdown,
+              {
+                position: 'absolute',
+                top: anchor.y + anchor.height + 6,
+                left: anchor.x,
+                width: anchor.width + 20,
+              },
+            ]}
+          >
+            <TextInput
+              style={styles.searchInput}
+              placeholder={`Search ${activeFilter}`}
+              value={searchText[activeFilter] || ''}
+              onChangeText={text =>
+                onSearchTextChange({ ...searchText, [activeFilter]: text })
+              }
+            />
+            <ScrollView style={styles.dropdownScroll}>
+              {(options[activeFilter] || [])
+                .filter(opt =>
+                  opt.toLowerCase().includes((searchText[activeFilter] || '').toLowerCase())
+                )
+                .map(option => (
+                  <TouchableOpacity
+                    key={option}
+                    style={[
+                      styles.optionItem,
+                      isSelected(activeFilter, option) && styles.optionItemSelected,
+                    ]}
+                    onPress={() => toggleOption(activeFilter, option)}
+                  >
+                    <Text
                       style={[
-                        styles.optionItem,
-                        isSelected(activeFilter, option) && styles.optionItemSelected,
+                        styles.optionText,
+                        isSelected(activeFilter, option) && styles.optionTextSelected,
                       ]}
-                      onPress={() => toggleOption(activeFilter, option)}
                     >
-                      <Text
-                        style={[
-                          styles.optionText,
-                          isSelected(activeFilter, option) && styles.optionTextSelected,
-                        ]}
-                      >
-                        {option}
-                      </Text>
-                      <Ionicons
-                        name={
-                          isSelected(activeFilter, option)
-                            ? 'checkbox-outline'
-                            : 'square-outline'
-                        }
-                        size={20}
-                        color="#2c3e50"
-                        style={styles.optionIcon}
-                      />
-                    </TouchableOpacity>
-                  ))}
-              </ScrollView>
-            </View>
-          </TouchableWithoutFeedback>
+                      {option}
+                    </Text>
+                    <Ionicons
+                      name={
+                        isSelected(activeFilter, option)
+                          ? 'checkbox-outline'
+                          : 'square-outline'
+                      }
+                      size={20}
+                      color="#2c3e50"
+                      style={styles.optionIcon}
+                    />
+                  </TouchableOpacity>
+                ))}
+            </ScrollView>
+          </View>
         )}
       </View>
     </TouchableWithoutFeedback>
