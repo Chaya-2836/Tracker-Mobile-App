@@ -1,9 +1,15 @@
 import { BigQuery } from '@google-cloud/bigquery';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const keyPath = path.resolve(__dirname, 'key.json');
 
 const bigquery = new BigQuery({
-  keyFilename:'./config/key.json',
+  keyFilename: keyPath,
 });
 
-const nameDB = 'platform-hackaton-2025';
 
+const nameDB = 'platform-hackaton-2025';
+ 
 export { bigquery, nameDB };
