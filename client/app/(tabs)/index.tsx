@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import {
   SafeAreaView,
-  ScrollView,
   Text,
   View,
   ActivityIndicator,
   Alert,
   Platform,
   Dimensions,
+  ScrollView
 } from 'react-native';
 import { TabView, TabBar } from 'react-native-tab-view';
 import * as Notifications from 'expo-notifications';
