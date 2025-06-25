@@ -40,80 +40,80 @@ export default function App() {
     { key: 'impressions', title: 'Impressions' },
   ]);
 
+  // Filters (lifted state)
   const [filterOptions, setFilterOptions] = useState<{ [label: string]: string[] }>({});
   const [selectedFilters, setSelectedFilters] = useState<{ [label: string]: string[] }>({});
-  const [expandedSections, setExpandedSections] = useState<{ [label: string]: boolean }>({});
+  const FILTER_ORDER = ['Campaign', 'Platform', 'Media Source', 'Agency', 'Date Range'];
+  const [expandedSections, setExpandedSections] = useState<{ [label: string]: boolean }>(
+    Object.fromEntries(FILTER_ORDER.map(label => [label, false]))
+  );
+
   const [searchTexts, setSearchTexts] = useState<{ [label: string]: string }>({});
 
   useEffect(() => {
     registerForPushNotifications();
-    fetchData(selectedFilters);
-    fetchTrends(selectedFilters);
+    fetchData();
+    fetchTrends({});
     fetchFilterData();
   }, []);
 
   async function registerForPushNotifications() {
-    if (Platform.OS === 'web' || !Device.isDevice) return;
-
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
-
-    if (existingStatus !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
-    }
-
-    if (finalStatus === 'granted') {
-      try {
+    if (Device.isDevice) {
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+      if (finalStatus === 'granted') {
         const token = (await Notifications.getExpoPushTokenAsync()).data;
         await fetch('http://localhost:3000/push/register-token', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ token }),
         });
-      } catch (err) {
-        console.error('❌ Failed to send push token:', err);
       }
-    } else {
-      Alert.alert('Permission denied', 'Cannot receive push notifications');
     }
   }
 
-  async function fetchData(filters: { [key: string]: string[] }) {
-    setLoading(true);
+  async function fetchData() {
     try {
       const { clicks, impressions } = await getTodayStats();
       setClicksToday(clicks);
       setImpressionsToday(impressions);
     } catch {
-      console.error('Failed to fetch today’s stats');
-    } finally {
-      setLoading(false);
+      console.error('Failed to fetch daily stats');
     }
   }
 
-  async function fetchTrends(filters: { [key: string]: string[] }) {
-    setLoading(true);
-    try {
-      const filtersForTrends = Object.fromEntries(
-        Object.entries(filters).map(([key, value]) => [key, value.join(',')])
-      );
-      const trends = await getWeeklyTrends(filtersForTrends);
+async function fetchTrends(filters: { [key: string]: string[] }) {
+  setLoading(true);
+  try {
+    const filtersAsQuery = Object.fromEntries(
+      Object.entries(filters).map(([key, val]) => {
+        const keyNormalized = key === 'fromDate' || key === 'toDate'
+          ? key
+          : key.toLowerCase().replace(/\s+/g, '_');
+        return [keyNormalized, val.join(',')];
+      })
+    );
 
-      const toPoints = (data: any[]) =>
-        data.map(item => ({
-          label: new Date(item.label),
-          value: Number(item.value || 0),
-        }));
+    const { clicks = [], impressions = [] } = await getWeeklyTrends(filtersAsQuery);
 
-      setClickTrend(toPoints(trends.clicks || []));
-      setImpressionTrend(toPoints(trends.impressions || []));
-    } catch (err) {
-      console.error('❌ Failed to fetch trends:', err);
-    } finally {
-      setLoading(false);
-    }
+    const toPoints = (arr: any[]) =>
+      arr.map(item => ({
+        label: new Date(item.label),
+        value: Number(item.value || 0),
+      }));
+
+    setClickTrend(toPoints(clicks));
+    setImpressionTrend(toPoints(impressions));
+  } catch (err) {
+    console.error('❌ Failed to fetch weekly trends:', err);
+  } finally {
+    setLoading(false);
   }
+}
 
   async function fetchFilterData() {
     try {
@@ -126,7 +126,6 @@ export default function App() {
 
   const handleApply = (filters: { [key: string]: string[] }) => {
     setSelectedFilters(filters);
-    fetchData(filters);
     fetchTrends(filters);
   };
 
@@ -144,7 +143,21 @@ export default function App() {
     }));
   };
 
+  const formatDate = (iso: string) => {
+    return new Date(iso).toLocaleDateString('en-CA'); // התאריך בפורמט YYYY-MM-DD לפי אזור זמן שלך
+  };
 
+  const getChartTitle = (filters: { [key: string]: string[] }) => {
+    const from = filters.fromDate?.[0];
+    const to = filters.toDate?.[0];
+    const type= index === 0 ? 'Clicks' : 'Impressions';
+    if (from && to ) {
+      return `${type} Volume Trend (${formatDate(from)} → ${formatDate(to)})`;
+    }
+
+    return 'Click Volume Trend (Last 7 Days)';
+  };
+  
   const renderScene = ({ route }: any) => {
     if (loading) return <ActivityIndicator size="large" color="#0000ff" />;
 
@@ -166,12 +179,12 @@ export default function App() {
           {route.key === 'clicks' ? (
             <>
               <StatCard title="Clicks Recorded Today" value={clicksToday} />
-              <TrendChart title="Click Volume Trend (Last 7 Days)" data={clickTrend} />
+              <TrendChart title={getChartTitle(selectedFilters)} data={clickTrend} />
             </>
           ) : (
             <>
               <StatCard title="Impressions Recorded Today" value={impressionsToday} />
-              <TrendChart title="Impression Volume Trend (Last 7 Days)" data={impressionTrend} />
+              <TrendChart title={getChartTitle(selectedFilters)} data={impressionTrend} />
             </>
           )}
         </View>
@@ -181,10 +194,12 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Header */}
       <View style={styles.headerRow}>
         <Text style={styles.header}>Engagement Tracker</Text>
       </View>
 
+      {/* Tabs and scenes */}
       <View style={{ flex: 1 }}>
         <TabView
           navigationState={{ index, routes }}
@@ -193,19 +208,18 @@ export default function App() {
           initialLayout={initialLayout}
           swipeEnabled={false}
           animationEnabled={false}
-          renderTabBar={props => (
-            <TabBar
-              {...props}
-              indicatorStyle={styles.tabBarIndicator}
-              style={styles.tabBarStyle}
-              labelStyle={styles.tabBarLabel}
-              activeColor="#2c62b4"
-              inactiveColor="#7f8c8d"
-            />
-          )}
+          renderTabBar={props => <TabBar
+            {...props}
+            indicatorStyle={styles.tabBarIndicator}
+            style={styles.tabBarStyle}
+            labelStyle={styles.tabBarLabel}
+            activeColor="#2c62b4"
+            inactiveColor="#7f8c8d"
+          />}
         />
       </View>
     </SafeAreaView>
   );
 }
+
 

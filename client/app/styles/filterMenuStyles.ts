@@ -103,6 +103,13 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#2c3e50',
   },
+  filterLabel: {
+  fontSize: 14,
+  fontWeight: '500',
+  color: '#2c3e50',
+  marginTop: 8,
+  marginBottom: 4,
+},
 });
 
 export default styles;

@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,11 +10,13 @@ import {
   Dimensions,
   Modal,
   TouchableWithoutFeedback,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import styles from '../app/styles/filterMenuStyles';
 
-const FILTER_ORDER = ['Campaign', 'Platform', 'Media Source', 'Agency'];
+const FILTER_ORDER = ['Campaign', 'Platform', 'Media Source', 'Agency', 'Date Range'];
 
 const filterKeys: { [label: string]: string } = {
   Campaign: 'campaign_name',
@@ -52,11 +55,27 @@ export default function FilterBar({
   const [mobileExpanded, setMobileExpanded] = useState<{ [label: string]: boolean }>({});
   const screenWidth = Dimensions.get('window').width;
   const isSmallScreen = screenWidth < 500;
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [fromDateObj, setFromDateObj] = useState<Date | undefined>();
+  const [toDateObj, setToDateObj] = useState<Date | undefined>();
+  const [showFromPicker, setShowFromPicker] = useState(false);
+  const [showToPicker, setShowToPicker] = useState(false);
+
+  useEffect(() => {
+    const from = selected.fromDate?.[0];
+    const to = selected.toDate?.[0];
+    setFromDate(from ? new Date(from).toISOString().slice(0, 10) : '');
+    setToDate(to ? new Date(to).toISOString().slice(0, 10) : '');
+    setFromDateObj(from ? new Date(from) : undefined);
+    setToDateObj(to ? new Date(to) : undefined);
+  }, [selected]);
 
   const isSelected = (label: string, option: string) =>
     pending[label]?.includes(option);
 
   const toggleOption = (label: string, option: string) => {
+    if (label === 'Date Range') return;
     const already = pending[label]?.includes(option);
     const updated = {
       ...pending,
@@ -68,14 +87,35 @@ export default function FilterBar({
   };
 
   const handleApply = () => {
-    onSelect(pending);
+    const updated = { ...pending };
+
+    if (fromDate) {
+      const parsed = new Date(fromDate);
+      if (!isNaN(parsed.getTime())) {
+        updated.fromDate = [parsed.toISOString()];
+      }
+    }
+
+    if (toDate) {
+      const parsed = new Date(toDate);
+      if (!isNaN(parsed.getTime())) {
+        updated.toDate = [parsed.toISOString()];
+      }
+    }
+
+    onSelect(updated);
+
     const mapped: { [key: string]: string[] } = {};
-    Object.entries(pending).forEach(([label, val]) => {
+    Object.entries(updated).forEach(([label, val]) => {
       const param = filterKeys[label];
       if (param && val.length > 0) {
         mapped[param] = val;
       }
     });
+
+    if (fromDate) mapped.fromDate = [fromDate];
+    if (toDate) mapped.toDate = [toDate];
+
     onApply(mapped);
     setActiveFilter(null);
     setShowSidebar(false);
@@ -88,21 +128,89 @@ export default function FilterBar({
     }));
   };
 
+  const handleLayout = (label: string, layout: LayoutRectangle) => {
+    setButtonLayouts(prev => ({ ...prev, [label]: layout }));
+  };
+
+  const renderDatePicker = () => (
+    <View style={styles.dropdownScroll}>
+      <Text style={styles.filterLabel}>From:</Text>
+      {Platform.OS === 'web' ? (
+        <input
+          type="date"
+          value={fromDate}
+          onChange={e => {
+            setFromDate(e.target.value);
+            setFromDateObj(new Date(e.target.value));
+          }}
+          style={styles.searchInput}
+        />
+      ) : (
+        <>
+          <TouchableOpacity onPress={() => setShowFromPicker(true)} style={styles.searchInput}>
+            <Text>{fromDateObj ? fromDateObj.toISOString().slice(0, 10) : 'Select start date'}</Text>
+          </TouchableOpacity>
+          {showFromPicker && (
+            <DateTimePicker
+              value={fromDateObj ?? new Date()}
+              mode="date"
+              display="default"
+              onChange={(event, selectedDate) => {
+                setShowFromPicker(false);
+                if (selectedDate) {
+                  setFromDateObj(selectedDate);
+                  setFromDate(selectedDate.toISOString().slice(0, 10));
+                }
+              }}
+            />
+          )}
+        </>
+      )}
+
+      <Text style={styles.filterLabel}>To:</Text>
+      {Platform.OS === 'web' ? (
+        <input
+          type="date"
+          value={toDate}
+          onChange={e => {
+            setToDate(e.target.value);
+            setToDateObj(new Date(e.target.value));
+          }}
+          style={styles.searchInput}
+        />
+      ) : (
+        <>
+          <TouchableOpacity onPress={() => setShowToPicker(true)} style={styles.searchInput}>
+            <Text>{toDateObj ? toDateObj.toISOString().slice(0, 10) : 'Select end date'}</Text>
+          </TouchableOpacity>
+          {showToPicker && (
+            <DateTimePicker
+              value={toDateObj ?? new Date()}
+              mode="date"
+              display="default"
+              onChange={(event, selectedDate) => {
+                setShowToPicker(false);
+                if (selectedDate) {
+                  setToDateObj(selectedDate);
+                  setToDate(selectedDate.toISOString().slice(0, 10));
+                }
+              }}
+            />
+          )}
+        </>
+      )}
+    </View>
+  );
+
   const renderFilterSection = (label: string) => {
     const isExpanded = isSmallScreen ? mobileExpanded[label] : expanded[label];
 
     return (
       <View key={label} style={{ marginBottom: 16 }}>
         <TouchableOpacity
-          onPress={() => {
-            if (isSmallScreen) {
-              toggleMobileExpand(label);
-            } else {
-              onToggleExpand(label);
-            }
-          }}
-          style={[styles.dropdownHeader, { width: '100%', alignSelf: 'stretch' }]}>
-        
+          onPress={() => isSmallScreen ? toggleMobileExpand(label) : onToggleExpand(label)}
+          style={[styles.dropdownHeader, { width: '100%' }]}
+        >
           <Text style={styles.dropdownText}>{label}</Text>
           <Ionicons
             name={isExpanded ? 'chevron-up' : 'chevron-down'}
@@ -110,16 +218,13 @@ export default function FilterBar({
             color="#2c3e50"
           />
         </TouchableOpacity>
-
-        {isExpanded && (
+        {isExpanded && (label === 'Date Range' ? renderDatePicker() : (
           <>
             <TextInput
               style={styles.searchInput}
               placeholder={`Search ${label}`}
               value={searchText[label] || ''}
-              onChangeText={text =>
-                onSearchTextChange({ ...searchText, [label]: text })
-              }
+              onChangeText={text => onSearchTextChange({ ...searchText, [label]: text })}
             />
             <ScrollView style={styles.dropdownScroll}>
               {(options[label] || [])
@@ -144,11 +249,7 @@ export default function FilterBar({
                       {option}
                     </Text>
                     <Ionicons
-                      name={
-                        isSelected(label, option)
-                          ? 'checkbox-outline'
-                          : 'square-outline'
-                      }
+                      name={isSelected(label, option) ? 'checkbox-outline' : 'square-outline'}
                       size={20}
                       color="#2c3e50"
                       style={styles.optionIcon}
@@ -157,13 +258,9 @@ export default function FilterBar({
                 ))}
             </ScrollView>
           </>
-        )}
+        ))}
       </View>
     );
-  };
-
-  const handleLayout = (label: string, layout: LayoutRectangle) => {
-    setButtonLayouts(prev => ({ ...prev, [label]: layout }));
   };
 
   const anchor = activeFilter ? buttonLayouts[activeFilter] : null;
@@ -173,7 +270,7 @@ export default function FilterBar({
       <View style={{ padding: 10 }}>
         <TouchableOpacity
           onPress={() => setShowSidebar(true)}
-          style={[styles.dropdownHeader, { width: 100, alignSelf: 'flex-start' }]}
+          style={[styles.dropdownHeader, { width: 100 }]}
         >
           <Text style={styles.dropdownText}>Filters</Text>
           <Ionicons name="funnel-outline" size={16} color="#2c3e50" />
@@ -181,11 +278,7 @@ export default function FilterBar({
 
         <Modal visible={showSidebar} animationType="slide" transparent>
           <TouchableWithoutFeedback onPress={() => setShowSidebar(false)}>
-            <View style={{
-              flex: 1,
-              backgroundColor: 'rgba(0,0,0,0.4)',
-              justifyContent: 'flex-end',
-            }}>
+            <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' }}>
               <TouchableWithoutFeedback onPress={() => {}}>
                 <View style={{
                   height: '50%',
@@ -194,9 +287,7 @@ export default function FilterBar({
                   borderTopLeftRadius: 12,
                   borderTopRightRadius: 12,
                 }}>
-                  <ScrollView>
-                    {FILTER_ORDER.map(renderFilterSection)}
-                  </ScrollView>
+                  <ScrollView>{FILTER_ORDER.map(renderFilterSection)}</ScrollView>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 12 }}>
                     <TouchableOpacity onPress={onClear} style={styles.actionBtn}>
                       <Text style={styles.btnText}>Clear</Text>
@@ -266,52 +357,11 @@ export default function FilterBar({
               },
             ]}
           >
-            <TextInput
-              style={styles.searchInput}
-              placeholder={`Search ${activeFilter}`}
-              value={searchText[activeFilter] || ''}
-              onChangeText={text =>
-                onSearchTextChange({ ...searchText, [activeFilter]: text })
-              }
-            />
-            <ScrollView style={styles.dropdownScroll}>
-              {(options[activeFilter] || [])
-                .filter(opt =>
-                  opt.toLowerCase().includes((searchText[activeFilter] || '').toLowerCase())
-                )
-                .map(option => (
-                  <TouchableOpacity
-                    key={option}
-                    style={[
-                      styles.optionItem,
-                      isSelected(activeFilter, option) && styles.optionItemSelected,
-                    ]}
-                    onPress={() => toggleOption(activeFilter, option)}
-                  >
-                    <Text
-                      style={[
-                        styles.optionText,
-                        isSelected(activeFilter, option) && styles.optionTextSelected,
-                      ]}
-                    >
-                      {option}
-                    </Text>
-                    <Ionicons
-                      name={
-                        isSelected(activeFilter, option)
-                          ? 'checkbox-outline'
-                          : 'square-outline'
-                      }
-                      size={20}
-                      color="#2c3e50"
-                      style={styles.optionIcon}
-                    />
-                  </TouchableOpacity>
-                ))}
-            </ScrollView>
+            {renderFilterSection(activeFilter)}
           </View>
         )}
       </View>
     </TouchableWithoutFeedback>
   );
 }
+
