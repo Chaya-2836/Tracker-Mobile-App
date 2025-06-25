@@ -1,0 +1,18 @@
+[33m76c360d[m[33m ([m[1;36mHEAD[m[33m)[m HEAD@{0}: rebase (start): checkout main
+[33m88c7d63[m[33m ([m[1;31morigin/filter[m[33m, [m[1;32mfilter[m[33m)[m HEAD@{1}: rebase (abort): returning to refs/heads/filter
+[33m76c360d[m[33m ([m[1;36mHEAD[m[33m)[m HEAD@{2}: rebase (start): checkout main
+[33m88c7d63[m[33m ([m[1;31morigin/filter[m[33m, [m[1;32mfilter[m[33m)[m HEAD@{3}: rebase (abort): returning to refs/heads/filter
+[33m76c360d[m[33m ([m[1;36mHEAD[m[33m)[m HEAD@{4}: rebase (start): checkout main
+[33m88c7d63[m[33m ([m[1;31morigin/filter[m[33m, [m[1;32mfilter[m[33m)[m HEAD@{5}: commit: Working Filters
+[33m37f0deb[m HEAD@{6}: commit: fixes
+[33m2d856b1[m HEAD@{7}: commit (merge): Merge branch 'main' of https://github.com/Chaya-2836/Tracker-Mobile-App into filter
+[33m51ce7fe[m HEAD@{8}: commit: code fix
+[33m2c5e237[m HEAD@{9}: commit: add bigquery key
+[33m275ebe5[m HEAD@{10}: revert: Revert "Merge branch 'main' of https://github.com/Chaya-2836/Tracker-Mobile-App into filter"
+[33m523d3ba[m HEAD@{11}: commit (merge): Merge branch 'main' of https://github.com/Chaya-2836/Tracker-Mobile-App into filter
+[33m76c360d[m[33m ([m[1;36mHEAD[m[33m)[m HEAD@{12}: commit: Open filter display
+[33m26b90aa[m HEAD@{13}: commit: filter by button and search
+[33m900d664[m HEAD@{14}: commit: Filter menu button
+[33m20ce0e8[m HEAD@{15}: commit: Red to black, buttons to tabs, responsiveness
+[33m7729ef2[m[33m ([m[1;32mmain[m[33m)[m HEAD@{16}: checkout: moving from main to filter
+[33m7729ef2[m[33m ([m[1;32mmain[m[33m)[m HEAD@{17}: clone: from https://github.com/Chaya-2836/Tracker-Mobile-App.git
