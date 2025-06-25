@@ -31,11 +31,6 @@ createBigQueryClient()
     // קריאה לפונקציית בדיקת הפוש המתוזמנת
     scheduleDailyCheck();
 
-    app.listen(port, () => {
-      console.log(`Server is running at http://localhost:${port}`);
-    });
-  })
-  .catch(err => {
-    console.error('❌ Failed to initialize BigQuery from Secret Manager:', err);
-    process.exit(1); // חשוב לעצור את השרת אם אין חיבור תקין
-  });
+app.listen(port, () => {
+  console.log(`Server is running at http://localhost:${port}`);
+});

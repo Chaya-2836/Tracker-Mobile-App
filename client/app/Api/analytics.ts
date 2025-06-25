@@ -7,19 +7,26 @@ type TrendPoint = {
   value: number;
 };
 
-
 async function fetchEventSummary(
   type: string,
   daysMode: DaysMode,
   filters: Filters = {}
 ): Promise<number | any[]> {
+  if (
+    daysMode === 'week' &&
+    !(filters.fromDate && filters.toDate)
+  ) {
+    delete filters.date;
+  }
   const query = new URLSearchParams({ engagement_type: type, daysMode, ...filters });
-  const res = await fetch(`${API_BASE}?${query.toString()}`);
+  const url = `${API_BASE}?${query.toString()}`;
+  console.log("fetchEventSummary URL:", url); // ✅ Debug to confirm correct query
+
+  const res = await fetch(url);
 
   if (daysMode === 'day') {
-    const text = await res.text(); // <-- שימי לב: res.text()
+    const text = await res.text();
     return Number(text) || 0;
-
   } else {
     const data = await res.json();
     return Array.isArray(data) ? data : [];
@@ -29,7 +36,7 @@ async function fetchEventSummary(
 function fillMissingDays(data: TrendPoint[], from?: Date, to?: Date): TrendPoint[] {
   const filled: TrendPoint[] = [];
 
-  const start = from ?? new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const start = from ?? new Date(Date.now() - 7 * 24 * 60 * 60 * 1000); // Default: last 7 days
   const end = to ?? new Date();
 
   const cursor = new Date(start);
@@ -42,13 +49,14 @@ function fillMissingDays(data: TrendPoint[], from?: Date, to?: Date): TrendPoint
 
   return filled;
 }
+
 const convertToTrendPoints = (data: any[]): TrendPoint[] =>
   data.map(item => ({
     label: new Date(item.event_date),
     value: Number(item.count) || 0,
   }));
 
-// יומי - מחזיר מספרים
+// 📊 Day-based summary: returns numbers
 export async function getTodayStats(filters: Filters = {}) {
   const [clicks, impressions] = await Promise.all([
     fetchEventSummary('click', 'day', filters) as Promise<number>,
@@ -58,21 +66,27 @@ export async function getTodayStats(filters: Filters = {}) {
   return { clicks, impressions };
 }
 
-// שבועי - מחזיר מערכים
+// 📈 Week-based summary: returns arrays
 export async function getWeeklyTrends(filters: Filters = {}) {
+  const from = filters.fromDate ? new Date(filters.fromDate) : undefined;
+  const to = filters.toDate ? new Date(filters.toDate) : undefined;
+
+  // ❗ Optional: prevent invalid range
+  if (from && to && from > to) {
+    console.warn("Invalid date range: fromDate is after toDate");
+    return { clicks: [], impressions: [] };
+  }
+
   const [clicksRowResult, impressionsRowResult] = await Promise.all([
     fetchEventSummary('click', 'week', filters),
     fetchEventSummary('impression', 'week', filters)
   ]);
 
-  const from = filters.fromDate ? new Date(filters.fromDate) : undefined;
-  const to = filters.toDate ? new Date(filters.toDate) : undefined;
-  // ודא שאלה מערכים ולא מספרים
-  let clicksRow = Array.isArray(clicksRowResult)
+  const clicksRow = Array.isArray(clicksRowResult)
     ? fillMissingDays(convertToTrendPoints(clicksRowResult), from, to)
     : [];
 
-  let impressionsRow = Array.isArray(impressionsRowResult)
+  const impressionsRow = Array.isArray(impressionsRowResult)
     ? fillMissingDays(convertToTrendPoints(impressionsRowResult), from, to)
     : [];
 

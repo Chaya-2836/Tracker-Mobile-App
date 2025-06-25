@@ -1,171 +1,366 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  View, Text, TouchableOpacity, Animated, Dimensions, ScrollView,
+  View,
+  Text,
+  TouchableOpacity,
+  TextInput,
+  ScrollView,
+  LayoutRectangle,
+  Dimensions,
+  Modal,
+  TouchableWithoutFeedback,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import styles from '../app/styles/filterMenuStyle';
-import { fetchAllFilters } from '@/app/Api/filters';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import styles from '../app/styles/filterMenuStyles';
 
-const screenWidth = Dimensions.get('window').width;
+const FILTER_ORDER = ['Campaign', 'Platform', 'Media Source', 'Agency', 'Date Range'];
 
-// ממפה תוויות UI לשמות פרמטרים ב-API
 const filterKeys: { [label: string]: string } = {
-  'Campaign': 'campaign_name',
-  'Platform': 'platform',
+  Campaign: 'campaign_name',
+  Platform: 'platform',
   'Media Source': 'media_source',
-  'Agency': 'agency',
-  'Engagement Type': 'engagement_type',
+  Agency: 'agency',
 };
 
 type Props = {
-  onApply: (selected: { [key: string]: string[] }) => void;  // callback לשליחת הבחירה
-  onClear: () => void;                                       // callback לניקוי הפילטרים
+  options: { [label: string]: string[] };
+  selected: { [label: string]: string[] };
+  onSelect: (s: { [key: string]: string[] }) => void;
+  expanded: { [label: string]: boolean };
+  onToggleExpand: (label: string) => void;
+  searchText: { [label: string]: string };
+  onSearchTextChange: (t: { [label: string]: string }) => void;
+  onClear: () => void;
+  onApply: (mapped: { [key: string]: string[] }) => void;
 };
 
-export default function FilterMenu({ onApply, onClear }: Props) {
-  // אפשרויות הפילטרים מהשרת
-  const [filterOptions, setFilterOptions] = useState<{ [label: string]: string[] }>({});
-  // הפילטרים שנבחרו ע"י המשתמש
-  const [selected, setSelected] = useState<{ [label: string]: string[] }>({});
-  // מצב פתיחה/סגירה של כל קבוצה
-  const [expanded, setExpanded] = useState<{ [label: string]: boolean }>({});
-  // האם תפריט הפילטרים נראה
-  const [visible, setVisible] = useState(false);
+export default function FilterBar({
+  options,
+  selected,
+  onSelect,
+  expanded,
+  onToggleExpand,
+  searchText,
+  onSearchTextChange,
+  onClear,
+  onApply,
+}: Props) {
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [pending, setPending] = useState<{ [key: string]: string[] }>({ ...selected });
+  const [buttonLayouts, setButtonLayouts] = useState<{ [label: string]: LayoutRectangle }>({});
+  const [showSidebar, setShowSidebar] = useState(false);
+  const [mobileExpanded, setMobileExpanded] = useState<{ [label: string]: boolean }>({});
+  const screenWidth = Dimensions.get('window').width;
+  const isSmallScreen = screenWidth < 500;
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [fromDateObj, setFromDateObj] = useState<Date | undefined>();
+  const [toDateObj, setToDateObj] = useState<Date | undefined>();
+  const [showFromPicker, setShowFromPicker] = useState(false);
+  const [showToPicker, setShowToPicker] = useState(false);
 
-  // אנימציית הזזה מצד ימין
-  const slideAnim = useRef(new Animated.Value(screenWidth)).current;
-
-  // בעת טעינת הקומפוננטה - טען את כל הפילטרים מהשרת
   useEffect(() => {
-    const loadFilters = async () => {
-      try {
-        const filters = await fetchAllFilters();
-        setFilterOptions(filters);
-      } catch (err) {
-        console.log('Failed to load filter options', err);
-      }
-    };
-    loadFilters();
-  }, []);
+    const from = selected.fromDate?.[0];
+    const to = selected.toDate?.[0];
+    setFromDate(from ? new Date(from).toISOString().slice(0, 10) : '');
+    setToDate(to ? new Date(to).toISOString().slice(0, 10) : '');
+    setFromDateObj(from ? new Date(from) : undefined);
+    setToDateObj(to ? new Date(to) : undefined);
+  }, [selected]);
 
-  // פותח או סוגר את תפריט הסינון עם אנימציה
-  const togglePanel = () => {
-    if (visible) {
-      Animated.timing(slideAnim, {
-        toValue: screenWidth,       // מחליק החוצה
-        duration: 300,
-        useNativeDriver: false,
-      }).start(() => setVisible(false));
-    } else {
-      setVisible(true);
-      Animated.timing(slideAnim, {
-        toValue: screenWidth - 260, // מחליק פנימה (רוחב הפאנל)
-        duration: 300,
-        useNativeDriver: false,
-      }).start();
-    }
-  };
-
-  // פותח או סוגר קבוצה מסוימת (למשל "Campaign")
-  const toggleSection = (key: string) => {
-    setExpanded(prev => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  // בוחר או מבטל בחירה של אופציה מסוימת (בחירה יחידה לכל פילטר)
-  const toggleOption = (label: string, option: string) => {
-    setSelected(prev => {
-      const current = prev[label];
-      // אם האופציה נבחרה, מבטל בחירה, אחרת בוחר אותה
-      const newSelection = current?.[0] === option ? [] : [option];
-
-      const updated = { ...prev, [label]: newSelection };
-
-      // ממיר את הבחירות לשמות פרמטרים של השרת
-      const mappedSelection: { [key: string]: string[] } = {};
-      Object.entries(updated).forEach(([label, val]) => {
-        const param = filterKeys[label];
-        if (param && val.length > 0) {
-          mappedSelection[param] = val;
-        }
-      });
-
-      onApply(mappedSelection); // מעדכן את הבחירה למעלה (למסך האב)
-      return updated;
-    });
-  };
-
-  // בודק אם אופציה מסוימת נבחרה, כדי לעצב אותה
   const isSelected = (label: string, option: string) =>
-    selected[label]?.includes(option);
+    pending[label]?.includes(option);
 
-  return (
-    <>
-      {/* כפתור לפתיחת התפריט */}
-      <TouchableOpacity onPress={togglePanel} style={styles.toggleButton}>
-        <Ionicons name="menu" size={30} color="ff" />
-      </TouchableOpacity>
+  const toggleOption = (label: string, option: string) => {
+    if (label === 'Date Range') return;
+    const already = pending[label]?.includes(option);
+    const updated = {
+      ...pending,
+      [label]: already
+        ? pending[label].filter(o => o !== option)
+        : [...(pending[label] || []), option],
+    };
+    setPending(updated);
+  };
 
-      {/* תפריט הפילטרים המחליק */}
-      {visible && (
-        <Animated.View style={[styles.panel, { left: slideAnim }]}>
-          <Text style={styles.title}>Filters</Text>
+  const handleApply = () => {
+    const updated = { ...pending };
 
-          <ScrollView>
-            {/* הצגת כל קבוצות הפילטרים */}
-            {Object.entries(filterOptions).map(([label, options]) => (
-              <View key={label} style={styles.inputGroup}>
-                {/* כותרת הקבוצה שנפתחת/נסגרת */}
-                <TouchableOpacity
-                  style={styles.sectionHeader}
-                  onPress={() => toggleSection(label)}
+    if (fromDate) {
+      const parsed = new Date(fromDate);
+      if (!isNaN(parsed.getTime())) {
+        updated.fromDate = [parsed.toISOString()];
+      }
+    }
 
-                  
-                >
-                  <Text style={styles.label}>{label}</Text>
-                  <Ionicons
-                    name={expanded[label] ? 'chevron-up' : 'chevron-down'}
-                    size={18}
-                    color="#2c3e50"
-                  />
-                </TouchableOpacity>
+    if (toDate) {
+      const parsed = new Date(toDate);
+      if (!isNaN(parsed.getTime())) {
+        updated.toDate = [parsed.toISOString()];
+      }
+    }
 
-                {/* אפשרויות הקבוצה שמוצגות רק אם הקבוצה פתוחה */}
-                {expanded[label] &&
-                  options.map(option => (
-                    <TouchableOpacity
-                      key={option}
-                      onPress={() => toggleOption(label, option)}
+    onSelect(updated);
+
+    const mapped: { [key: string]: string[] } = {};
+    Object.entries(updated).forEach(([label, val]) => {
+      const param = filterKeys[label];
+      if (param && val.length > 0) {
+        mapped[param] = val;
+      }
+    });
+
+    if (fromDate) mapped.fromDate = [fromDate];
+    if (toDate) mapped.toDate = [toDate];
+
+    onApply(mapped);
+    setActiveFilter(null);
+    setShowSidebar(false);
+  };
+
+  const toggleMobileExpand = (label: string) => {
+    setMobileExpanded(prev => ({
+      ...prev,
+      [label]: !prev[label],
+    }));
+  };
+
+  const handleLayout = (label: string, layout: LayoutRectangle) => {
+    setButtonLayouts(prev => ({ ...prev, [label]: layout }));
+  };
+
+  const renderDatePicker = () => (
+    <View style={styles.dropdownScroll}>
+      <Text style={styles.filterLabel}>From:</Text>
+      {Platform.OS === 'web' ? (
+        <input
+          type="date"
+          value={fromDate}
+          onChange={e => {
+            setFromDate(e.target.value);
+            setFromDateObj(new Date(e.target.value));
+          }}
+          style={styles.searchInput}
+        />
+      ) : (
+        <>
+          <TouchableOpacity onPress={() => setShowFromPicker(true)} style={styles.searchInput}>
+            <Text>{fromDateObj ? fromDateObj.toISOString().slice(0, 10) : 'Select start date'}</Text>
+          </TouchableOpacity>
+          {showFromPicker && (
+            <DateTimePicker
+              value={fromDateObj ?? new Date()}
+              mode="date"
+              display="default"
+              onChange={(event, selectedDate) => {
+                setShowFromPicker(false);
+                if (selectedDate) {
+                  setFromDateObj(selectedDate);
+                  setFromDate(selectedDate.toISOString().slice(0, 10));
+                }
+              }}
+            />
+          )}
+        </>
+      )}
+
+      <Text style={styles.filterLabel}>To:</Text>
+      {Platform.OS === 'web' ? (
+        <input
+          type="date"
+          value={toDate}
+          onChange={e => {
+            setToDate(e.target.value);
+            setToDateObj(new Date(e.target.value));
+          }}
+          style={styles.searchInput}
+        />
+      ) : (
+        <>
+          <TouchableOpacity onPress={() => setShowToPicker(true)} style={styles.searchInput}>
+            <Text>{toDateObj ? toDateObj.toISOString().slice(0, 10) : 'Select end date'}</Text>
+          </TouchableOpacity>
+          {showToPicker && (
+            <DateTimePicker
+              value={toDateObj ?? new Date()}
+              mode="date"
+              display="default"
+              onChange={(event, selectedDate) => {
+                setShowToPicker(false);
+                if (selectedDate) {
+                  setToDateObj(selectedDate);
+                  setToDate(selectedDate.toISOString().slice(0, 10));
+                }
+              }}
+            />
+          )}
+        </>
+      )}
+    </View>
+  );
+
+  const renderFilterSection = (label: string) => {
+    const isExpanded = isSmallScreen ? mobileExpanded[label] : expanded[label];
+
+    return (
+      <View key={label} style={{ marginBottom: 16 }}>
+        <TouchableOpacity
+          onPress={() => isSmallScreen ? toggleMobileExpand(label) : onToggleExpand(label)}
+          style={[styles.dropdownHeader, { width: '100%' }]}
+        >
+          <Text style={styles.dropdownText}>{label}</Text>
+          <Ionicons
+            name={isExpanded ? 'chevron-up' : 'chevron-down'}
+            size={16}
+            color="#2c3e50"
+          />
+        </TouchableOpacity>
+        {isExpanded && (label === 'Date Range' ? renderDatePicker() : (
+          <>
+            <TextInput
+              style={styles.searchInput}
+              placeholder={`Search ${label}`}
+              value={searchText[label] || ''}
+              onChangeText={text => onSearchTextChange({ ...searchText, [label]: text })}
+            />
+            <ScrollView style={styles.dropdownScroll}>
+              {(options[label] || [])
+                .filter(opt =>
+                  opt.toLowerCase().includes((searchText[label] || '').toLowerCase())
+                )
+                .map(option => (
+                  <TouchableOpacity
+                    key={option}
+                    style={[
+                      styles.optionItem,
+                      isSelected(label, option) && styles.optionItemSelected,
+                    ]}
+                    onPress={() => toggleOption(label, option)}
+                  >
+                    <Text
                       style={[
-                        styles.optionItem,
-                        isSelected(label, option) && styles.optionItemSelected,
+                        styles.optionText,
+                        isSelected(label, option) && styles.optionTextSelected,
                       ]}
                     >
-                      <Text
-                        style={[
-                          styles.optionText,
-                          isSelected(label, option) && styles.optionTextSelected,
-                        ]}
-                      >
-                        {option}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-              </View>
-            ))}
-          </ScrollView>
+                      {option}
+                    </Text>
+                    <Ionicons
+                      name={isSelected(label, option) ? 'checkbox-outline' : 'square-outline'}
+                      size={20}
+                      color="#2c3e50"
+                      style={styles.optionIcon}
+                    />
+                  </TouchableOpacity>
+                ))}
+            </ScrollView>
+          </>
+        ))}
+      </View>
+    );
+  };
 
-          {/* כפתור לניקוי כל הבחירות */}
-          <TouchableOpacity
-            style={styles.clearBtn}
-            onPress={() => {
-              setSelected({});
-              onClear();
-            }}
-          >
-            <Text style={styles.btnText}>Clear Filters</Text>
+  const anchor = activeFilter ? buttonLayouts[activeFilter] : null;
+
+  if (isSmallScreen) {
+    return (
+      <View style={{ padding: 10 }}>
+        <TouchableOpacity
+          onPress={() => setShowSidebar(true)}
+          style={[styles.dropdownHeader, { width: 100 }]}
+        >
+          <Text style={styles.dropdownText}>Filters</Text>
+          <Ionicons name="funnel-outline" size={16} color="#2c3e50" />
+        </TouchableOpacity>
+
+        <Modal visible={showSidebar} animationType="slide" transparent>
+          <TouchableWithoutFeedback onPress={() => setShowSidebar(false)}>
+            <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' }}>
+              <TouchableWithoutFeedback onPress={() => {}}>
+                <View style={{
+                  height: '50%',
+                  backgroundColor: '#fff',
+                  padding: 16,
+                  borderTopLeftRadius: 12,
+                  borderTopRightRadius: 12,
+                }}>
+                  <ScrollView>{FILTER_ORDER.map(renderFilterSection)}</ScrollView>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 12 }}>
+                    <TouchableOpacity onPress={onClear} style={styles.actionBtn}>
+                      <Text style={styles.btnText}>Clear</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={handleApply} style={styles.actionBtn}>
+                      <Text style={styles.btnText}>Apply</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </TouchableWithoutFeedback>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
+      </View>
+    );
+  }
+
+  return (
+    <TouchableWithoutFeedback onPress={() => setActiveFilter(null)}>
+      <View style={styles.overlayContainer}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.scrollWrapper}
+        >
+          <View style={styles.filterByTextContainer}>
+            <Text style={styles.filterByText}>Filter By:</Text>
+          </View>
+
+          {FILTER_ORDER.map(label => (
+            <View
+              key={label}
+              style={styles.dropdownWrapper}
+              onLayout={e => handleLayout(label, e.nativeEvent.layout)}
+            >
+              <TouchableOpacity
+                onPress={() => setActiveFilter(prev => (prev === label ? null : label))}
+                style={styles.dropdownHeader}
+              >
+                <Text style={styles.dropdownText}>{label}</Text>
+                <Ionicons
+                  name={activeFilter === label ? 'chevron-up' : 'chevron-down'}
+                  size={16}
+                  color="#2c3e50"
+                />
+              </TouchableOpacity>
+            </View>
+          ))}
+
+          <TouchableOpacity style={styles.actionBtn} onPress={onClear}>
+            <Text style={styles.btnText}>Clear</Text>
           </TouchableOpacity>
-        </Animated.View>
-      )}
-    </>
+          <TouchableOpacity style={styles.actionBtn} onPress={handleApply}>
+            <Text style={styles.btnText}>Apply</Text>
+          </TouchableOpacity>
+        </ScrollView>
+
+        {activeFilter && anchor && (
+          <View
+            style={[
+              styles.floatingDropdown,
+              {
+                position: 'absolute',
+                top: anchor.y + anchor.height + 6,
+                left: anchor.x,
+                width: anchor.width + 20,
+              },
+            ]}
+          >
+            {renderFilterSection(activeFilter)}
+          </View>
+        )}
+      </View>
+    </TouchableWithoutFeedback>
   );
 }
+
