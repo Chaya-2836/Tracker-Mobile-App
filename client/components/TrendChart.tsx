@@ -11,8 +11,23 @@ interface TrendChartProps {
 const TrendChart: React.FC<TrendChartProps> = ({ title, data }) => {
   const { width: screenWidth } = useWindowDimensions();
 
-  const labels = data.map(item => item.label.toLocaleDateString()) ;
-  const values = data.map(item => item.value);
+  // נוודא שהנתונים חוקיים
+  const safeData = data.filter(item => {
+    const valid =
+      item.label instanceof Date &&
+      !isNaN(item.label.getTime()) &&
+      typeof item.value === 'number' &&
+      isFinite(item.value);
+
+    if (!valid) {
+      console.warn('❌ נתון שגוי ב־TrendChart:', item);
+    }
+
+    return valid;
+  });
+
+  const labels = safeData.map(item => item.label.toLocaleDateString());
+  const values = safeData.map(item => item.value);
 
   return (
     <View style={[styles.chartContainer, { width: screenWidth * 0.9 }]}>
@@ -26,6 +41,9 @@ const TrendChart: React.FC<TrendChartProps> = ({ title, data }) => {
         height={220}
         chartConfig={chartConfig}
         style={styles.chart}
+        withDots={true}
+        withInnerLines={true}
+        withOuterLines={false}
       />
     </View>
   );

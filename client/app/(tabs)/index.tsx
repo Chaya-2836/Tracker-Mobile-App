@@ -16,7 +16,7 @@ import TrendChart from '../../components/TrendChart';
 import {
   getTodayStats,
   getWeeklyTrends,
-} from '../Api/analytics';
+} from '../../Api/analytics';
 import styles from '../styles/appStyles';
 import FilterMenu from '@/components/FilterMenu';
 
@@ -68,7 +68,7 @@ export default function App() {
     console.log('📲 Expo Push Token:', token);
 
     try {
-      await fetch('http://localhost:3000/push/register-token', {
+      await fetch('http:// 192.168.56.1:3000/push/register-token', { // לשנות כתובת!!
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token }),

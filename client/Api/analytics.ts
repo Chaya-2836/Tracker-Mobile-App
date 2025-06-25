@@ -17,7 +17,7 @@ async function fetchEventSummary(
   const res = await fetch(`${API_BASE}?${query.toString()}`);
 
   if (daysMode === 'day') {
-    const text = await res.text(); // <-- שימי לב: res.text()
+    const text = await res.text(); 
     return Number(text) || 0;
 
   } else {
@@ -63,7 +63,6 @@ export async function getWeeklyTrends(filters: Filters = {}) {
     fetchEventSummary('impression', 'week', filters)
   ]);
 
-  // ודא שאלה מערכים ולא מספרים
   let clicksRow = Array.isArray(clicksRowResult)
     ? fillMissingDays(convertToTrendPoints(clicksRowResult))
     : [];

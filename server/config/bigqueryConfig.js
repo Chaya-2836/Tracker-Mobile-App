@@ -1,8 +1,9 @@
 import { BigQuery } from '@google-cloud/bigquery';
 
 const bigquery = new BigQuery({
-  keyFilename:'./config/key.json',
+  keyFilename:'./config/firebase-service-account.json',
 });
+
 
 const nameDB = 'platform-hackaton-2025';
 
