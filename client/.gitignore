@@ -37,3 +37,6 @@ yarn-error.*
 *.tsbuildinfo
 
 app-example
+*.keystore
+client/android/app/debug.keystore
+.vscode/settings.json
