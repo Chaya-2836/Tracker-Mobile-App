@@ -12,6 +12,12 @@ async function fetchEventSummary(
   daysMode: DaysMode,
   filters: Filters = {}
 ): Promise<number | any[]> {
+  if (
+    daysMode === 'week' &&
+    !(filters.fromDate && filters.toDate)
+  ) {
+    delete filters.date;
+  }
   const query = new URLSearchParams({ engagement_type: type, daysMode, ...filters });
   const url = `${API_BASE}?${query.toString()}`;
   console.log("fetchEventSummary URL:", url); // ✅ Debug to confirm correct query

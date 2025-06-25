@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:8021/filters"; // נתיב ה-API שלך לשרת
+const API_BASE = "http://localhost:3000/filters"; // נתיב ה-API שלך לשרת
 
 // סוג מפתח וערך של פילטרים
 type Filters = Record<string, string[]>;
