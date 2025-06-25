@@ -1,8 +1,7 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "type": "module",          
-
+  "type": "module",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -14,6 +13,7 @@
   "license": "ISC",
   "dependencies": {
     "@google-cloud/bigquery": "^8.1.0",
+    "@google-cloud/secret-manager": "^6.0.1",
     "cors": "^2.8.5",
     "date-fns": "^4.1.0",
     "express": "^5.1.0",
