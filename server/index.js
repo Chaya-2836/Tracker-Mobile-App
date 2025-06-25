@@ -34,3 +34,8 @@ createBigQueryClient()
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
 });
+  }
+  ).catch(err => {
+    console.error('Error initializing BigQuery client:', err);
+    process.exit(1); // יציאה מהתהליך במקרה של שגיאה קריטית
+  });
