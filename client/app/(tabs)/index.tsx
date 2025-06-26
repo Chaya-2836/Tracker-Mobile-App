@@ -19,6 +19,7 @@ import TrendChart from '../../components/TrendChart';
 import FilterBar from '../../components/FilterMenu';
 import { getTodayStats, getWeeklyTrends } from '../Api/analytics';
 import { fetchAllFilters } from '../Api/filters';
+import TopDashboard from '@/components/TopDashboard';
 
 interface TrendPoint {
   label: Date;
@@ -86,34 +87,34 @@ export default function App() {
     }
   }
 
-async function fetchTrends(filters: { [key: string]: string[] }) {
-  setLoading(true);
-  try {
-    const filtersAsQuery = Object.fromEntries(
-      Object.entries(filters).map(([key, val]) => {
-        const keyNormalized = key === 'fromDate' || key === 'toDate'
-          ? key
-          : key.toLowerCase().replace(/\s+/g, '_');
-        return [keyNormalized, val.join(',')];
-      })
-    );
+  async function fetchTrends(filters: { [key: string]: string[] }) {
+    setLoading(true);
+    try {
+      const filtersAsQuery = Object.fromEntries(
+        Object.entries(filters).map(([key, val]) => {
+          const keyNormalized = key === 'fromDate' || key === 'toDate'
+            ? key
+            : key.toLowerCase().replace(/\s+/g, '_');
+          return [keyNormalized, val.join(',')];
+        })
+      );
 
-    const { clicks = [], impressions = [] } = await getWeeklyTrends(filtersAsQuery);
+      const { clicks = [], impressions = [] } = await getWeeklyTrends(filtersAsQuery);
 
-    const toPoints = (arr: any[]) =>
-      arr.map(item => ({
-        label: new Date(item.label),
-        value: Number(item.value || 0),
-      }));
+      const toPoints = (arr: any[]) =>
+        arr.map(item => ({
+          label: new Date(item.label),
+          value: Number(item.value || 0),
+        }));
 
-    setClickTrend(toPoints(clicks));
-    setImpressionTrend(toPoints(impressions));
-  } catch (err) {
-    console.error('❌ Failed to fetch weekly trends:', err);
-  } finally {
-    setLoading(false);
+      setClickTrend(toPoints(clicks));
+      setImpressionTrend(toPoints(impressions));
+    } catch (err) {
+      console.error('❌ Failed to fetch weekly trends:', err);
+    } finally {
+      setLoading(false);
+    }
   }
-}
 
   async function fetchFilterData() {
     try {
@@ -150,14 +151,14 @@ async function fetchTrends(filters: { [key: string]: string[] }) {
   const getChartTitle = (filters: { [key: string]: string[] }) => {
     const from = filters.fromDate?.[0];
     const to = filters.toDate?.[0];
-    const type= index === 0 ? 'Clicks' : 'Impressions';
-    if (from && to ) {
+    const type = index === 0 ? 'Clicks' : 'Impressions';
+    if (from && to) {
       return `${type} Volume Trend (${formatDate(from)} → ${formatDate(to)})`;
     }
 
     return 'Click Volume Trend (Last 7 Days)';
   };
-  
+
   const renderScene = ({ route }: any) => {
     if (loading) return <ActivityIndicator size="large" color="#0000ff" />;
 
@@ -177,16 +178,29 @@ async function fetchTrends(filters: { [key: string]: string[] }) {
           onClear={handleClear}
           onApply={handleApply}
         />
-
         <View style={{ paddingTop: 12 }}>
           {route.key === 'clicks' ? (
             <>
-              <StatCard title="Clicks Recorded Today" value={clicksToday} />
+              <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
+                {/* StatCard עם גובה קבוע */}
+                <View style={{ height: 150 }}>
+                  <StatCard title="Clicks Recorded Today" value={clicksToday} />
+                </View>
+
+                {/* TopDashboard מתרחב בגובה דינמי */}
+                <View style={{ flex: 1 }}>
+                  <TopDashboard scene={route.key} />
+                </View>
+              </View>
+
+
               <TrendChart title={getChartTitle(selectedFilters)} data={clickTrend} />
             </>
           ) : (
             <>
               <StatCard title="Impressions Recorded Today" value={impressionsToday} />
+              <TopDashboard scene={route.key} />
+
               <TrendChart title={getChartTitle(selectedFilters)} data={impressionTrend} />
             </>
           )}
