@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:3000/filters"; // נתיב ה-API שלך לשרת
+const API_BASE = "http://localhost:8021/filters"; // נתיב ה-API שלך לשרת
 
 // סוג מפתח וערך של פילטרים
 type Filters = Record<string, string[]>;
@@ -28,20 +28,13 @@ export async function fetchAgencies(): Promise<string[]> {
   return res.json();
 }
 
-export async function fetchEngagementTypes(): Promise<string[]> {
-  const res = await fetch(`${API_BASE}/engagement-types`);
-  if (!res.ok) throw new Error('Failed to fetch engagement types');
-  return res.json();
-}
-
 // פונקציה כללית לטעינת כל אפשרויות הפילטרים בבת אחת
 export async function fetchAllFilters(): Promise<{ [key: string]: string[] }> {
-  const [campaigns, platforms, mediaSources, agencies, engagementTypes] = await Promise.all([
+  const [campaigns, platforms, mediaSources, agencies] = await Promise.all([
     fetchCampaigns(),
     fetchPlatforms(),
     fetchMediaSources(),
     fetchAgencies(),
-    fetchEngagementTypes(),
   ]);
 
   return {
@@ -49,6 +42,5 @@ export async function fetchAllFilters(): Promise<{ [key: string]: string[] }> {
     Platform: platforms,
     "Media Source": mediaSources,
     Agency: agencies,
-    "Engagement Type": engagementTypes,
   };
 }

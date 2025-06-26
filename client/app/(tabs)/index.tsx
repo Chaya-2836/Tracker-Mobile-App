@@ -4,7 +4,10 @@ import {
   Text,
   View,
   ActivityIndicator,
+  Alert,
+  Platform,
   Dimensions,
+  ScrollView
 } from 'react-native';
 import { TabView, TabBar } from 'react-native-tab-view';
 import * as Notifications from 'expo-notifications';
@@ -13,8 +16,9 @@ import * as Device from 'expo-device';
 import styles from '../styles/appStyles';
 import StatCard from '../../components/statCard';
 import TrendChart from '../../components/TrendChart';
-import { getTodayStats, getWeeklyTrends } from '../Api/analytics';
 import FilterBar from '../../components/FilterMenu';
+import { getTodayStats, getWeeklyTrends } from '../Api/analytics';
+import { fetchAllFilters } from '../Api/filters';
 
 interface TrendPoint {
   label: Date;
@@ -29,10 +33,8 @@ export default function App() {
   const [clickTrend, setClickTrend] = useState<TrendPoint[]>([]);
   const [impressionTrend, setImpressionTrend] = useState<TrendPoint[]>([]);
   const [loading, setLoading] = useState(true);
+
   const [index, setIndex] = useState(0);
-
-
-  // Tabs
   const [routes] = useState([
     { key: 'clicks', title: 'Clicks' },
     { key: 'impressions', title: 'Impressions' },
@@ -45,12 +47,6 @@ export default function App() {
   const [expandedSections, setExpandedSections] = useState<{ [label: string]: boolean }>(
     Object.fromEntries(FILTER_ORDER.map(label => [label, false]))
   );
-  const handleToggleExpand = (updates: { [label: string]: boolean }) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      ...updates,
-    }));
-  };
 
   const [searchTexts, setSearchTexts] = useState<{ [label: string]: string }>({});
 
@@ -90,59 +86,61 @@ export default function App() {
     }
   }
 
-  async function fetchTrends(filters: { [key: string]: string[] }) {
+async function fetchTrends(filters: { [key: string]: string[] }) {
+  setLoading(true);
+  try {
+    const filtersAsQuery = Object.fromEntries(
+      Object.entries(filters).map(([key, val]) => {
+        const keyNormalized = key === 'fromDate' || key === 'toDate'
+          ? key
+          : key.toLowerCase().replace(/\s+/g, '_');
+        return [keyNormalized, val.join(',')];
+      })
+    );
+
+    const { clicks = [], impressions = [] } = await getWeeklyTrends(filtersAsQuery);
+
+    const toPoints = (arr: any[]) =>
+      arr.map(item => ({
+        label: new Date(item.label),
+        value: Number(item.value || 0),
+      }));
+
+    setClickTrend(toPoints(clicks));
+    setImpressionTrend(toPoints(impressions));
+  } catch (err) {
+    console.error('❌ Failed to fetch weekly trends:', err);
+  } finally {
+    setLoading(false);
+  }
+}
+
+  async function fetchFilterData() {
     try {
-      setLoading(true);
-      // const { clicks, impressions } = await getWeeklyTrends();
-      const filtersAsQuery = Object.fromEntries(
-        Object.entries(filters).map(([key, val]) => {
-          const keyNormalized = key === 'fromDate' || key === 'toDate'
-            ? key // ← שמרי על case כפי שהוא
-            : key.toLowerCase().replace(/\s+/g, '_');
-          return [keyNormalized, val.join(',')];
-        })
-      );
-      const { clicks, impressions } = await getWeeklyTrends(filtersAsQuery);
-      const toPoints = (arr: any[]) =>
-        arr.map(item => ({
-          label: new Date(item.label),
-          value: Number(item.value || 0),
-        }));
-      setClickTrend(toPoints(clicks));
-      setImpressionTrend(toPoints(impressions));
-    } catch {
-      console.error('Failed to fetch weekly trends');
-    } finally {
-      setLoading(false);
+      const allFilters = await fetchAllFilters();
+      setFilterOptions(allFilters);
+    } catch (err) {
+      console.error('❌ Failed to fetch filters:', err);
     }
   }
 
-  async function fetchFilterData() {
-    const endpoints = {
-      'Campaign': '/api/getCampaigns',
-      'Platform': '/api/getPlatforms',
-      'Media Source': '/api/getMediaSources',
-      'Agency': '/api/getAgencies',
-    };
-    const newOptions: { [label: string]: string[] } = {};
-    await Promise.all(
-      Object.entries(endpoints).map(async ([label, url]) => {
-        try {
-          const res = await fetch(url);
-          const data = await res.json();
-          newOptions[label] = data;
-        } catch (err) {
-          console.error(`Failed to fetch options for ${label}`, err);
-          newOptions[label] = [];
-        }
-      })
-    );
-    setFilterOptions(newOptions);
-  }
+  const handleApply = (filters: { [key: string]: string[] }) => {
+    setSelectedFilters(filters);
+    fetchTrends(filters);
+  };
 
-  const handleFilterChange = (filters: { [key: string]: string[] }) => {
-    console.log('Filters applied:', filters);
-    // TODO: use this to fetch or filter chart data if needed
+  const handleClear = () => {
+    const cleared = {};
+    setSelectedFilters(cleared);
+    setSearchTexts(cleared);
+    handleApply(cleared);
+  };
+
+  const toggleExpand = (label: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [label]: !prev[label],
+    }));
   };
 
   const formatDate = (iso: string) => {
@@ -152,18 +150,19 @@ export default function App() {
   const getChartTitle = (filters: { [key: string]: string[] }) => {
     const from = filters.fromDate?.[0];
     const to = filters.toDate?.[0];
-
-    if (from && to) {
-      return `Click Volume Trend (${formatDate(from)} → ${formatDate(to)})`;
+    const type= index === 0 ? 'Clicks' : 'Impressions';
+    if (from && to ) {
+      return `${type} Volume Trend (${formatDate(from)} → ${formatDate(to)})`;
     }
 
     return 'Click Volume Trend (Last 7 Days)';
   };
+  
   const renderScene = ({ route }: any) => {
     if (loading) return <ActivityIndicator size="large" color="#0000ff" />;
 
     return (
-      <View style={{ flex: 1 }}>
+      <ScrollView>
         <FilterBar
           options={filterOptions}
           selected={selectedFilters}
@@ -172,35 +171,27 @@ export default function App() {
             fetchTrends(filters); // ← זה הקסם
           }}
           expanded={expandedSections}
-          onToggleExpand={handleToggleExpand}
+          onToggleExpand={toggleExpand}
           searchText={searchTexts}
           onSearchTextChange={setSearchTexts}
-          // onClear={() => {
-          //   setSelectedFilters({});
-          //   setSearchTexts({});
-          // }}
-          onClear={() => {
-            setSelectedFilters({});
-            setSearchTexts({});
-            fetchTrends({}); // ← שליפת כל הדאטה בלי פילטרים
-          }}
+          onClear={handleClear}
+          onApply={handleApply}
         />
 
-        {route.key === 'clicks' ? (
-          <View style={{ paddingTop: 12 }}>
-            <StatCard title="Clicks Recorded Today" value={clicksToday} />
-            <TrendChart
-              title={getChartTitle(selectedFilters)}
-              data={clickTrend}
-            />
-          </View>
-        ) : (
-          <View style={{ paddingTop: 12 }}>
-            <StatCard title="Impressions Recorded Today" value={impressionsToday} />
-            <TrendChart title="Impression Volume Trend (Last 7 Days)" data={impressionTrend} />
-          </View>
-        )}
-      </View>
+        <View style={{ paddingTop: 12 }}>
+          {route.key === 'clicks' ? (
+            <>
+              <StatCard title="Clicks Recorded Today" value={clicksToday} />
+              <TrendChart title={getChartTitle(selectedFilters)} data={clickTrend} />
+            </>
+          ) : (
+            <>
+              <StatCard title="Impressions Recorded Today" value={impressionsToday} />
+              <TrendChart title={getChartTitle(selectedFilters)} data={impressionTrend} />
+            </>
+          )}
+        </View>
+      </ScrollView>
     );
   };
 
@@ -233,3 +224,5 @@ export default function App() {
     </SafeAreaView>
   );
 }
+
+
