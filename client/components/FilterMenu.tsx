@@ -135,7 +135,7 @@ export default function FilterBar({
     <View style={styles.dropdownScroll}>
       <Text style={styles.filterLabel}>From:</Text>
       {Platform.OS === 'web' ? (
-        <input
+        <input lang="en"
           type="date"
           value={fromDate}
           onChange={e => {
@@ -150,7 +150,7 @@ export default function FilterBar({
             <Text>{fromDateObj ? fromDateObj.toISOString().slice(0, 10) : 'Select start date'}</Text>
           </TouchableOpacity>
           {showFromPicker && (
-            <DateTimePicker
+            <DateTimePicker locale="en"
               value={fromDateObj ?? new Date()}
               mode="date"
               display="default"
@@ -168,7 +168,7 @@ export default function FilterBar({
 
       <Text style={styles.filterLabel}>To:</Text>
       {Platform.OS === 'web' ? (
-        <input
+        <input lang="en"
           type="date"
           value={toDate}
           onChange={e => {
@@ -183,7 +183,7 @@ export default function FilterBar({
             <Text>{toDateObj ? toDateObj.toISOString().slice(0, 10) : 'Select end date'}</Text>
           </TouchableOpacity>
           {showToPicker && (
-            <DateTimePicker
+            <DateTimePicker locale="en"
               value={toDateObj ?? new Date()}
               mode="date"
               display="default"
