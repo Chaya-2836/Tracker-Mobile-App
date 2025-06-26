@@ -5,7 +5,7 @@ import eventsSummaryRoutes from './routes/eventsSummaryRoutes.js';
 import filtersRoutes from './routes/filtersRoutes.js';
 import pushRoutes from './routes/pushRoutes.js';
 import { scheduleDailyCheck } from './push/PushService.js';
-
+import trafficAnalyticsRoutes from './routes/trafficAnalyticsRoutes.js';
 const app = express();
 const port = 8021;
 // פתרון בעיית ה cors
@@ -26,6 +26,8 @@ export {  nameDB };
 app.use('/events_summary', eventsSummaryRoutes);
 app.use('/filters', filtersRoutes);
 app.use('/push', pushRoutes);
+app.use('/trafficAnalytics', trafficAnalyticsRoutes);
+
 
 // קריאה לפונקציית בדיקת הפוש המתוזמנת
 scheduleDailyCheck();
