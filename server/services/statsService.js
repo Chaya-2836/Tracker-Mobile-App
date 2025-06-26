@@ -4,11 +4,11 @@ const nameTable = `${nameDB}.attribution_end_user_events.end_user_events`;
 
 export async function getTodayStats() {
   const query = `
-    SELECT COUNT(*) AS clicks
+    SELECT COUNT(*) AS total_clicks_and_impressions
     FROM ${nameTable}
-    WHERE engagement_type = 'click'
-      AND event_time >= TIMESTAMP(CURRENT_DATE())
-  `;
+    WHERE engagement_type IN ('click', 'impression')
+    AND event_time >= TIMESTAMP(CURRENT_DATE())
+   `;
 
   const options = {
     query,
@@ -17,5 +17,5 @@ export async function getTodayStats() {
 
   const [job] = await bigquery.createQueryJob(options);
   const [rows] = await job.getQueryResults();
-  return { clicks: rows[0]?.clicks || 0 };
+  return { total_clicks_and_impressions: rows[0]?.total_clicks_and_impressions || 0 };
 }
