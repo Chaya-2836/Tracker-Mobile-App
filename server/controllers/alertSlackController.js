@@ -5,6 +5,8 @@ dotenv.config();
 
 export async function checkAndSendTrafficAlert(meassage) {
     const webhookUrl = process.env.SLACK_WEBHOOK_URL;
+    console.log("webhookUrl ", webhookUrl);
+    
     const text = meassage;
     await fetch(webhookUrl, {
         method: 'POST',

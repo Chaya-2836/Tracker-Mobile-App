@@ -55,7 +55,7 @@ function scheduleDailyCheck() {
   }
 
   cron.schedule(
-    '0 10 * * *', // 13:40 לפי זמן ישראל
+    '0 10 * * *', // 10:00 לפי זמן ישראל
     async () => {
       console.log('⏰ Running daily engagement check...');
 
