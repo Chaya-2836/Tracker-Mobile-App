@@ -15,6 +15,7 @@ import StatCard from '../../components/statCard';
 import TrendChart from '../../components/TrendChart';
 import { getTodayStats, getWeeklyTrends } from '../Api/analytics';
 import FilterBar from '../../components/FilterMenu';
+import TopDashboard from '@/components/TopDashboard';
 
 interface TrendPoint {
   label: Date;
@@ -185,7 +186,7 @@ export default function App() {
             fetchTrends({}); // ← שליפת כל הדאטה בלי פילטרים
           }}
         />
-
+ {/* <TopDashboard></TopDashboard>  */}
         {route.key === 'clicks' ? (
           <View style={{ paddingTop: 12 }}>
             <StatCard title="Clicks Recorded Today" value={clicksToday} />
