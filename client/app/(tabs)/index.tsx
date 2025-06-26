@@ -167,10 +167,7 @@ export default function App() {
         <FilterBar
           options={filterOptions}
           selected={selectedFilters}
-          onSelect={(filters) => {
-            setSelectedFilters(filters);
-            fetchTrends(filters); // ← זה הקסם
-          }}
+          onSelect={setSelectedFilters}
           expanded={expandedSections}
           onToggleExpand={toggleExpand}
           searchText={searchTexts}
