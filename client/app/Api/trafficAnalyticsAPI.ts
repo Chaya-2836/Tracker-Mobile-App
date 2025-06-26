@@ -11,7 +11,6 @@ export const fetchTopMediaSources = async (limit: number = 10): Promise<ApiRespo
   const { data } = await axios.get(`${BASE_URL}/media/top`, { params: { limit } });
   return data;
 };
-
 export const fetchAppsByMediaSource = async (mediaSource: string): Promise<ApiResponse> => {
   const { data } = await axios.get(`${BASE_URL}/media/apps`, { params: { mediaSource } });
   return data;

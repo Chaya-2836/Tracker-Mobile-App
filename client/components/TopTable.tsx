@@ -1,34 +1,27 @@
-type TopTableProps = {
+import { View, Text } from "react-native";
+import styles from "@/app/styles/topStyles";
+
+type TopCardProps = {
   title: string;
-  data: { name: string; [key: string]: any }[];
+  data: Array<{ name: string; [key: string]: number | string }>;
   topN: number;
   sortBy: string;
 };
 
-export default function TopTable({ title, data, topN, sortBy }: TopTableProps) {
- const topData = [...data]
-    .sort((a, b) => b[sortBy] - a[sortBy])
+export default function TopCard({ title, data, topN, sortBy }: TopCardProps) {
+  const topData = [...data]
+    .sort((a, b) => Number(b[sortBy]) - Number(a[sortBy]))
     .slice(0, topN);
 
   return (
-    <div className="bg-white p-4 rounded-xl shadow-md w-full max-w-xs mx-2">
-      <h2 className="text-base font-semibold text-gray-800 mb-3">{title}</h2>
-      <table className="w-full text-left table-auto">
-        <thead>
-          <tr>
-            <th className="text-left">Name</th>
-            <th className="text-left">{sortBy.charAt(0).toUpperCase() + sortBy.slice(1)}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {topData.map((item, i) => (
-            <tr key={i} className="border-t">
-              <td className="py-1.5 text-gray-700">{item.name}</td>
-              <td className="text-blue-600 font-bold text-center">{item[sortBy]}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <View style={styles.card}>
+      <Text style={styles.title}>{title}</Text>
+      {topData.map((item, i) => (
+        <View key={i} style={styles.row}>
+          <Text style={styles.name}>{item.name}</Text>
+          <Text style={styles.value}>{item[sortBy]}</Text>
+        </View>
+      ))}
+    </View>
   );
 }

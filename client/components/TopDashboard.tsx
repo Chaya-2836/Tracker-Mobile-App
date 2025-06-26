@@ -1,43 +1,62 @@
-import React, { useState } from "react";
+import styles from "@/app/styles/topStyles";
+import { View, Text } from "react-native";
+import React, { useState, useEffect } from "react";
 import TopSelector from "./TopSelector";
 import TopTable from "./TopTable";
+import {
+  fetchTopAgencies,
+  fetchTopApps,
+  fetchTopMediaSources,
+} from "@/app/Api/trafficAnalyticsAPI";
 
-export default function TopDashboard() {
-const [topN, setTopN] = useState(10);
+export default function TopDashboard({scene}: {scene: string}) {
+  const [topN, setTopN] = useState(1);
 
-  const mediaData = [
-    { name: "Google Ads", clicks: 320 },
-    { name: "Facebook", clicks: 280 },
-    { name: "Instagram", clicks: 210 },
-    { name: "TikTok", clicks: 180 },
-    { name: "LinkedIn", clicks: 130 }
-  ];
+  const [mediaData, setMediaData] = useState([]);
+  const [agencyData, setAgencyData] = useState([]);
+  const [appData, setAppData] = useState([]);
 
-  const agencyData = [
-    { name: "Agency A", impressions: 12000 },
-    { name: "Agency B", impressions: 9500 },
-    { name: "Agency C", impressions: 8700 },
-    { name: "Agency D", impressions: 7600 },
-    { name: "Agency E", impressions: 7100 }
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const media = await fetchTopMediaSources(topN);
+        const agencies = await fetchTopAgencies(topN);
+        const apps = await fetchTopApps(topN);
 
-  const appData = [
-    { name: "App Alpha", events: 3000 },
-    { name: "App Beta", events: 2700 },
-    { name: "App Gamma", events: 2500 },
-    { name: "App Delta", events: 2100 },
-    { name: "App Epsilon", events: 1800 }
-  ];
+        setMediaData(media);
+        setAgencyData(agencies);
+        setAppData(apps);
+      } catch (error) {
+        console.error("שגיאה בטעינת הנתונים:", error);
+      }
+    };
+
+    fetchData();
+  }, [topN]); // ירוץ מחדש כש-topN משתנה
 
   return (
-      <div className="p-6 space-y-6">
+    <View style={styles.container}>
       <TopSelector value={topN} onChange={setTopN} />
-
-      <div className="flex flex-row flex-wrap justify-center gap-4">
-        <TopTable title="Top Media Sources" data={mediaData} topN={topN} sortBy="clicks" />
-        <TopTable title="Top Agencies" data={agencyData} topN={topN} sortBy="impressions" />
-        <TopTable title="Top Applications" data={appData} topN={topN} sortBy="events" />
-      </div>
-    </div>
+      <View style={styles.rowWrap}>
+        <TopTable
+          title="Top Media Sources"
+          data={mediaData}
+          topN={topN}
+          sortBy={scene}
+        />
+        <TopTable
+          title="Top Agencies"
+          data={agencyData}
+          topN={topN}
+          sortBy={scene}
+        />
+        <TopTable
+          title="Top Applications"
+          data={appData}
+          topN={topN}
+          sortBy={scene}
+        />
+      </View>
+    </View>
   );
 }
