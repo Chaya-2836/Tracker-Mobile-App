@@ -1,8 +1,12 @@
 
 import fetch from "node-fetch";
+import dotenv from 'dotenv';
+dotenv.config();
 
 export async function checkAndSendTrafficAlert(meassage) {
-    const webhookUrl = "https://hooks.slack.com/services/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";
+    const webhookUrl = process.env.SLACK_WEBHOOK_URL;
+    console.log("webhookUrl ", webhookUrl);
+    
     const text = meassage;
     await fetch(webhookUrl, {
         method: 'POST',
