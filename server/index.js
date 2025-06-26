@@ -6,6 +6,8 @@ import filtersRoutes from './routes/filtersRoutes.js';
 import pushRoutes from './routes/pushRoutes.js';
 import { scheduleDailyCheck } from './push/PushService.js';
 import trafficAnalyticsRoutes from './routes/trafficAnalyticsRoutes.js';
+import analyticsRoutes from './routes/trafficAnalyticsRoutes.js';
+
 const app = express();
 const port = 8021;
 // פתרון בעיית ה cors
@@ -27,6 +29,7 @@ app.use('/events_summary', eventsSummaryRoutes);
 app.use('/filters', filtersRoutes);
 app.use('/push', pushRoutes);
 app.use('/trafficAnalytics', trafficAnalyticsRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 
 // קריאה לפונקציית בדיקת הפוש המתוזמנת

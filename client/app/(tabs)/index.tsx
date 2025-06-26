@@ -17,9 +17,9 @@ import styles from '../styles/appStyles';
 import StatCard from '../../components/statCard';
 import TrendChart from '../../components/TrendChart';
 import FilterBar from '../../components/FilterMenu';
-import { getTodayStats, getWeeklyTrends } from '../Api/analytics';
-import { fetchAllFilters } from '../Api/filters';
-
+import { getTodayStats, getWeeklyTrends } from '../../Api/analytics';
+import { fetchAllFilters } from '../../Api/filters';
+import DrillDownScreen from '../../components/DrillDownScreen';
 interface TrendPoint {
   label: Date;
   value: number;
@@ -51,7 +51,7 @@ export default function App() {
   const [searchTexts, setSearchTexts] = useState<{ [label: string]: string }>({});
 
   useEffect(() => {
-    registerForPushNotifications();
+    // registerForPushNotifications();
     fetchData();
     fetchTrends({});
     fetchFilterData();
@@ -86,34 +86,34 @@ export default function App() {
     }
   }
 
-async function fetchTrends(filters: { [key: string]: string[] }) {
-  setLoading(true);
-  try {
-    const filtersAsQuery = Object.fromEntries(
-      Object.entries(filters).map(([key, val]) => {
-        const keyNormalized = key === 'fromDate' || key === 'toDate'
-          ? key
-          : key.toLowerCase().replace(/\s+/g, '_');
-        return [keyNormalized, val.join(',')];
-      })
-    );
+  async function fetchTrends(filters: { [key: string]: string[] }) {
+    setLoading(true);
+    try {
+      const filtersAsQuery = Object.fromEntries(
+        Object.entries(filters).map(([key, val]) => {
+          const keyNormalized = key === 'fromDate' || key === 'toDate'
+            ? key
+            : key.toLowerCase().replace(/\s+/g, '_');
+          return [keyNormalized, val.join(',')];
+        })
+      );
 
-    const { clicks = [], impressions = [] } = await getWeeklyTrends(filtersAsQuery);
+      const { clicks = [], impressions = [] } = await getWeeklyTrends(filtersAsQuery);
 
-    const toPoints = (arr: any[]) =>
-      arr.map(item => ({
-        label: new Date(item.label),
-        value: Number(item.value || 0),
-      }));
+      const toPoints = (arr: any[]) =>
+        arr.map(item => ({
+          label: new Date(item.label),
+          value: Number(item.value || 0),
+        }));
 
-    setClickTrend(toPoints(clicks));
-    setImpressionTrend(toPoints(impressions));
-  } catch (err) {
-    console.error('❌ Failed to fetch weekly trends:', err);
-  } finally {
-    setLoading(false);
+      setClickTrend(toPoints(clicks));
+      setImpressionTrend(toPoints(impressions));
+    } catch (err) {
+      console.error('❌ Failed to fetch weekly trends:', err);
+    } finally {
+      setLoading(false);
+    }
   }
-}
 
   async function fetchFilterData() {
     try {
@@ -150,19 +150,21 @@ async function fetchTrends(filters: { [key: string]: string[] }) {
   const getChartTitle = (filters: { [key: string]: string[] }) => {
     const from = filters.fromDate?.[0];
     const to = filters.toDate?.[0];
-    const type= index === 0 ? 'Clicks' : 'Impressions';
-    if (from && to ) {
+    const type = index === 0 ? 'Clicks' : 'Impressions';
+    if (from && to) {
       return `${type} Volume Trend (${formatDate(from)} → ${formatDate(to)})`;
     }
 
     return 'Click Volume Trend (Last 7 Days)';
   };
-  
+
   const renderScene = ({ route }: any) => {
     if (loading) return <ActivityIndicator size="large" color="#0000ff" />;
 
     return (
       <ScrollView>
+        <DrillDownScreen />
+
         <FilterBar
           options={filterOptions}
           selected={selectedFilters}
@@ -200,6 +202,8 @@ async function fetchTrends(filters: { [key: string]: string[] }) {
       </View>
 
       {/* Tabs and scenes */}
+
+
       <View style={{ flex: 1 }}>
         <TabView
           navigationState={{ index, routes }}
