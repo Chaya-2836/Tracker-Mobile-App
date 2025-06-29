@@ -4,10 +4,8 @@ import {
   Text,
   View,
   ActivityIndicator,
-  Alert,
-  Platform,
   Dimensions,
-  ScrollView
+  ScrollView,
 } from 'react-native';
 import { TabView, TabBar } from 'react-native-tab-view';
 import * as Notifications from 'expo-notifications';
@@ -20,6 +18,7 @@ import  FilterBar from '../../components/FilterBar/FilterBar';
 import { getTodayStats, getWeeklyTrends } from '../Api/analytics';
 import { fetchAllFilters } from '../Api/filters';
 import TopDashboard from '@/components/TopDashboard';
+import SuspiciousTrafficPanel from '@/components/ui/SuspiciousTrafficPanel';
 
 interface TrendPoint {
   label: Date;
@@ -41,14 +40,12 @@ export default function App() {
     { key: 'impressions', title: 'Impressions' },
   ]);
 
-  // Filters (lifted state)
   const [filterOptions, setFilterOptions] = useState<{ [label: string]: string[] }>({});
   const [selectedFilters, setSelectedFilters] = useState<{ [label: string]: string[] }>({});
   const FILTER_ORDER = ['Campaign', 'Platform', 'Media Source', 'Agency', 'Date Range'];
   const [expandedSections, setExpandedSections] = useState<{ [label: string]: boolean }>(
     Object.fromEntries(FILTER_ORDER.map(label => [label, false]))
   );
-
   const [searchTexts, setSearchTexts] = useState<{ [label: string]: string }>({});
 
   useEffect(() => {
@@ -145,7 +142,7 @@ export default function App() {
   };
 
   const formatDate = (iso: string) => {
-    return new Date(iso).toLocaleDateString('en-CA'); // התאריך בפורמט YYYY-MM-DD לפי אזור זמן שלך
+    return new Date(iso).toLocaleDateString('en-CA');
   };
 
   const getChartTitle = (filters: { [key: string]: string[] }) => {
@@ -161,6 +158,8 @@ export default function App() {
   const renderScene = ({ route }: any) => {
     if (loading) return <ActivityIndicator size="large" color="#0000ff" />;
 
+    const isClicks = route.key === 'clicks';
+
     return (
       <ScrollView>
         <FilterBar
@@ -174,32 +173,29 @@ export default function App() {
           onClear={handleClear}
           onApply={handleApply}
         />
+
+        <View style={{ marginTop: 10, paddingHorizontal: 10 }}>
+          <SuspiciousTrafficPanel />
+        </View>
+
         <View style={{ paddingTop: 12 }}>
-          {route.key === 'clicks' ? (
-            <>
-              <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
-                {/* StatCard עם גובה קבוע */}
-                <View style={{ height: 150 }}>
-                  <StatCard title="Clicks Recorded Today" value={clicksToday} />
-                </View>
+          <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
+            <View style={{ height: 150 }}>
+              <StatCard
+                title={isClicks ? "Clicks Recorded Today" : "Impressions Recorded Today"}
+                value={isClicks ? clicksToday : impressionsToday}
+              />
+            </View>
 
-                {/* TopDashboard מתרחב בגובה דינמי */}
-                <View style={{ flex: 1 }}>
-                  <TopDashboard scene={route.key} />
-                </View>
-              </View>
-
-
-              <TrendChart title={getChartTitle(selectedFilters)} data={clickTrend} />
-            </>
-          ) : (
-            <>
-              <StatCard title="Impressions Recorded Today" value={impressionsToday} />
+            <View style={{ flex: 1 }}>
               <TopDashboard scene={route.key} />
+            </View>
+          </View>
 
-              <TrendChart title={getChartTitle(selectedFilters)} data={impressionTrend} />
-            </>
-          )}
+          <TrendChart
+            title={getChartTitle(selectedFilters)}
+            data={isClicks ? clickTrend : impressionTrend}
+          />
         </View>
       </ScrollView>
     );
@@ -207,12 +203,10 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
       <View style={styles.headerRow}>
         <Text style={styles.header}>Engagement Tracker</Text>
       </View>
 
-      {/* Tabs and scenes */}
       <View style={{ flex: 1 }}>
         <TabView
           navigationState={{ index, routes }}
@@ -221,17 +215,20 @@ export default function App() {
           initialLayout={initialLayout}
           swipeEnabled={false}
           animationEnabled={false}
-          renderTabBar={props => <TabBar
-            {...props}
-            indicatorStyle={styles.tabBarIndicator}
-            style={styles.tabBarStyle}
-            labelStyle={styles.tabBarLabel}
-            activeColor="#2c62b4"
-            inactiveColor="#7f8c8d"
-          />}
+          renderTabBar={props => (
+            <TabBar
+              {...props}
+              indicatorStyle={styles.tabBarIndicator}
+              style={styles.tabBarStyle}
+              labelStyle={styles.tabBarLabel}
+              activeColor="#2c62b4"
+              inactiveColor="#7f8c8d"
+            />
+          )}
         />
       </View>
     </SafeAreaView>
   );
 }
+
 
