@@ -16,7 +16,7 @@ import * as Device from 'expo-device';
 import styles from '../styles/appStyles';
 import StatCard from '../../components/statCard';
 import TrendChart from '../../components/TrendChart';
-import FilterBar from '../../components/FilterMenu';
+import  FilterBar from '../../components/FilterBar/FilterBar'; 
 import { getTodayStats, getWeeklyTrends } from '../Api/analytics';
 import { fetchAllFilters } from '../Api/filters';
 import TopDashboard from '@/components/TopDashboard';
@@ -151,12 +151,11 @@ export default function App() {
   const getChartTitle = (filters: { [key: string]: string[] }) => {
     const from = filters.fromDate?.[0];
     const to = filters.toDate?.[0];
-    const type = index === 0 ? 'Clicks' : 'Impressions';
+    const type = index === 0 ? 'Click' : 'Impression';
     if (from && to) {
       return `${type} Volume Trend (${formatDate(from)} → ${formatDate(to)})`;
-    }
-
-    return 'Click Volume Trend (Last 7 Days)';
+    }  
+    return '${type} Volume Trend (Last 7 Days)';
   };
 
   const renderScene = ({ route }: any) => {
@@ -235,5 +234,4 @@ export default function App() {
     </SafeAreaView>
   );
 }
-
 
