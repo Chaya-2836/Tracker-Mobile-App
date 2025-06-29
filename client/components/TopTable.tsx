@@ -1,5 +1,6 @@
 import { View, Text } from "react-native";
 import styles from "@/app/styles/topStyles";
+import { formatNumber, safeName } from "../app/Api/utils";
 
 type TopCardProps = {
   title: string;
@@ -18,8 +19,9 @@ export default function TopCard({ title, data, topN, sortBy }: TopCardProps) {
       <Text style={styles.title}>{title}</Text>
       {topData.map((item, i) => (
         <View key={i} style={styles.row}>
-          <Text style={styles.name}>{item.name}</Text>
-          <Text style={styles.value}>{item[sortBy]}</Text>
+<Text style={styles.name}>{safeName(item.name)}</Text>
+<Text style={styles.value}>{formatNumber(item[sortBy])}</Text>
+
         </View>
       ))}
     </View>
