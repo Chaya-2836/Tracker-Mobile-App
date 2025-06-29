@@ -42,7 +42,7 @@ setError("An error occurred while loading the data. Please try again later.");
 
 
     fetchData();
-  }, [topN]); // ירוץ מחדש כש-topN משתנה
+  }, [topN]); //Will rerun when topN changes
 
 return (
   <View style={styles.container}>

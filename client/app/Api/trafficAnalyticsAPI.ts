@@ -1,12 +1,12 @@
 import axios from 'axios';
 
-// הגדרת כתובת בסיס
+// Set base address
 const BASE_URL = 'http://localhost:8021/trafficAnalytics';
 
-// טיפוס כללי לתשובות מהשרת – אפשר להחליף בעתיד לפי הנתונים האמיתיים
+// General type for responses from the server – can be replaced in the future according to the real data
 type ApiResponse<T = any> = T;
 
-// מקורות מדיה
+// Media sources
 export const fetchTopMediaSources = async (limit: number = 10): Promise<ApiResponse> => {
   const { data } = await axios.get(`${BASE_URL}/media/top`, { params: { limit } });
   return data;
@@ -16,7 +16,7 @@ export const fetchAppsByMediaSource = async (mediaSource: string): Promise<ApiRe
   return data;
 };
 
-// סוכנויות פרסום
+// Advertising agencies
 export const fetchTopAgencies = async (limit: number = 10): Promise<ApiResponse> => {
   const { data } = await axios.get(`${BASE_URL}/agency/top`, { params: { limit } });
   return data;
@@ -29,7 +29,7 @@ export const fetchAppsByAgency = async (agency: string, limit: number = 10): Pro
   return data;
 };
 
-// אפליקציות
+// apps
 export const fetchTopApps = async (limit: number = 10): Promise<ApiResponse> => {
   const { data } = await axios.get(`${BASE_URL}/apps/top`, { params: { limit } });
   return data;
@@ -45,7 +45,7 @@ export const fetchAppTrafficConversions = async (appId: string, limit: number = 
   return data;
 };
 
-// התראות
+//Alerts
 export const fetchHighTrafficAlerts = async (): Promise<ApiResponse> => {
   const { data } = await axios.get(`${BASE_URL}/alert/high-traffic`);
   return data;
