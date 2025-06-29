@@ -152,7 +152,7 @@ export default function App() {
     if (from && to) {
       return `${type} Volume Trend (${formatDate(from)} → ${formatDate(to)})`;
     }  
-    return '${type} Volume Trend (Last 7 Days)';
+    return `${type} Volume Trend (Last 7 Days)`;
   };
 
   const renderScene = ({ route }: any) => {
