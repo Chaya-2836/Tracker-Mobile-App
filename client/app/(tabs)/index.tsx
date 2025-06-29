@@ -19,6 +19,7 @@ import { getTodayStats, getWeeklyTrends } from '../Api/analytics';
 import { fetchAllFilters } from '../Api/filters';
 import TopDashboard from '@/components/TopDashboard';
 import SuspiciousTrafficPanel from '@/components/ui/SuspiciousTrafficPanel';
+import Chartstyles, { chartConfig } from '../styles/trendChartStyles';
 
 interface TrendPoint {
   label: Date;
@@ -163,17 +164,7 @@ export default function App() {
 
     return (
       <ScrollView>
-        <FilterBar
-          options={filterOptions}
-          selected={selectedFilters}
-          onSelect={setSelectedFilters}
-          expanded={expandedSections}
-          onToggleExpand={toggleExpand}
-          searchText={searchTexts}
-          onSearchTextChange={setSearchTexts}
-          onClear={handleClear}
-          onApply={handleApply}
-        />
+
 
         <View style={{ marginTop: 10, paddingHorizontal: 10 }}>
           <SuspiciousTrafficPanel />
@@ -192,12 +183,24 @@ export default function App() {
               <TopDashboard scene={route.key} />
             </View>
           </View>
-
-          <TrendChart
-            title={getChartTitle(selectedFilters)}
-            data={isClicks ? clickTrend : impressionTrend}
-          />
-        </View>
+          <View style={Chartstyles.chartContainer}>
+            <Text style={Chartstyles.title}> {getChartTitle(selectedFilters)} </Text>
+              <FilterBar
+                options={filterOptions}
+                selected={selectedFilters}
+                onSelect={setSelectedFilters}
+                expanded={expandedSections}
+                onToggleExpand={toggleExpand}
+                searchText={searchTexts}
+                onSearchTextChange={setSearchTexts}
+                onClear={handleClear}
+                onApply={handleApply}
+              />
+           
+            <TrendChart
+              data={isClicks ? clickTrend : impressionTrend}
+            />
+          </View></View>
       </ScrollView>
     );
   };
