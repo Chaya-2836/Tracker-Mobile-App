@@ -14,8 +14,8 @@ const styles = StyleSheet.create({
   alertTitle: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#2c62b4", // כחול של האפליקציה
-    //  color: "#e74c3c", 
+    // color: "#2c62b4", // כחול של האפליקציה
+     color: "#e74c3c", 
     textAlign: "center",
     marginBottom: 10,
   },
