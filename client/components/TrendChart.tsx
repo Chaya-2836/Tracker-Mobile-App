@@ -10,21 +10,25 @@ interface TrendChartProps {
 const TrendChart: React.FC<TrendChartProps> = ({ data }) => {
   const { width: screenWidth } = useWindowDimensions();
 
-  const labels = data.map(item => item.label.toLocaleDateString()) ;
+const labels = data.map(item =>
+  item.label.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })
+);
+
+  
   const values = data.map(item => item.value);
 
   return (
-      <LineChart
-        data={{
-          labels,
-          datasets: [{ data: values }],
-        }}
-        width={screenWidth * 0.85}
-        height={220}
-        chartConfig={chartConfig}
-        style={Chartstyles.chart}
-      />
-    
+    <LineChart
+      data={{
+        labels,
+        datasets: [{ data: values }],
+      }}
+      width={screenWidth * 0.85}
+      height={220}
+      chartConfig={chartConfig}
+      style={Chartstyles.chart}
+    />
+
   );
 };
 
