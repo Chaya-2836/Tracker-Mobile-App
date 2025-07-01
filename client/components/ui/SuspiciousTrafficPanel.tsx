@@ -37,9 +37,9 @@ export default function SuspiciousTrafficPanel() {
             </TouchableOpacity>
 
             {showTable && (
-                <ScrollView style={{ maxHeight: 300 }} nestedScrollEnabled>
+                
                     <SuspiciousTable data={suspiciousCases} />
-                </ScrollView>
+            
             )}
         </View>
     );

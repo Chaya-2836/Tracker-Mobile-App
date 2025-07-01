@@ -14,7 +14,7 @@ import * as Device from 'expo-device';
 import styles from '../styles/appStyles';
 import StatCard from '../../components/statCard';
 import TrendChart from '../../components/TrendChart';
-import  FilterBar from '../../components/FilterBar/FilterBar'; 
+import FilterBar from '../../components/FilterBar/FilterBar';
 import { getTodayStats, getWeeklyTrends } from '../Api/analytics';
 import { fetchAllFilters } from '../Api/filters';
 import TopDashboard from '@/components/TopDashboard';
@@ -152,7 +152,7 @@ export default function App() {
     const type = index === 0 ? 'Click' : 'Impression';
     if (from && to) {
       return `${type} Volume Trend (${formatDate(from)} → ${formatDate(to)})`;
-    }  
+    }
     return `${type} Volume Trend (Last 7 Days)`;
   };
 
@@ -163,43 +163,43 @@ export default function App() {
 
     return (
       <ScrollView>
-
-
         <View style={{ marginTop: 10, paddingHorizontal: 10 }}>
           <SuspiciousTrafficPanel />
         </View>
 
         <View style={{ paddingTop: 12 }}>
-          <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
-            <View style={{ height: 150 }}>
+          <View>
+            <View >
               <StatCard
                 title={isClicks ? "Clicks Recorded Today" : "Impressions Recorded Today"}
                 value={isClicks ? clicksToday : impressionsToday}
               />
             </View>
 
-            <View style={{ flex: 1 }}>
-              <TopDashboard scene={route.key} />
-            </View>
+
           </View>
           <View style={Chartstyles.chartContainer}>
             <Text style={Chartstyles.title}> {getChartTitle(selectedFilters)} </Text>
-              <FilterBar
-                options={filterOptions}
-                selected={selectedFilters}
-                onSelect={setSelectedFilters}
-                expanded={expandedSections}
-                onToggleExpand={toggleExpand}
-                searchText={searchTexts}
-                onSearchTextChange={setSearchTexts}
-                onClear={handleClear}
-                onApply={handleApply}
-              />
-           
+            <FilterBar
+              options={filterOptions}
+              selected={selectedFilters}
+              onSelect={setSelectedFilters}
+              expanded={expandedSections}
+              onToggleExpand={toggleExpand}
+              searchText={searchTexts}
+              onSearchTextChange={setSearchTexts}
+              onClear={handleClear}
+              onApply={handleApply}
+            />
+
             <TrendChart
               data={isClicks ? clickTrend : impressionTrend}
             />
+
           </View></View>
+        <View style={{ flex: 1 }}>
+          <TopDashboard scene={route.key} />
+        </View>
       </ScrollView>
     );
   };
