@@ -19,6 +19,7 @@ const Chartstyles = StyleSheet.create({
     borderRadius: 12,
     alignSelf: 'center',
     overflow: 'hidden',
+    width:"95%",
     ...Platform.select({
       ios: {
         shadowColor: '#000',

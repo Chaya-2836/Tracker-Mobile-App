@@ -163,7 +163,7 @@ export default function App() {
 
     return (
       <ScrollView>
-        <View style={{ marginTop: 10, paddingHorizontal: 10 }}>
+        <View style={{ marginTop: 10 }}>
           <SuspiciousTrafficPanel />
         </View>
 

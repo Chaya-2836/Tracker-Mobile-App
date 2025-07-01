@@ -3,13 +3,12 @@ import { StyleSheet } from "react-native";
 const styles = StyleSheet.create({
   panelContainer: {
     backgroundColor: '#fff3cd',
-    padding: 3,
     borderRadius: 8,
     shadowColor: "#000",
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
-    width: '100%',
+    width: '95%',
     alignSelf: 'center',
   },
 
@@ -37,9 +36,10 @@ const styles = StyleSheet.create({
 
   linkStyle: {
     fontSize: 14,
-    color: "#2c62b4",
+     color: "#000",
     textDecorationLine: "underline",
     textAlign: "center",
+    marginLeft: 6
   },
 
   tableContainer: {
