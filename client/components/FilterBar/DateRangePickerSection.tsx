@@ -28,7 +28,7 @@ export default function DateRangePickerSection({
     <View style={styles.dropdownScroll}>
       <Text style={styles.filterLabel}>From:</Text>
       {Platform.OS === 'web' ? (
-        <input
+        <input lang='en'
           type="date"
           value={fromDate}
           onChange={e => onFromDateChange?.(e.target.value)}
@@ -41,6 +41,7 @@ export default function DateRangePickerSection({
           </TouchableOpacity>
           {showFromPicker && (
             <DateTimePicker
+              locale='en-US'
               value={fromDate ? new Date(fromDate) : new Date()}
               mode="date"
               display="default"
@@ -57,7 +58,7 @@ export default function DateRangePickerSection({
 
       <Text style={styles.filterLabel}>To:</Text>
       {Platform.OS === 'web' ? (
-        <input
+        <input 
           type="date"
           value={toDate}
           onChange={e => onToDateChange?.(e.target.value)}
