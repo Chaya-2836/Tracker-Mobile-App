@@ -14,14 +14,14 @@ import * as Device from 'expo-device';
 import styles from '../styles/appStyles';
 import StatCard from '../../components/statCard';
 import TrendChart from '../../components/TrendChart';
-import FilterBar from '../../components/FilterBar/FilterBar'; 
+import FilterBar from '../../components/FilterBar/FilterBar'; // מ-main
 import TopDashboard from '@/components/TopDashboard';
 import SuspiciousTrafficPanel from '@/components/ui/SuspiciousTrafficPanel';
 import Chartstyles, { chartConfig } from '../styles/trendChartStyles';
-import { getTodayStats, getWeeklyTrends } from '../../Api/analytics';
-import { fetchAllFilters } from '../../Api/filters';
+import { getTodayStats, getWeeklyTrends } from '../Api/analytics';
+import { fetchAllFilters } from '../Api/filters';
 
-import DrillDownScreen from '../../components/DrillDownScreen';
+import DrillDownScreen from '../../components/DrillDownScreen'; // שלך
 
 interface TrendPoint {
   label: Date;

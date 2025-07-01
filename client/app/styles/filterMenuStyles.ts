@@ -48,6 +48,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#dcdde1',
     padding: 10,
+    marginTop: 4,
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 6,

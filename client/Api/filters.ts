@@ -1,9 +1,9 @@
-const API_BASE = "http://localhost:8021/filters"; // נתיב ה-API שלך לשרת
+const API_BASE = "http://localhost:8021/filters"; //Your API path to the server
 
-// סוג מפתח וערך של פילטרים
+// Key type and filter values
 type Filters = Record<string, string[]>;
 
-// פונקציות לקבלת אפשרויות הפילטרים מהשרת
+// Functions for getting filter options from the server
 export async function fetchCampaigns(): Promise<string[]> {
   const res = await fetch(`${API_BASE}/campaigns`);
   if (!res.ok) throw new Error('Failed to fetch campaigns');
@@ -28,7 +28,7 @@ export async function fetchAgencies(): Promise<string[]> {
   return res.json();
 }
 
-// פונקציה כללית לטעינת כל אפשרויות הפילטרים בבת אחת
+// General function to load all filter options at once
 export async function fetchAllFilters(): Promise<{ [key: string]: string[] }> {
   const [campaigns, platforms, mediaSources, agencies] = await Promise.all([
     fetchCampaigns(),
