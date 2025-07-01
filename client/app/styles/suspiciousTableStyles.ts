@@ -9,17 +9,17 @@ const baseCell = {
 const styles = StyleSheet.create({
   container: {
     alignSelf: "center",
-    // backgroundColor: "#ffffff",
     borderRadius: 10,
     marginTop: 10,
-    marginHorizontal: 10,
+    // marginHorizontal: 10,
     overflow: "hidden",
     shadowColor: "#000",
     shadowOpacity: 0.06,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 6,
     elevation: 3,
-    width: "100%"  
+    width: "96%",
+    backgroundColor: "#fff",
   },
 
   headerRow: {
@@ -42,32 +42,38 @@ const styles = StyleSheet.create({
   mediaSourceCol: {
     ...baseCell,
     flex: 2,
+    minWidth: 60,
   },
 
   appIdCol: {
     ...baseCell,
     flex: 1,
+    minWidth: 50,
   },
 
   clicksCol: {
     ...baseCell,
     flex: 1,
+    minWidth: 50,
   },
 
   impressionsCol: {
     ...baseCell,
     flex: 1,
+    minWidth: 50,
   },
 
   conversionsCol: {
     ...baseCell,
     flex: 1,
+    minWidth: 50,
   },
 
   cvrCol: {
     ...baseCell,
     flex: 1,
     fontWeight: "bold",
+    minWidth: 50,
   },
 });
 

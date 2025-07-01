@@ -41,16 +41,12 @@ export default function SuspiciousTrafficPanel() {
           <Text style={[styles.alertTitle, { fontSize }]}>
             Suspicious Cases Detected
           </Text>
+          <TouchableOpacity onPress={() => setShowTable((prev) => !prev)}>
+            <Text style={[styles.linkStyle, { fontSize }]}>
+              {showTable ? "Hide table" : "Show table"}
+            </Text>
+          </TouchableOpacity>
         </View>
-
-        <TouchableOpacity
-          onPress={() => setShowTable(prev => !prev)}
-          style={styles.linkWrapper}
-        >
-          <Text style={[styles.linkStyle, { fontSize }]}>
-            {showTable ? "Hide suspicious table" : "Show suspicious table"}
-          </Text>
-        </TouchableOpacity>
       </View>
 
       {showTable && (
