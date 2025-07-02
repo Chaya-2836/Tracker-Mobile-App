@@ -153,6 +153,9 @@ export default function App() {
     if (from && to) {
       return `${type} Volume Trend (${formatDate(from)} → ${formatDate(to)})`;
     }
+    else if(from){
+      return `${type} Volume Trend (${formatDate(from)} → ${new Date().toLocaleDateString('en-CA')})`
+    }
     return `${type} Volume Trend (Last 7 Days)`;
   };
 

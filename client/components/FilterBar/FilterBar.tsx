@@ -6,7 +6,8 @@ import {
   LayoutRectangle,
   TouchableOpacity,
   Text,
-  TouchableWithoutFeedback,
+  Pressable,
+  StyleSheet,
 } from 'react-native';
 import styles from '../../app/styles/filterMenuStyles';
 import FilterDropdownButton from './FilterDropdownButton';
@@ -63,9 +64,6 @@ export default function FilterBar({
     setPending({ ...selected });
   }, [selected]);
 
-  const isSelected = (label: string, option: string) =>
-    pending[label]?.includes(option);
-
   const toggleOption = (label: string, option: string) => {
     const already = pending[label]?.includes(option);
     const updated = {
@@ -79,7 +77,6 @@ export default function FilterBar({
 
   const handleApply = () => {
     const updated = { ...pending };
-
     if (fromDate) updated.fromDate = [new Date(fromDate).toISOString()];
     if (toDate) updated.toDate = [new Date(toDate).toISOString()];
 
@@ -114,18 +111,6 @@ export default function FilterBar({
 
   const renderFilterSection = (label: string, isExpanded: boolean, toggleFn: () => void) => (
     <View key={label} style={{ marginBottom: 16 }}>
-      <TouchableOpacity
-        onPress={toggleFn}
-        style={[styles.dropdownHeader, { width: '100%' }]}
-      >
-        <Text style={styles.dropdownText}>{label}</Text>
-        <Ionicons
-          name={isExpanded ? 'chevron-up' : 'chevron-down'}
-          size={16}
-          color="#2c3e50"
-        />
-      </TouchableOpacity>
-
       <FilterSection
         label={label}
         isExpanded={isExpanded}
@@ -177,51 +162,65 @@ export default function FilterBar({
   }
 
   return (
-    <TouchableWithoutFeedback onPress={() => setActiveFilter(null)}>
-      <View style={styles.overlayContainer}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.scrollWrapper}
+    <View style={styles.overlayContainer}>
+      {/* שכבת רקע שמאזינה ללחיצות מחוץ לדראופדאון בלבד */}
+      {activeFilter && (
+        <Pressable
+          onPress={() => setActiveFilter(null)}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'transparent',
+            zIndex: 999,
+          }}
+        />
+      )}
+
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.scrollWrapper}
+      >
+        <View style={styles.filterByTextContainer}>
+          <Text style={styles.filterByText}>Filter By:</Text>
+        </View>
+
+        {FILTER_ORDER.map(label => (
+          <FilterDropdownButton
+            key={label}
+            label={label}
+            isActive={activeFilter === label}
+            onPress={() => setActiveFilter(prev => (prev === label ? null : label))}
+            onLayout={layout => handleLayout(label, layout)}
+          />
+        ))}
+
+        <TouchableOpacity style={styles.actionBtn} onPress={onClear}>
+          <Text style={styles.btnText}>Clear</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.actionBtn} onPress={handleApply}>
+          <Text style={styles.btnText}>Apply</Text>
+        </TouchableOpacity>
+      </ScrollView>
+
+      {activeFilter && anchor && (
+        <View
+          style={[
+            styles.floatingDropdown,
+            {
+              position: 'absolute',
+              top: anchor.y + anchor.height + 6,
+              left: anchor.x,
+              width: anchor.width + 20,
+            },
+          ]}
         >
-          <View style={styles.filterByTextContainer}>
-            <Text style={styles.filterByText}>Filter By:</Text>
-          </View>
-
-          {FILTER_ORDER.map(label => (
-            <FilterDropdownButton
-              key={label}
-              label={label}
-              isActive={activeFilter === label}
-              onPress={() => setActiveFilter(prev => (prev === label ? null : label))}
-              onLayout={layout => handleLayout(label, layout)}
-            />
-          ))}
-
-          <TouchableOpacity style={styles.actionBtn} onPress={onClear}>
-            <Text style={styles.btnText}>Clear</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionBtn} onPress={handleApply}>
-            <Text style={styles.btnText}>Apply</Text>
-          </TouchableOpacity>
-        </ScrollView>
-
-        {activeFilter && anchor && (
-          <View
-            style={[
-              styles.floatingDropdown,
-              {
-                position: 'absolute',
-                top: anchor.y + anchor.height + 6,
-                left: anchor.x,
-                width: anchor.width + 20,
-              },
-            ]}
-          >
-            {renderFilterSection(activeFilter, true, () => {})}
-          </View>
-        )}
-      </View>
-    </TouchableWithoutFeedback>
+          {renderFilterSection(activeFilter, true, () => { })}
+        </View>
+      )}
+    </View>
   );
 }
