@@ -1,42 +1,80 @@
 import { StyleSheet } from "react-native";
 
+const baseCell = {
+  textAlign: "center" as const,
+  paddingHorizontal: 6,
+  color: "#34495e",
+};
+
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#f9fbfd", // רקע רך
+    alignSelf: "center",
     borderRadius: 10,
-    padding: 14,
-    marginTop: 8,
+    marginTop: 10,
+    // marginHorizontal: 10,
+    overflow: "hidden",
     shadowColor: "#000",
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
-    elevation: 1,
+    shadowOpacity: 0.06,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 6,
+    elevation: 3,
+    width: "96%",
+    backgroundColor: "#fff",
   },
-  title: {
-    fontSize: 16,
-    fontWeight: "600",
-    // color: "#2c62b4", 
-    color: "#e74c3c", 
-    textAlign: "center",
-    marginBottom: 12,
-  },
+
   headerRow: {
     flexDirection: "row",
-    paddingVertical: 8,
-    backgroundColor: "#eaf1fb",
-    borderBottomWidth: 1,
-    borderColor: "#dae4f0",
-  },
-  dataRow: {
-    flexDirection: "row",
+    backgroundColor: "#e9f1f9",
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderColor: "#f0f4f8",
+    borderColor: "#d0dfea",
   },
-  cell: {
+
+  dataRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    backgroundColor: "#ffffff",
+    borderBottomWidth: 1,
+    borderColor: "#f1f1f1",
+  },
+
+  mediaSourceCol: {
+    ...baseCell,
+    flex: 2,
+    minWidth: 60,
+  },
+
+  appIdCol: {
+    ...baseCell,
     flex: 1,
-    fontSize: 13,
-    color: "#34495e", 
-    textAlign: "center", 
+    minWidth: 50,
+  },
+
+  clicksCol: {
+    ...baseCell,
+    flex: 1,
+    minWidth: 50,
+  },
+
+  impressionsCol: {
+    ...baseCell,
+    flex: 1,
+    minWidth: 50,
+  },
+
+  conversionsCol: {
+    ...baseCell,
+    flex: 1,
+    minWidth: 50,
+  },
+
+  cvrCol: {
+    ...baseCell,
+    flex: 1,
+    fontWeight: "bold",
+    minWidth: 50,
   },
 });
+
 export default styles;

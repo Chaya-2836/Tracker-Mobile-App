@@ -14,13 +14,12 @@ import * as Device from 'expo-device';
 import styles from '../styles/appStyles';
 import StatCard from '../../components/statCard';
 import TrendChart from '../../components/TrendChart';
-import FilterBar from '../../components/FilterBar/FilterBar'; 
+import FilterBar from '../../components/FilterBar/FilterBar';
+import { getTodayStats, getWeeklyTrends } from '../../Api/analytics';
+import { fetchAllFilters } from '../../Api/filters';
 import TopDashboard from '@/components/TopDashboard';
 import SuspiciousTrafficPanel from '@/components/ui/SuspiciousTrafficPanel';
 import Chartstyles, { chartConfig } from '../styles/trendChartStyles';
-import { getTodayStats, getWeeklyTrends } from '../../Api/analytics';
-import { fetchAllFilters } from '../../Api/filters';
-
 import DrillDownScreen from '../../components/DrillDownScreen';
 
 interface TrendPoint {
@@ -52,30 +51,10 @@ export default function App() {
   const [searchTexts, setSearchTexts] = useState<{ [label: string]: string }>({});
 
   useEffect(() => {
-    // registerForPushNotifications();
     fetchData();
     fetchTrends({});
     fetchFilterData();
   }, []);
-
-  async function registerForPushNotifications() {
-    if (Device.isDevice) {
-      const { status: existingStatus } = await Notifications.getPermissionsAsync();
-      let finalStatus = existingStatus;
-      if (existingStatus !== 'granted') {
-        const { status } = await Notifications.requestPermissionsAsync();
-        finalStatus = status;
-      }
-      if (finalStatus === 'granted') {
-        const token = (await Notifications.getExpoPushTokenAsync()).data;
-        await fetch('http://localhost:3000/push/register-token', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token }),
-        });
-      }
-    }
-  }
 
   async function fetchData() {
     try {
@@ -155,7 +134,10 @@ export default function App() {
 
     if (from && to) {
       return `${type} Volume Trend (${formatDate(from)} → ${formatDate(to)})`;
-    }  
+    }
+    else if (from) {
+      return `${type} Volume Trend (${formatDate(from)} → ${new Date().toLocaleDateString('en-CA')})`;
+    }
     return `${type} Volume Trend (Last 7 Days)`;
   };
 
@@ -166,42 +148,39 @@ export default function App() {
 
     return (
       <ScrollView>
-        <View style={{ marginTop: 10, paddingHorizontal: 10 }}>
+        <View style={{ marginTop: 10 }}>
           <SuspiciousTrafficPanel />
         </View>
 
-        <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
-          <View style={{ height: 150 }}>
-            <StatCard
-              title={isClicks ? "Clicks Recorded Today" : "Impressions Recorded Today"}
-              value={isClicks ? clicksToday : impressionsToday}
+        <View style={{ paddingTop: 12 }}>
+          <StatCard
+            title={isClicks ? "Clicks Recorded Today" : "Impressions Recorded Today"}
+            value={isClicks ? clicksToday : impressionsToday}
+          />
+
+          <View style={Chartstyles.chartContainer}>
+            <Text style={Chartstyles.title}>{getChartTitle(selectedFilters)}</Text>
+            <FilterBar
+              options={filterOptions}
+              selected={selectedFilters}
+              onSelect={setSelectedFilters}
+              expanded={expandedSections}
+              onToggleExpand={toggleExpand}
+              searchText={searchTexts}
+              onSearchTextChange={setSearchTexts}
+              onClear={handleClear}
+              onApply={handleApply}
+            />
+
+            <TrendChart
+              data={isClicks ? clickTrend : impressionTrend}
             />
           </View>
-
-          <View style={{ flex: 1 }}>
-            <TopDashboard scene={route.key} />
-          </View>
         </View>
 
-        <View style={Chartstyles.chartContainer}>
-          <Text style={Chartstyles.title}>{getChartTitle(selectedFilters)}</Text>
-          <FilterBar
-            options={filterOptions}
-            selected={selectedFilters}
-            onSelect={setSelectedFilters}
-            expanded={expandedSections}
-            onToggleExpand={toggleExpand}
-            searchText={searchTexts}
-            onSearchTextChange={setSearchTexts}
-            onClear={handleClear}
-            onApply={handleApply}
-          />
-          <TrendChart
-            data={isClicks ? clickTrend : impressionTrend}
-          />
+        <View style={{ flex: 1 }}>
+          <TopDashboard scene={route.key} />
         </View>
-
-        <DrillDownScreen />
       </ScrollView>
     );
   };
@@ -225,7 +204,7 @@ export default function App() {
               {...props}
               indicatorStyle={styles.tabBarIndicator}
               style={styles.tabBarStyle}
-              labelStyle={styles.tabBarLabel}
+              // labelStyle={styles.tabBarLabel}
               activeColor="#2c62b4"
               inactiveColor="#7f8c8d"
             />

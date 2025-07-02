@@ -2,6 +2,7 @@ import { StyleSheet } from 'react-native';
 
 const styles = StyleSheet.create({
   card: {
+    alignSelf: "center",
     backgroundColor: '#fff',
     marginHorizontal: 20,
     marginBottom: 20,
@@ -12,12 +13,15 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 8,
     elevation: 2,
+    width:"95%",
+    
   },
   title: {
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 10,
     color: '#34495e',
+    textAlign: 'center'
   },
   value: {
     fontSize: 28,
