@@ -64,7 +64,7 @@ function scheduleDailyCheck() {
         console.log("Today's Clicks And Impressions:", total_clicks_and_impressions);
 
         const isHighTraffic = total_clicks_and_impressions > 70000000000;
-        const message = `🚨 High Traffic Alert! Total: ${total_clicks_and_impressions.toLocaleString()} today!`;
+        const message = `High Traffic Alert! A total of ${total_clicks_and_impressions.toLocaleString()} clicks and impressions were recorded today.`;
 
         if (isHighTraffic) {
           await checkAndSendTrafficAlert(message);

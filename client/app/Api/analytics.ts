@@ -40,7 +40,7 @@ function fillMissingDays(data: TrendPoint[], from?: Date, to?: Date): TrendPoint
   const end = to ?? new Date();
 
   const cursor = new Date(start);
-  while (cursor <= end) {
+  while (cursor < end) {
     const iso = cursor.toISOString().slice(0, 10);
     const existing = data.find(item => item.label.toISOString().slice(0, 10) === iso);
     filled.push(existing || { label: new Date(cursor), value: 0 });
