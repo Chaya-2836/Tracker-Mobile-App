@@ -109,8 +109,27 @@ export default function FilterBar({
     }));
   };
 
-  const renderFilterSection = (label: string, isExpanded: boolean, toggleFn: () => void) => (
+  const renderFilterSection = (
+    label: string,
+    isExpanded: boolean,
+    toggleFn: () => void,
+    hideHeader: boolean = false
+  ) => (
     <View key={label} style={{ marginBottom: 16 }}>
+      {!hideHeader && (
+        <TouchableOpacity
+          onPress={toggleFn}
+          style={[styles.dropdownHeader, { width: '100%' }]}
+        >
+          <Text style={styles.dropdownText}>{label}</Text>
+          <Ionicons
+            name={isExpanded ? 'chevron-up' : 'chevron-down'}
+            size={16}
+            color="#2c3e50"
+          />
+        </TouchableOpacity>
+      )}
+
       <FilterSection
         label={label}
         isExpanded={isExpanded}
@@ -128,7 +147,6 @@ export default function FilterBar({
       />
     </View>
   );
-
   const anchor = activeFilter ? buttonLayouts[activeFilter] : null;
 
   if (isSmallScreen) {
@@ -218,7 +236,7 @@ export default function FilterBar({
             },
           ]}
         >
-          {renderFilterSection(activeFilter, true, () => { })}
+          {renderFilterSection(activeFilter, true, () => { }, true)}
         </View>
       )}
     </View>
