@@ -1,5 +1,4 @@
-// TopDashboard.tsx
-import style from "@/app/styles/topStyles";
+import style from "../app/styles/topStyles";
 import { View, Text, ScrollView, Dimensions } from "react-native";
 import React, { useState, useEffect } from "react";
 import { TabView, TabBar, SceneMap } from "react-native-tab-view";
@@ -12,7 +11,7 @@ import {
   fetchTopAgencies,
   fetchTopApps,
   fetchTopMediaSources,
-} from "@/app/Api/trafficAnalyticsAPI";
+} from "../Api/trafficAnalyticsAPI";
 
 import ErrorComponent from "./ErrorComponent";
 import Spinner from "./Spinner";

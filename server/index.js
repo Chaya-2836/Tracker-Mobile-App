@@ -33,7 +33,7 @@ app.use('/api/analytics', analyticsRoutes);
 
 
 // קריאה לפונקציית בדיקת הפוש המתוזמנת
-scheduleDailyCheck();
+// scheduleDailyCheck();
 
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);

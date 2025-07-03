@@ -1,6 +1,6 @@
 import { View, Text } from "react-native";
-import styles from "@/app/styles/topStyles";
-import { formatNumber, safeName } from "../app/Api/utils";
+import styles from "../app/styles/topStyles";
+import { formatNumber, safeName } from "../Api/utils";
 
 type TopCardProps = {
   title: string;

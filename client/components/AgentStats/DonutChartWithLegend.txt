@@ -1,0 +1,49 @@
+import React from 'react';
+import { View } from 'react-native';
+import Svg, { G, Circle } from 'react-native-svg';
+
+interface DonutProps {
+  percentage: number; // 0-100
+  radius?: number;
+  strokeWidth?: number;
+  color?: string;
+}
+
+export default function Donut({
+  percentage,
+  radius = 70,
+  strokeWidth = 15,
+  color = '#3498db',
+}: DonutProps) {
+  const halfCircle = radius + strokeWidth;
+  const circleCircumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circleCircumference - (circleCircumference * percentage) / 100;
+
+  return (
+    <View>
+      <Svg width={radius * 2 + strokeWidth * 2} height={radius * 2 + strokeWidth * 2}>
+        <G rotation="-90" origin={`${halfCircle}, ${halfCircle}`}>
+          <Circle
+            cx={halfCircle}
+            cy={halfCircle}
+            r={radius}
+            stroke="#e6e6e6"
+            strokeWidth={strokeWidth}
+            fill="transparent"
+          />
+          <Circle
+            cx={halfCircle}
+            cy={halfCircle}
+            r={radius}
+            stroke={color}
+            strokeWidth={strokeWidth}
+            strokeDasharray={circleCircumference}
+            strokeDashoffset={strokeDashoffset}
+            strokeLinecap="round"
+            fill="transparent"
+          />
+        </G>
+      </Svg>
+    </View>
+  );
+}
