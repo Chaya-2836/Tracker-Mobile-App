@@ -19,10 +19,8 @@ import { getTodayStats, getWeeklyTrends } from '../../Api/analytics';
 import { fetchAllFilters } from '../../Api/filters';
 import TopDashboard from '../../components/TopDashboard';
 import SuspiciousTrafficPanel from '../../components/ui/SuspiciousTrafficPanel';
-import Chartstyles, { chartConfig } from '../styles/trendChartStyles';
-import AgentStatsScreen from '../../components/AgentStats/AgentStatsScreen';
-import DonutChartWithLegend from '../../components/AgentStats/DonutChartWithLegend';
-import type { AgentItem } from '../../components/AgentStats/DonutChartWithLegend';
+import Chartstyles from '../styles/trendChartStyles';
+import DonutWithSelector from '../../components/AgentStats/DonutWithSelector';
 
 interface TrendPoint {
   label: Date;
@@ -144,58 +142,51 @@ export default function App() {
   };
 
   const renderScene = ({ route }: any) => {
-  if (loading) return <ActivityIndicator size="large" color="#0000ff" />;
+    if (loading) return <ActivityIndicator size="large" color="#0000ff" />;
 
-  const isClicks = route.key === 'clicks';
+    const isClicks = route.key === 'clicks';
 
-  const dummyAgentData: AgentItem[] = [
-    { name: 'Agent A', clicks: 120, impressions: 300, color: '#3498db' },
-    { name: 'Agent B', clicks: 90, impressions: 250, color: '#2ecc71' },
-    { name: 'Agent C', clicks: 45, impressions: 150, color: '#e67e22' },
-  ];
+    return (
+      <ScrollView>
+        <View style={{ marginTop: 10 }}>
+          <SuspiciousTrafficPanel />
+        </View>
 
-  return (
-    <ScrollView>
-      <View style={{ marginTop: 10 }}>
-        <SuspiciousTrafficPanel />
-      </View>
-
-      <View style={{ paddingTop: 12 }}>
-        <StatCard
-          title={isClicks ? "Clicks Recorded Today" : "Impressions Recorded Today"}
-          value={isClicks ? clicksToday : impressionsToday}
-        />
-
-        <View style={Chartstyles.chartContainer}>
-          <Text style={Chartstyles.title}>{getChartTitle(selectedFilters)}</Text>
-          <FilterBar
-            options={filterOptions}
-            selected={selectedFilters}
-            onSelect={setSelectedFilters}
-            expanded={expandedSections}
-            onToggleExpand={toggleExpand}
-            searchText={searchTexts}
-            onSearchTextChange={setSearchTexts}
-            onClear={handleClear}
-            onApply={handleApply}
+        <View style={{ paddingTop: 12 }}>
+          <StatCard
+            title={isClicks ? "Clicks Recorded Today" : "Impressions Recorded Today"}
+            value={isClicks ? clicksToday : impressionsToday}
           />
 
-          <TrendChart data={isClicks ? clickTrend : impressionTrend} />
+          <View style={Chartstyles.chartContainer}>
+            <Text style={Chartstyles.title}>{getChartTitle(selectedFilters)}</Text>
+            <FilterBar
+              options={filterOptions}
+              selected={selectedFilters}
+              onSelect={setSelectedFilters}
+              expanded={expandedSections}
+              onToggleExpand={toggleExpand}
+              searchText={searchTexts}
+              onSearchTextChange={setSearchTexts}
+              onClear={handleClear}
+              onApply={handleApply}
+            />
+
+            <TrendChart data={isClicks ? clickTrend : impressionTrend} />
+          </View>
         </View>
-      </View>
 
-      <View style={{ flex: 1 }}>
-        <TopDashboard scene={route.key} />
-      </View>
+        <View style={{ flex: 1 }}>
+          <TopDashboard scene={route.key} />
+        </View>
 
-      <View style={{ padding: 16 }}>
-        <Text style={Chartstyles.title}>Traffic Distribution by Agent</Text>
-        <DonutChartWithLegend data={dummyAgentData} />
-      </View>
-    </ScrollView>
-  );
-};
-
+        <View style={{ padding: 16 }}>
+          <Text style={Chartstyles.title}>Traffic Distribution by Agent</Text>
+          <DonutWithSelector />
+        </View>
+      </ScrollView>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -216,7 +207,6 @@ export default function App() {
               {...props}
               indicatorStyle={styles.tabBarIndicator}
               style={styles.tabBarStyle}
-              // labelStyle={styles.tabBarLabel}
               activeColor="#2c62b4"
               inactiveColor="#7f8c8d"
             />
@@ -224,6 +214,5 @@ export default function App() {
         />
       </View>
     </SafeAreaView>
-    
   );
 }
