@@ -13,30 +13,40 @@ export type AgentItem = {
 };
 
 const colorPalette = [
-  '#4a90e2',
-  '#7ed6df',
-  '#9b59b6',
-  '#f5a623',
-  '#d8d8d8',
-  '#27ae60',
-  '#1abc9c',
-  '#bd10e0',
-  '#f8e71c',
-  '#f9a1bc',
-  '#f39c12',
-  '#a0cfff',
-  '#c39bd3',
-  '#50e3c2',
-  '#e67e22',
+  '#4a90e2', '#7ed6df', '#9b59b6', '#f5a623', '#d8d8d8',
+  '#27ae60', '#1abc9c', '#bd10e0', '#f8e71c', '#f9a1bc',
+  '#f39c12', '#a0cfff', '#c39bd3', '#50e3c2', '#e67e22',
 ];
 
+// פונקציית ניקוי אחיד
+const normalizeKey = (value: string): string =>
+  (value || 'Unnamed').trim().toLowerCase();
 
-
+// מיזוג לפי שם אחיד
 const normalize = (data: any[], key: string): AgentItem[] => {
-  return data.map((item, index) => ({
-    name: item[key] || 'Unnamed',
-    clicks: item.clicks || 0,
-    impressions: item.impressions || 0,
+  const mergedMap = new Map<string, { raw: string, clicks: number, impressions: number }>();
+
+  for (const item of data) {
+    const rawName = item[key] || 'Unnamed';
+    const normName = normalizeKey(rawName);
+
+    const current = mergedMap.get(normName);
+    if (current) {
+      current.clicks += item.clicks || 0;
+      current.impressions += item.impressions || 0;
+    } else {
+      mergedMap.set(normName, {
+        raw: rawName,
+        clicks: item.clicks || 0,
+        impressions: item.impressions || 0,
+      });
+    }
+  }
+
+  return Array.from(mergedMap.values()).map((entry, index) => ({
+    name: entry.raw,
+    clicks: entry.clicks,
+    impressions: entry.impressions,
     color: colorPalette[index % colorPalette.length],
   }));
 };
