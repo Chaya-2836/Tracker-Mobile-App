@@ -27,8 +27,8 @@ import {
   alertHighTraffic,
   getSuspiciousTrafficCases
 } from '../controllers/alertController.js';
-import { getUserAgentStats } from '../controllers/userAgentController.js';
 
+import { getTopPlatforms } from '../controllers/PlatformController.js';
 // ----------------------------------------------------
 // ראוטים למקורות מדיה
 // ----------------------------------------------------
@@ -99,11 +99,6 @@ router.get('/alert/high-traffic', alertHighTraffic);
  */
 router.get('/alert/suspicious', getSuspiciousTrafficCases);
 
-/**
- * פילוח לפי user_agent כולל clicks, impressions, conversions ו־CVR
- * דוגמה: GET /api/analytics/user-agent/stats?engagement_type=click&daysMode=week
- */
-router.get('/user-agent/stats', getUserAgentStats);
+router.get('/platforms/top', getTopPlatforms);
 
-// ייצוא הנתיבים החוצה (לשימוש ב-app.js)
 export default router;

@@ -12,7 +12,7 @@ const GROUP_OPTIONS = [
   { label: 'Media Source', value: 'media_source' },
   { label: 'Agency', value: 'agency' },
   { label: 'Application', value: 'app_id' },
-  { label: 'User Agent', value: 'user_agent' },
+  { label: 'Platform', value: 'platform' },
 ];
 
 export default function GroupBySelector({ value, onChange }: Props) {

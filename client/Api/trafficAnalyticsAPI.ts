@@ -62,7 +62,8 @@ export const fetchSuspiciousTrafficCases = async (
   return data;
 };
 
-export const fetchUserAgentStats = async (): Promise<ApiResponse> => {
-  const { data } = await axios.get(`${BASE_URL}/user-agent/stats`);
+export const fetchTopPlatforms = async (): Promise<ApiResponse> => {
+  const { data } = await axios.get(`${BASE_URL}/platforms/top`);
   return data;
 };
+

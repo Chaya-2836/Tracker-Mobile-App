@@ -2,7 +2,7 @@ import {
   fetchTopMediaSources,
   fetchTopAgencies,
   fetchTopApps,
-  fetchUserAgentStats
+  fetchTopPlatforms
 } from '../Api/trafficAnalyticsAPI';
 
 export type AgentItem = {
@@ -65,10 +65,11 @@ export async function getAgentStatsByGroup(groupBy: string): Promise<AgentItem[]
       const data = await fetchTopApps();
       return normalize(data, 'app_id');
     }
-    case 'user_agent': {
-      const data = await fetchUserAgentStats();
-      return normalize(data, 'user_agent');
+    case 'platform': {
+      const data = await fetchTopPlatforms();
+      return normalize(data, 'platform');
     }
+
     default:
       return [];
   }
