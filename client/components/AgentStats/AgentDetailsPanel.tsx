@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
+import styles from '../../app/styles/AgentDetailsPanelStyle'
 
 export type AgentDetails = {
   name: string;
@@ -40,50 +41,3 @@ export default function AgentDetailsPanel({ agent }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    marginTop: 16,
-    padding: 16,
-    borderRadius: 12,
-    backgroundColor: '#f4f4f4',
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-  },
-  containerEmpty: {
-    padding: 16,
-    alignItems: 'center',
-  },
-  placeholder: {
-    fontStyle: 'italic',
-    color: '#888',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-    gap: 10,
-  },
-  logo: {
-    width: 32,
-    height: 32,
-    borderRadius: 6,
-    resizeMode: 'contain',
-  },
-  name: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginVertical: 4,
-  },
-  label: {
-    color: '#666',
-  },
-  value: {
-    fontWeight: '600',
-  },
-});

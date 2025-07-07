@@ -3,6 +3,7 @@ import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import GroupBySelector from './GroupBySelector';
 import DonutChartWithLegend from './DonutChartWithLegend';
 import { getAgentStatsByGroup, AgentItem } from '../../Api/getAgentStatsByGroup'
+import styles from '../../app/styles/DonutWithSelectorStyle'
 
 export default function DonutWithSelector() {
     const [groupBy, setGroupBy] = useState('media_source');
@@ -30,15 +31,3 @@ export default function DonutWithSelector() {
     );
 }
 
-const styles = StyleSheet.create({
-    wrapper: {
-        marginTop: 16,
-        paddingHorizontal: 16,
-    },
-    noData: {
-        marginTop: 20,
-        fontSize: 16,
-        color: '#888',
-        textAlign: 'center',
-    },
-});
