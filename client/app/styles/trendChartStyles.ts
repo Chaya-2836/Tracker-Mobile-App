@@ -11,7 +11,7 @@ type ChartConfig = {
   propsForDots?: object;
 };
 
-const styles = StyleSheet.create({
+const Chartstyles = StyleSheet.create({
   chartContainer: {
     backgroundColor: '#fff',
     marginBottom: 20,
@@ -19,6 +19,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignSelf: 'center',
     overflow: 'hidden',
+    width:"95%",
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -62,4 +63,4 @@ export const chartConfig: ChartConfig = {
   },
 };
 
-export default styles;
+export default Chartstyles;

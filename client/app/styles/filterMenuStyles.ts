@@ -48,6 +48,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#dcdde1',
     padding: 10,
+    marginTop: 4,
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 6,
@@ -60,11 +61,13 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     backgroundColor: '#f1f2f6',
-    padding: 6,
+    height:30,
     borderRadius: 6,
     borderWidth: 1,
     borderColor: '#dfe6e9',
+    marginTop:2,
     marginBottom: 8,
+    paddingLeft:8,
     fontSize: 13,
   },
   optionItem: {

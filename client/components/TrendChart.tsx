@@ -1,33 +1,34 @@
 import React from 'react';
-import { View, Text, useWindowDimensions } from 'react-native';
+import { useWindowDimensions } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
-import styles, { chartConfig } from '../app/styles/trendChartStyles';
+import Chartstyles, { chartConfig } from '../app/styles/trendChartStyles';
 
 interface TrendChartProps {
-  title: string;
   data: { label: Date; value: number }[];
 }
 
-const TrendChart: React.FC<TrendChartProps> = ({ title, data }) => {
+const TrendChart: React.FC<TrendChartProps> = ({ data }) => {
   const { width: screenWidth } = useWindowDimensions();
 
-  const labels = data.map(item => item.label.toLocaleDateString()) ;
+const labels = data.map(item =>
+  item.label.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })
+);
+
+  
   const values = data.map(item => item.value);
 
   return (
-    <View style={[styles.chartContainer, { width: screenWidth * 0.9 }]}>
-      <Text style={styles.title}>{title}</Text>
-      <LineChart
-        data={{
-          labels,
-          datasets: [{ data: values }],
-        }}
-        width={screenWidth * 0.85}
-        height={220}
-        chartConfig={chartConfig}
-        style={styles.chart}
-      />
-    </View>
+    <LineChart
+      data={{
+        labels,
+        datasets: [{ data: values }],
+      }}
+      width={screenWidth * 0.85}
+      height={220}
+      chartConfig={chartConfig}
+      style={Chartstyles.chart}
+    />
+
   );
 };
 

@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import cron from 'node-cron';
 import { getTodayStats } from '../services/statsService.js';
+import { checkAndSendTrafficAlert } from "../controllers/alertSlackController.js"
 
 const __dirname = path.resolve();
 const serviceAccountPath = path.join(__dirname, 'firebase-service-account.json');
@@ -49,26 +50,38 @@ async function sendPush(token, title, body) {
 
 function scheduleDailyCheck() {
   if (!firebaseReady) {
-    setInterval(() => { }, 1000 * 60 * 60); // מחזיק את התהליך בלי לעשות כלום
+    setInterval(() => {}, 1000 * 60 * 60); // מחזיק את התהליך בלי לעשות כלום
     return;
   }
 
-  cron.schedule('0 10 * * *', async () => {
-    console.log('⏰ Running daily engagement check...');
+  cron.schedule(
+    '0 10 * * *', // 10:00 לפי זמן ישראל
+    async () => {
+      console.log('⏰ Running daily engagement check...');
 
-    try {
-      const { clicks } = await getTodayStats();
-      console.log("Today's Clicks:", clicks);
+      try {
+        const { total_clicks_and_impressions } = await getTodayStats();
+        console.log("Today's Clicks And Impressions:", total_clicks_and_impressions);
 
-      if (clicks > 70000000000 && currentDeviceToken) {
-        await sendPush(currentDeviceToken, '🚨 Click Alert', 'Clicks exceeded 70B today!');
+        const isHighTraffic = total_clicks_and_impressions > 70000000000;
+        const message = `High Traffic Alert! A total of ${total_clicks_and_impressions.toLocaleString()} clicks and impressions were recorded today.`;
+
+        if (isHighTraffic) {
+          await checkAndSendTrafficAlert(message);
+
+          if (currentDeviceToken) {
+            await sendPush(currentDeviceToken, '📢 Traffic Alert', message);
+          }
+        }
+      } catch (err) {
+        console.error('❌ Error in daily check:', err);
       }
-    } catch (err) {
-      console.error('❌ Error in daily check:', err);
+    },
+    {
+      timezone: "Asia/Jerusalem"
     }
-  });
+  );
 }
-
 export {
   registerToken,
   scheduleDailyCheck,

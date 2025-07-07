@@ -3,7 +3,7 @@ import cors from 'cors';
 import eventsSummaryRoutes from './routes/eventsSummaryRoutes.js';
 import filtersRoutes from './routes/filtersRoutes.js';
 import pushRoutes from './routes/pushRoutes.js';
-import { scheduleDailyCheck } from './push/PushService.js';
+import { scheduleDailyCheck } from './push/pushService.js';
 import trafficAnalyticsRoutes from './routes/trafficAnalyticsRoutes.js';
 import { createBigQueryClient } from './config/bigqueryClient.js'; // חדש
 
