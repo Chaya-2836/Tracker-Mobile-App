@@ -2,39 +2,27 @@ import { StyleSheet } from 'react-native';
 
 export default StyleSheet.create({
   wrapper: {
-    flexDirection: 'row',
+    flexDirection: 'column',
+    alignItems: 'center',
     gap: 20,
     padding: 10,
-    alignItems: 'flex-start',
   },
   legendContainer: {
-    marginLeft: 12,
-    flex: 1,
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 6,
-  },
-  colorBox: {
-    width: 18,
-    height: 18,
-    borderRadius: 4,
-    marginRight: 6,
-    borderWidth: 2,
-    justifyContent: 'center',
+    marginTop: 16,
+    width: '100%',
     alignItems: 'center',
   },
-  checkmark: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: 'bold',
-    lineHeight: 14,
-  },
-  legendText: {
-    fontFamily: 'monospace',
-    fontSize: 13,
-  },
+  // checkmark: {
+  //   color: 'white',
+  //   fontSize: 10,
+  //   fontWeight: 'bold',
+  //   lineHeight: 14,
+  // },
+  // legendText: {
+  //   fontFamily: 'monospace',
+  //   fontSize: 13,
+  //   color: '#333',
+  // },
   tooltipBox: {
     position: 'absolute',
     padding: 8,
@@ -63,4 +51,72 @@ export default StyleSheet.create({
     fontWeight: 'bold',
     color: '#3a0b85',
   },
+  // legendItemsWrapper: {
+  //   flexDirection: 'row',
+  //   flexWrap: 'wrap',
+  //   justifyContent: 'center',
+  //   gap: 12,
+  //   marginTop: 16,
+  //   width: '100%',
+  //   paddingHorizontal: 8,
+  // },
+  // legendItem: {
+  //   flexDirection: 'row',
+  //   alignItems: 'center',
+  //   marginBottom: 8,
+  //   paddingHorizontal: 6,
+  //   paddingVertical: 2,
+  //   maxWidth: '45%',
+  //   minWidth: 120,
+  //   justifyContent: 'flex-start',
+  // },
+  // colorBox: {
+  //   width: 14,
+  //   height: 14,
+  //   borderRadius: 7,
+  //   borderWidth: 1.5,
+  //   marginRight: 6,
+  //   justifyContent: 'center',
+  //   alignItems: 'center',
+  // },
+  legendItemsWrapper: {
+  flexDirection: 'row',
+  flexWrap: 'wrap',
+  justifyContent: 'center',
+  rowGap: 8,
+  columnGap: 12,
+  marginTop: 16,
+  width: '100%',
+  paddingHorizontal: 8,
+},
+
+legendItem: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  paddingHorizontal: 4,
+  paddingVertical: 2,
+  minWidth: 100,
+},
+
+colorBox: {
+  width: 16,
+  height: 16,
+  borderRadius: 8,
+  borderWidth: 1.5,
+  marginRight: 6,
+  justifyContent: 'center',
+  alignItems: 'center',
+},
+
+checkmark: {
+  fontSize: 11,
+  color: '#000',
+  fontWeight: 'bold',
+},
+
+legendText: {
+  fontSize: 13,
+  color: '#333',
+},
+
 });

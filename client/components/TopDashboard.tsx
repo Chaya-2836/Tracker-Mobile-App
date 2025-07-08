@@ -76,7 +76,7 @@ export default function TopDashboard({ scene }: { scene: string }) {
               {...props}
               indicatorStyle={styles.tabBarIndicator}
               style={styles.tabBarStyle}
-              labelStyle={styles.tabBarLabel}
+              // labelStyle={styles.tabBarLabel}
               activeColor="#2c62b4"
               inactiveColor="#7f8c8d"
             />

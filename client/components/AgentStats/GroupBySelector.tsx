@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, Platform } from 'react-native';
+import { View, Text, Platform } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import styles from '../../app/styles/GroupBySelectorStyle'
+import styles from '../../app/styles/GroupBySelectorStyle';
 
 interface Props {
   value: string;
@@ -18,13 +18,13 @@ const GROUP_OPTIONS = [
 export default function GroupBySelector({ value, onChange }: Props) {
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>Show top</Text>
+      <Text style={styles.label}>Show </Text>
       <View style={styles.pickerWrapper}>
         <Picker
           selectedValue={value}
           onValueChange={onChange}
           style={styles.picker}
-          dropdownIconColor="#999"
+          dropdownIconColor={Platform.OS === 'web' ? '#999' : undefined}
         >
           {GROUP_OPTIONS.map(option => (
             <Picker.Item key={option.value} label={option.label} value={option.value} />

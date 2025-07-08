@@ -1,20 +1,35 @@
 import { StyleSheet, Platform } from 'react-native';
 
 export default StyleSheet.create({
-   container: {
+  container: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     marginBottom: 12,
   },
   pickerWrapper: {
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-    borderRadius: 6,
-    backgroundColor: '#ecf0f1',
+    borderWidth: 1.5,
+    borderColor: '#2c62b4',
+    borderRadius: 8,
+    backgroundColor: '#fff',
     overflow: 'hidden',
-    width: 120, 
+    width: 140,
+    height: 36,
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 1 },
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  picker: {
     height: 34,
+    width: '100%',
+    color: '#2c62b4',
+    backgroundColor: 'rgb(236,240,241)', // ✅ צבע רקע חדש
+    fontSize: 14,
+    fontWeight: 'bold',
+    paddingHorizontal: Platform.OS === 'android' ? 0 : 6,
   },
   wrapper: {
     padding: 10,
@@ -59,12 +74,5 @@ export default StyleSheet.create({
   active: {
     borderColor: '#2c62b4',
     backgroundColor: '#dbe9ff',
-  },
-   picker: {
-    height: 34,
-    width: '100%',
-    color: '#4a4a4a',
-    fontSize: 13,
-    paddingHorizontal: Platform.OS === 'android' ? 0 : 6,
   },
 });

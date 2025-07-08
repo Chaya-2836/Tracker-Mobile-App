@@ -181,7 +181,6 @@ export default function App() {
         </View>
 
         <View style={{ padding: 16 }}>
-          <Text style={Chartstyles.title}>Traffic Distribution by Agent</Text>
           <DonutWithSelector />
         </View>
       </ScrollView>

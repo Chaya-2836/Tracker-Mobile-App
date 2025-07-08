@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Platform } from 'react-native';
 import Svg, { G, Circle } from 'react-native-svg';
-import styles from '../../app/styles/DonutChartWithLegendStyles'
+import { View, Text, TouchableOpacity, Platform, useWindowDimensions } from 'react-native';
+import styles from '../../app/styles/DonutChartWithLegendStyles';
 
 export type AgentItem = {
   name: string;
@@ -25,6 +25,7 @@ export default function DonutChartWithLegend({ data }: Props) {
   const [visibleAgents, setVisibleAgents] = useState<string[]>(data.map(agent => agent.name));
   const [tooltip, setTooltip] = useState<TooltipData | null>(null);
   const tooltipTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { width } = useWindowDimensions();
 
   const toggleAgent = (name: string) => {
     setVisibleAgents(prev =>
@@ -35,7 +36,7 @@ export default function DonutChartWithLegend({ data }: Props) {
   const filteredData = data.filter(agent => visibleAgents.includes(agent.name));
   const total = filteredData.reduce((sum, item) => sum + item.clicks, 0);
 
-  const radius = 70;
+  const radius = 95;
   const strokeWidth = 15;
   const size = radius * 2 + strokeWidth;
   const center = size / 2;
@@ -46,14 +47,13 @@ export default function DonutChartWithLegend({ data }: Props) {
   const showTooltip = (agent: AgentItem, percent: number, x: number, y: number) => {
     setTooltip({ agent, percent, x, y });
 
-    // clear previous timeout
     if (tooltipTimeout.current) {
       clearTimeout(tooltipTimeout.current);
     }
 
     tooltipTimeout.current = setTimeout(() => {
       setTooltip(null);
-    }, 2500); // auto-hide after 2.5 seconds
+    }, 2500);
   };
 
   return (
@@ -121,38 +121,39 @@ export default function DonutChartWithLegend({ data }: Props) {
         )}
       </View>
 
-      <View style={styles.legendContainer}>
-        <FlatList
-          data={data}
-          keyExtractor={(item) => item.name}
-          renderItem={({ item }) => {
-            const isVisible = visibleAgents.includes(item.name);
-            const filteredClicks = filteredData.find(f => f.name === item.name)?.clicks ?? 0;
-            const percent = total > 0 ? ((filteredClicks / total) * 100).toFixed(0) : '0';
+      <View style={styles.legendItemsWrapper}>
+        {data.map((item) => {
+          const isVisible = visibleAgents.includes(item.name);
+          const filteredClicks = filteredData.find(f => f.name === item.name)?.clicks ?? 0;
+          const percent = total > 0 ? ((filteredClicks / total) * 100).toFixed(0) : '0';
 
-            return (
-              <TouchableOpacity
-                onPress={() => toggleAgent(item.name)}
-                style={styles.legendItem}
-              >
-                <View style={[
-                  styles.colorBox,
-                  {
-                    backgroundColor: isVisible ? item.color : 'transparent',
-                    borderColor: item.color,
-                  }
-                ]}>
-                  {isVisible && <Text style={styles.checkmark}>✓</Text>}
-                </View>
-                <Text style={styles.legendText}>
-                  {item.name.padEnd(10, ' ')} {percent}%
-                </Text>
-              </TouchableOpacity>
-            );
-          }}
-        />
+          return (
+            <TouchableOpacity
+              key={item.name}
+              onPress={() => toggleAgent(item.name)}
+              style={[
+                styles.legendItem,
+                {
+                  maxWidth: width < 400 ? '48%' : width < 600 ? '30%' : '22%',
+                },
+              ]}
+            >
+              <View style={[
+                styles.colorBox,
+                {
+                  backgroundColor: isVisible ? item.color : 'transparent',
+                  borderColor: item.color,
+                }
+              ]}>
+                {isVisible && <Text style={styles.checkmark}>✓</Text>}
+              </View>
+              <Text style={styles.legendText}>
+                {item.name} {percent}%
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
     </View>
   );
 }
-
