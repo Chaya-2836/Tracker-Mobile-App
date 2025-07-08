@@ -1,3 +1,5 @@
+// controllers/eventsSummaryController.js
+
 import { bigquery, nameDB } from '../config/bigqueryConfig.js';
 import { parseISO, isAfter } from 'date-fns';
 
@@ -21,8 +23,10 @@ export async function getEventsSummary(req, res) {
       fromDate,
       toDate
     } = req.query;
-    console.log('🧾 req.query:', req.query);
 
+    console.log('🧾 Incoming query parameters:', req.query);
+
+    // Basic filters
     if (campaign_name) {
       filters.push(`campaign_name = @campaign_name`);
       params.campaign_name = campaign_name;
@@ -51,6 +55,7 @@ export async function getEventsSummary(req, res) {
     params.engagement_type = engagement_type || 'click';
     filters.push(`engagement_type = @engagement_type`);
 
+    // Handle date logic
     let useCurrentDate = true;
     if (date) {
       try {
@@ -60,37 +65,41 @@ export async function getEventsSummary(req, res) {
           params.date = date;
         }
       } catch (e) {
-        console.warn('⚠️ תאריך לא תקין. ייעשה שימוש בתאריך של היום.');
+        console.warn('⚠️ Invalid date format. Falling back to current date.');
       }
     }
 
-    // ✅ טווח מותאם אישית
+    // Time range filters
     if (fromDate && toDate) {
       filters.push(`DATE(event_time) BETWEEN DATE(@fromDate) AND DATE(@toDate)`);
       params.fromDate = fromDate;
       params.toDate = toDate;
-      console.log("fromDate to Date");
-
-    }
-    // ✅ יום נוכחי או לפי תאריך יחיד
-    else if (daysMode === 'day') {
+      console.log('📅 Using custom date range');
+    } else if (daysMode === 'day') {
       if (useCurrentDate) {
         filters.push(`DATE(event_time, "Asia/Jerusalem") = CURRENT_DATE("Asia/Jerusalem")`);
       } else {
         filters.push(`DATE(event_time) = DATE(@date)`);
       }
-    }
-    // ✅ ברירת מחדל — שבוע אחרון
-    else {
+    } else {
       if (useCurrentDate) {
-        filters.push(`DATE(event_time) BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY) AND DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY)`);
+        filters.push(`
+          DATE(event_time) BETWEEN
+          DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY)
+          AND DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY)
+        `);
       } else {
-        filters.push(`DATE(event_time) BETWEEN DATE_SUB(DATE(@date), INTERVAL 7 DAY) AND DATE_SUB(DATE(@date), INTERVAL 1 DAY)`);
+        filters.push(`
+          DATE(event_time) BETWEEN
+          DATE_SUB(DATE(@date), INTERVAL 7 DAY)
+          AND DATE_SUB(DATE(@date), INTERVAL 1 DAY)
+        `);
       }
     }
 
     const whereClause = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
 
+    // Select and group by
     let selectClause = "";
     let groupClause = "";
 
@@ -99,7 +108,7 @@ export async function getEventsSummary(req, res) {
       groupClause = `GROUP BY event_date ORDER BY event_date`;
     } else {
       selectClause = `
-        SELECT 
+        SELECT
           FORMAT_TIMESTAMP('%Y-%m-%d', event_time) AS event_date,
           COUNT(*) AS count
       `;
@@ -112,22 +121,18 @@ export async function getEventsSummary(req, res) {
       ${whereClause}
       ${groupClause}
     `;
-    console.log('📦 Final PARAMS to BigQuery:', params);
-    // הסר את כל הפרמטרים שהם undefined
+
+    // Clean undefined params
     Object.entries(params).forEach(([key, val]) => {
       if (val === undefined) {
-        console.log(`⚠️ הסרתי param מיותר: ${key} = undefined`);
+        console.log(`⚠️ Removed undefined param: ${key}`);
         delete params[key];
       }
     });
-    const options = {
-      query,
-      location: 'US',
-      params,
-    };
-    console.log('🧪 PARAMS:', params);
 
-    const [job] = await bigquery.createQueryJob(options);
+    console.log('📦 Final BigQuery params:', params);
+
+    const [job] = await bigquery.createQueryJob({ query, location: 'US', params });
     const [rows] = await job.getQueryResults();
 
     if (daysMode === 'day') {
@@ -136,8 +141,9 @@ export async function getEventsSummary(req, res) {
     } else {
       res.status(200).json(rows);
     }
+
   } catch (err) {
-    console.error('😒 ERROR ב־getEventsSummary:', err);
-    res.status(500).json({ error: 'אירעה שגיאה בעת ביצוע השאילתה' });
+    console.error('💥 Error in getEventsSummary:', err);
+    res.status(500).json({ error: 'Error while running the summary query' });
   }
 }

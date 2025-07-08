@@ -1,11 +1,18 @@
+// index.js
 import express from 'express';
 import cors from 'cors';
+
 import eventsSummaryRoutes from './routes/eventsSummaryRoutes.js';
 import filtersRoutes from './routes/filtersRoutes.js';
 import pushRoutes from './routes/pushRoutes.js';
+import mediaRoutes from './routes/mediaRoutes.js';
+import agencyRoutes from './routes/agencyRoutes.js';
+import appRoutes from './routes/appRoutes.js';
+import alertRoutes from './routes/alertRoutes.js';
+
+
 import { scheduleDailyCheck } from './push/pushService.js';
-import trafficAnalyticsRoutes from './routes/trafficAnalyticsRoutes.js';
-import { createBigQueryClient } from './config/bigqueryClient.js'; // חדש
+import { createBigQueryClient } from './config/bigqueryClient.js';
 
 const app = express();
 const port = 8021;
@@ -13,29 +20,33 @@ const port = 8021;
 app.use(cors());
 app.use(express.json());
 
+// The name of the BigQuery dataset
 const nameDB = 'platform-hackaton-2025';
 
-// אתחול BigQuery בצורה אסינכרונית
+// Initialize BigQuery client asynchronously
 createBigQueryClient()
   .then(bigquery => {
-    // ניתן להעביר את bigquery דרך context, middleware, או להצמיד ל־app.locals
+    // Attach BigQuery and dataset name to app locals for access in routes
     app.locals.bigquery = bigquery;
     app.locals.nameDB = nameDB;
 
-    // רישום ראוטים
+    // Register API routes
     app.use('/events_summary', eventsSummaryRoutes);
     app.use('/filters', filtersRoutes);
     app.use('/push', pushRoutes);
-    app.use('/trafficAnalytics', trafficAnalyticsRoutes);
+    app.use('/trafficAnalytics/media', mediaRoutes);
+    app.use('/trafficAnalytics/agency', agencyRoutes);
+    app.use('/trafficAnalytics/apps', appRoutes);
+    app.use('/trafficAnalytics/alert', alertRoutes);
 
-    // קריאה לפונקציית בדיקת הפוש המתוזמנת
+    // Start daily scheduled push check
     scheduleDailyCheck();
 
-app.listen(port, () => {
-  console.log(`Server is running at http://localhost:${port}`);
-});
-  }
-  ).catch(err => {
+    app.listen(port, () => {
+      console.log(`Server is running at http://localhost:${port}`);
+    });
+  })
+  .catch(err => {
     console.error('Error initializing BigQuery client:', err);
-    process.exit(1); // יציאה מהתהליך במקרה של שגיאה קריטית
+    process.exit(1); // Exit the process if BigQuery client fails to initialize
   });

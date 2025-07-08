@@ -4,21 +4,20 @@ import {
   Text,
   View,
   ActivityIndicator,
-  Alert,
-  Platform,
   Dimensions,
-  ScrollView
+  ScrollView,
 } from 'react-native';
 import { TabView, TabBar } from 'react-native-tab-view';
-import * as Notifications from 'expo-notifications';
-import * as Device from 'expo-device';
 
 import styles from '../styles/appStyles';
 import StatCard from '../../components/statCard';
 import TrendChart from '../../components/TrendChart';
-import FilterBar from '../../components/FilterMenu';
+import FilterBar from '../../components/FilterBar/FilterBar';
 import { getTodayStats, getWeeklyTrends } from '../Api/analytics';
 import { fetchAllFilters } from '../Api/filters';
+import TopDashboard from '@/components/TopDashboard';
+import SuspiciousTrafficPanel from '@/components/ui/SuspiciousTrafficPanel';
+import Chartstyles, { chartConfig } from '../styles/trendChartStyles';
 
 interface TrendPoint {
   label: Date;
@@ -40,14 +39,12 @@ export default function App() {
     { key: 'impressions', title: 'Impressions' },
   ]);
 
-  // Filters (lifted state)
   const [filterOptions, setFilterOptions] = useState<{ [label: string]: string[] }>({});
   const [selectedFilters, setSelectedFilters] = useState<{ [label: string]: string[] }>({});
   const FILTER_ORDER = ['Campaign', 'Platform', 'Media Source', 'Agency', 'Date Range'];
   const [expandedSections, setExpandedSections] = useState<{ [label: string]: boolean }>(
     Object.fromEntries(FILTER_ORDER.map(label => [label, false]))
   );
-
   const [searchTexts, setSearchTexts] = useState<{ [label: string]: string }>({});
 
   useEffect(() => {
@@ -86,34 +83,34 @@ export default function App() {
     }
   }
 
-async function fetchTrends(filters: { [key: string]: string[] }) {
-  setLoading(true);
-  try {
-    const filtersAsQuery = Object.fromEntries(
-      Object.entries(filters).map(([key, val]) => {
-        const keyNormalized = key === 'fromDate' || key === 'toDate'
-          ? key
-          : key.toLowerCase().replace(/\s+/g, '_');
-        return [keyNormalized, val.join(',')];
-      })
-    );
+  async function fetchTrends(filters: { [key: string]: string[] }) {
+    setLoading(true);
+    try {
+      const filtersAsQuery = Object.fromEntries(
+        Object.entries(filters).map(([key, val]) => {
+          const keyNormalized = key === 'fromDate' || key === 'toDate'
+            ? key
+            : key.toLowerCase().replace(/\s+/g, '_');
+          return [keyNormalized, val.join(',')];
+        })
+      );
 
-    const { clicks = [], impressions = [] } = await getWeeklyTrends(filtersAsQuery);
+      const { clicks = [], impressions = [] } = await getWeeklyTrends(filtersAsQuery);
 
-    const toPoints = (arr: any[]) =>
-      arr.map(item => ({
-        label: new Date(item.label),
-        value: Number(item.value || 0),
-      }));
+      const toPoints = (arr: any[]) =>
+        arr.map(item => ({
+          label: new Date(item.label),
+          value: Number(item.value || 0),
+        }));
 
-    setClickTrend(toPoints(clicks));
-    setImpressionTrend(toPoints(impressions));
-  } catch (err) {
-    console.error('❌ Failed to fetch weekly trends:', err);
-  } finally {
-    setLoading(false);
+      setClickTrend(toPoints(clicks));
+      setImpressionTrend(toPoints(impressions));
+    } catch (err) {
+      console.error('❌ Failed to fetch weekly trends:', err);
+    } finally {
+      setLoading(false);
+    }
   }
-}
 
   async function fetchFilterData() {
     try {
@@ -144,49 +141,65 @@ async function fetchTrends(filters: { [key: string]: string[] }) {
   };
 
   const formatDate = (iso: string) => {
-    return new Date(iso).toLocaleDateString('en-CA'); // התאריך בפורמט YYYY-MM-DD לפי אזור זמן שלך
+    return new Date(iso).toLocaleDateString('en-CA');
   };
 
   const getChartTitle = (filters: { [key: string]: string[] }) => {
     const from = filters.fromDate?.[0];
     const to = filters.toDate?.[0];
-    const type= index === 0 ? 'Clicks' : 'Impressions';
-    if (from && to ) {
+    const type = index === 0 ? 'Click' : 'Impression';
+    if (from && to) {
       return `${type} Volume Trend (${formatDate(from)} → ${formatDate(to)})`;
     }
-
-    return 'Click Volume Trend (Last 7 Days)';
+    else if(from){
+      return `${type} Volume Trend (${formatDate(from)} → ${new Date().toLocaleDateString('en-CA')})`
+    }
+    return `${type} Volume Trend (Last 7 Days)`;
   };
-  
+
   const renderScene = ({ route }: any) => {
     if (loading) return <ActivityIndicator size="large" color="#0000ff" />;
 
+    const isClicks = route.key === 'clicks';
+
     return (
       <ScrollView>
-        <FilterBar
-          options={filterOptions}
-          selected={selectedFilters}
-          onSelect={setSelectedFilters}
-          expanded={expandedSections}
-          onToggleExpand={toggleExpand}
-          searchText={searchTexts}
-          onSearchTextChange={setSearchTexts}
-          onClear={handleClear}
-          onApply={handleApply}
-        />
+        <View style={{ marginTop: 10 }}>
+          <SuspiciousTrafficPanel />
+        </View>
 
         <View style={{ paddingTop: 12 }}>
-          {route.key === 'clicks' ? (
-            <>
-              <StatCard title="Clicks Recorded Today" value={clicksToday} />
-              <TrendChart title={getChartTitle(selectedFilters)} data={clickTrend} />
-            </>
-          ) : (
-            <>
-              <StatCard title="Impressions Recorded Today" value={impressionsToday} />
-              <TrendChart title={getChartTitle(selectedFilters)} data={impressionTrend} />
-            </>
-          )}
+          <View>
+            <View >
+              <StatCard
+                title={isClicks ? "Clicks Recorded Today" : "Impressions Recorded Today"}
+                value={isClicks ? clicksToday : impressionsToday}
+              />
+            </View>
+
+
+          </View>
+          <View style={Chartstyles.chartContainer}>
+            <Text style={Chartstyles.title}> {getChartTitle(selectedFilters)} </Text>
+            <FilterBar
+              options={filterOptions}
+              selected={selectedFilters}
+              onSelect={setSelectedFilters}
+              expanded={expandedSections}
+              onToggleExpand={toggleExpand}
+              searchText={searchTexts}
+              onSearchTextChange={setSearchTexts}
+              onClear={handleClear}
+              onApply={handleApply}
+            />
+
+            <TrendChart
+              data={isClicks ? clickTrend : impressionTrend}
+            />
+
+          </View></View>
+        <View style={{ flex: 1 }}>
+          <TopDashboard scene={route.key} />
         </View>
       </ScrollView>
     );
@@ -194,12 +207,10 @@ async function fetchTrends(filters: { [key: string]: string[] }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
       <View style={styles.headerRow}>
         <Text style={styles.header}>Engagement Tracker</Text>
       </View>
 
-      {/* Tabs and scenes */}
       <View style={{ flex: 1 }}>
         <TabView
           navigationState={{ index, routes }}
@@ -208,14 +219,16 @@ async function fetchTrends(filters: { [key: string]: string[] }) {
           initialLayout={initialLayout}
           swipeEnabled={false}
           animationEnabled={false}
-          renderTabBar={props => <TabBar
-            {...props}
-            indicatorStyle={styles.tabBarIndicator}
-            style={styles.tabBarStyle}
-            labelStyle={styles.tabBarLabel}
-            activeColor="#2c62b4"
-            inactiveColor="#7f8c8d"
-          />}
+          renderTabBar={props => (
+            <TabBar
+              {...props}
+              indicatorStyle={styles.tabBarIndicator}
+              style={styles.tabBarStyle}
+              labelStyle={styles.tabBarLabel}
+              activeColor="#2c62b4"
+              inactiveColor="#7f8c8d"
+            />
+          )}
         />
       </View>
     </SafeAreaView>
