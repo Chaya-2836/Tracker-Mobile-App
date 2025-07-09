@@ -11,7 +11,7 @@ const styles = StyleSheet.create<AppStyles>({
 headerContainer: {
   paddingHorizontal: 16,
   paddingTop: 20,
-  paddingBottom: 16, // was 5 → now 16 to add space below the button
+  paddingBottom: 16, 
   alignItems: 'center',
   position: 'relative',
 },

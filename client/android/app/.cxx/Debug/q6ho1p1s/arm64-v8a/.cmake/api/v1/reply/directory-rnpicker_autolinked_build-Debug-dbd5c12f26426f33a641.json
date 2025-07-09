@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "rnpicker_autolinked_build",
+		"source" : "C:/AppsFlyer/Tracker-Mobile-App/client/node_modules/@react-native-picker/picker/android/src/main/jni"
+	}
+}

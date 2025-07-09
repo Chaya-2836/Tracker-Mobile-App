@@ -14,13 +14,14 @@ import styles from '../styles/appStyles';
 import StatCard from '../../components/statCard';
 import TrendChart from '../../components/TrendChart';
 import FilterBar from '../../components/FilterBar/FilterBar';
-import { getTodayStats, getWeeklyTrends } from '../Api/analytics';
-import { fetchAllFilters } from '../Api/filters';
-import TopDashboard from '@/components/TopDashboard';
-import SuspiciousTrafficPanel from '@/components/ui/SuspiciousTrafficPanel';
-import Chartstyles, { chartConfig } from '../styles/trendChartStyles';
-import Spinner from '@/components/Spinner';
-import Login from '@/components/login';
+import { getTodayStats, getWeeklyTrends } from '../../Api/analytics';
+import { fetchAllFilters } from '../../Api/filters';
+import TopDashboard from '../../components/TopDashboard';
+import SuspiciousTrafficPanel from '../../components/ui/SuspiciousTrafficPanel';
+import Chartstyles from '../styles/trendChartStyles';
+import DonutWithSelector from '../../components/AgentStats/DonutWithSelector';
+import Spinner from '../../components/Spinner';
+
 
 interface TrendPoint {
   label: Date;
@@ -51,30 +52,10 @@ export default function App() {
   const [searchTexts, setSearchTexts] = useState<{ [label: string]: string }>({});
 
   useEffect(() => {
-    registerForPushNotifications();
     fetchData();
     fetchTrends({});
     fetchFilterData();
   }, []);
-
-  async function registerForPushNotifications() {
-    if (Device.isDevice) {
-      const { status: existingStatus } = await Notifications.getPermissionsAsync();
-      let finalStatus = existingStatus;
-      if (existingStatus !== 'granted') {
-        const { status } = await Notifications.requestPermissionsAsync();
-        finalStatus = status;
-      }
-      if (finalStatus === 'granted') {
-        const token = (await Notifications.getExpoPushTokenAsync()).data;
-        await fetch('http://localhost:3000/push/register-token', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token }),
-        });
-      }
-    }
-  }
 
   async function fetchData() {
     try {
@@ -150,12 +131,13 @@ export default function App() {
   const getChartTitle = (filters: { [key: string]: string[] }) => {
     const from = filters.fromDate?.[0];
     const to = filters.toDate?.[0];
-    const type = index === 0 ? 'Click' : 'Impression';
+    const type = index === 0 ? 'Clicks' : 'Impressions';
+
     if (from && to) {
       return `${type} Volume Trend (${formatDate(from)} → ${formatDate(to)})`;
     }
-    else if(from){
-      return `${type} Volume Trend (${formatDate(from)} → ${new Date().toLocaleDateString('en-CA')})`
+    else if (from) {
+      return `${type} Volume Trend (${formatDate(from)} → ${new Date().toLocaleDateString('en-CA')})`;
     }
     return `${type} Volume Trend (Last 7 Days)`;
   };
@@ -172,18 +154,13 @@ export default function App() {
         </View>
 
         <View style={{ paddingTop: 12 }}>
-          <View>
-            <View >
-              <StatCard
-                title={isClicks ? "Clicks Recorded Today" : "Impressions Recorded Today"}
-                value={isClicks ? clicksToday : impressionsToday}
-              />
-            </View>
+          <StatCard
+            title={isClicks ? "Clicks Recorded Today" : "Impressions Recorded Today"}
+            value={isClicks ? clicksToday : impressionsToday}
+          />
 
-
-          </View>
           <View style={Chartstyles.chartContainer}>
-            <Text style={Chartstyles.title}> {getChartTitle(selectedFilters)} </Text>
+            <Text style={Chartstyles.title}>{getChartTitle(selectedFilters)}</Text>
             <FilterBar
               options={filterOptions}
               selected={selectedFilters}
@@ -196,13 +173,16 @@ export default function App() {
               onApply={handleApply}
             />
 
-            <TrendChart
-              data={isClicks ? clickTrend : impressionTrend}
-            />
+            <TrendChart data={isClicks ? clickTrend : impressionTrend} />
+          </View>
+        </View>
 
-          </View></View>
         <View style={{ flex: 1 }}>
           <TopDashboard scene={route.key} />
+        </View>
+
+        <View style={{ padding: 16 }}>
+          <DonutWithSelector />
         </View>
       </ScrollView>
     );
@@ -227,7 +207,6 @@ export default function App() {
               {...props}
               indicatorStyle={styles.tabBarIndicator}
               style={styles.tabBarStyle}
-              labelStyle={styles.tabBarLabel}
               activeColor="#2c62b4"
               inactiveColor="#7f8c8d"
             />
@@ -237,5 +216,3 @@ export default function App() {
     </SafeAreaView>
   );
 }
-
-

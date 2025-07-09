@@ -47,3 +47,4 @@ debug.log
 
 #premission
 config/key.json
+config/firebase-service-account.json
