@@ -14,7 +14,6 @@ import {
   fetchTopMediaSources,
 } from "@/app/Api/trafficAnalyticsAPI";
 
-import ErrorComponent from "./ErrorComponent";
 import Spinner from "./Spinner";
 
 export default function TopDashboard({ scene }: { scene: string }) {

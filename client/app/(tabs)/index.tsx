@@ -10,7 +10,6 @@ import {
 import { TabView, TabBar } from 'react-native-tab-view';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
-
 import styles from '../styles/appStyles';
 import StatCard from '../../components/statCard';
 import TrendChart from '../../components/TrendChart';
@@ -20,6 +19,8 @@ import { fetchAllFilters } from '../Api/filters';
 import TopDashboard from '@/components/TopDashboard';
 import SuspiciousTrafficPanel from '@/components/ui/SuspiciousTrafficPanel';
 import Chartstyles, { chartConfig } from '../styles/trendChartStyles';
+import Spinner from '@/components/Spinner';
+import Login from '@/components/login';
 
 interface TrendPoint {
   label: Date;
@@ -160,13 +161,13 @@ export default function App() {
   };
 
   const renderScene = ({ route }: any) => {
-    if (loading) return <ActivityIndicator size="large" color="#0000ff" />;
+    if (loading) return <Spinner/>;
 
     const isClicks = route.key === 'clicks';
 
     return (
       <ScrollView>
-        <View style={{ marginTop: 10 }}>
+     <View style={{ marginTop: 10 }}>
           <SuspiciousTrafficPanel />
         </View>
 
