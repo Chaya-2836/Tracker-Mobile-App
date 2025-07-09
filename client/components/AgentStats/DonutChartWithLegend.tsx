@@ -25,6 +25,7 @@ export default function DonutChartWithLegend({ data }: Props) {
   const [visibleAgents, setVisibleAgents] = useState<string[]>([]);
   const [tooltip, setTooltip] = useState<TooltipData | null>(null);
   const tooltipTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [hoverXY, setHoverXY] = useState<{ x: number; y: number } | null>(null);
   const { width } = useWindowDimensions();
 
   useEffect(() => {
@@ -79,8 +80,6 @@ export default function DonutChartWithLegend({ data }: Props) {
     `;
   };
 
-  let startAngle = 0;
-
   const showTooltip = (agent: AgentItem, percent: number, x: number, y: number) => {
     setTooltip({ agent, percent, x, y });
 
@@ -93,77 +92,134 @@ export default function DonutChartWithLegend({ data }: Props) {
     }, 2500);
   };
 
+  useEffect(() => {
+    if (Platform.OS !== 'web' || !hoverXY) return;
+
+    const dx = hoverXY.x - center;
+    const dy = hoverXY.y - center;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (distance < innerRadius || distance > outerRadius) return;
+
+    const angle = (Math.atan2(dy, dx) * 180) / Math.PI + 90;
+    const normalizedAngle = angle < 0 ? angle + 360 : angle;
+
+    let runningAngle = 0;
+    for (const item of filteredData) {
+      const sweep = (item.clicks / total) * 360;
+      const end = runningAngle + sweep;
+
+      if (normalizedAngle >= runningAngle && normalizedAngle <= end) {
+        const midAngle = runningAngle + sweep / 2;
+const midPoint = polarToCartesian(center, center, outerRadius + 10, midAngle);
+showTooltip(item, (item.clicks / total) * 100, midPoint.x, midPoint.y);
+        break;
+      }
+
+      runningAngle += sweep;
+    }
+  }, [hoverXY]);
+
+  let startAngle = 0;
+
+  const svgContent = (
+    <Svg width={size} height={size}>
+      <G>
+        {filteredData.map((item, index) => {
+          const percent = item.clicks / total;
+          const sweepAngle = percent * 360;
+          const endAngle = startAngle + sweepAngle;
+
+          const path = createArcPath(
+            center,
+            center,
+            startAngle,
+            endAngle,
+            innerRadius,
+            outerRadius
+          );
+
+          const slice = (
+            <Path
+              key={index}
+              d={path}
+              fill={item.color}
+              onPressIn={(e: any) => {
+                const { locationX, locationY } = e.nativeEvent;
+                const midAngle = startAngle + sweepAngle / 2;
+const midPoint = polarToCartesian(center, center, outerRadius + 10, midAngle);
+showTooltip(item, percent * 100, midPoint.x, midPoint.y);
+              }}
+            />
+          );
+
+          startAngle += sweepAngle;
+          return slice;
+        })}
+      </G>
+    </Svg>
+  );
+
+  const rawLeft = tooltip ? tooltip.x + 10 : 0;
+  const leftEdge = 10;
+  const rightEdge = size - 200;
+  const tooltipLeft = Math.max(leftEdge, Math.min(rawLeft, rightEdge));
+  const tooltipTop = tooltip ? (tooltip.y > size - 40 ? tooltip.y - 60 : tooltip.y - 10) : 0;
+
   return (
     <View style={styles.wrapper}>
-      <View style={{ position: 'relative' }}>
-        <Svg width={size} height={size}>
-          <G>
-            {filteredData.map((item, index) => {
-              const percent = item.clicks / total;
-              const sweepAngle = percent * 360;
-              const endAngle = startAngle + sweepAngle;
-
-              const path = createArcPath(
-                center,
-                center,
-                startAngle,
-                endAngle,
-                innerRadius,
-                outerRadius
-              );
-
-              const midAngle = startAngle + sweepAngle / 2;
-              const mid = polarToCartesian(center, center, outerRadius, midAngle);
-
-              const slice = (
-                <Path
-                  key={index}
-                  d={path}
-                  fill={item.color}
-                  onPressIn={(e: any) => {
-                    if (Platform.OS !== 'web') {
-                      const { locationX, locationY } = e.nativeEvent;
-                      showTooltip(item, percent * 100, locationX, locationY);
-                    }
-                  }}
-                  onMouseEnter={(e: any) => {
-                    if (Platform.OS === 'web') {
-                      const { locationX, locationY } = e.nativeEvent;
-                      showTooltip(item, percent * 100, locationX, locationY);
-                    }
-                  }}
-                />
-              );
-
-              startAngle += sweepAngle;
-              return slice;
-            })}
-          </G>
-        </Svg>
-
-        {tooltip && (
-          <View
-            style={[
-              styles.tooltipBox,
-              {
-                left: tooltip.x + 10,
-                top: tooltip.y - 10,
-              },
-            ]}
-          >
+      {Platform.OS === 'web' ? (
+        <div
+          style={{ position: 'relative', width: size, height: size }}
+          onMouseMove={(e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            setHoverXY({ x, y });
+          }}
+        >
+          {svgContent}
+          {tooltip && (
             <View
               style={[
-                styles.tooltipColor,
-                { backgroundColor: tooltip.agent.color },
+                styles.tooltipBox,
+                {
+                  position: 'absolute',
+                  left: tooltipLeft,
+                  top: tooltipTop,
+                },
               ]}
-            />
-            <Text style={styles.tooltipText}>{tooltip.agent.name}</Text>
-            <Text style={styles.tooltipPercent}>
-              {tooltip.percent.toFixed(1)}% ({tooltip.agent.clicks})
-            </Text>
-          </View>
-        )}
-      </View>
+            >
+              <View style={[styles.tooltipColor, { backgroundColor: tooltip.agent.color }]} />
+              <Text style={styles.tooltipText}>{tooltip.agent.name}</Text>
+              <Text style={styles.tooltipPercent}>
+                {tooltip.percent.toFixed(1)}% ({tooltip.agent.clicks})
+              </Text>
+            </View>
+          )}
+        </div>
+      ) : (
+        <View style={{ position: 'relative' }}>
+          {svgContent}
+          {tooltip && (
+            <View
+              style={[
+                styles.tooltipBox,
+                {
+                  left: tooltipLeft,
+                  top: tooltipTop,
+                },
+              ]}
+            >
+              <View style={[styles.tooltipColor, { backgroundColor: tooltip.agent.color }]} />
+              <Text style={styles.tooltipText}>{tooltip.agent.name}</Text>
+              <Text style={styles.tooltipPercent}>
+                {tooltip.percent.toFixed(1)}% ({tooltip.agent.clicks})
+              </Text>
+            </View>
+          )}
+        </View>
+      )}
 
       <View style={styles.legendItemsWrapper}>
         {data
