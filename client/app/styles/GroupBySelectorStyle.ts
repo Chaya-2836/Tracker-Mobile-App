@@ -26,10 +26,15 @@ export default StyleSheet.create({
     height: 34,
     width: '100%',
     color: '#2c62b4',
-    backgroundColor: 'rgb(236,240,241)', // ✅ צבע רקע חדש
+    backgroundColor: 'rgb(236,240,241)',
     fontSize: 14,
     fontWeight: 'bold',
-    paddingHorizontal: Platform.OS === 'android' ? 0 : 6,
+    paddingHorizontal: 6,
+    ...Platform.select({
+      web: {
+        outlineWidth: 0,
+      },
+    }),
   },
   wrapper: {
     padding: 10,
