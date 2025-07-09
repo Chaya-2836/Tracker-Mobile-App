@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import Svg, { G, Circle } from 'react-native-svg';
+import Svg, { G, Path } from 'react-native-svg';
 import { View, Text, TouchableOpacity, Platform, useWindowDimensions } from 'react-native';
 import styles from '../../app/styles/DonutChartWithLegendStyles';
 
@@ -28,7 +28,6 @@ export default function DonutChartWithLegend({ data }: Props) {
   const { width } = useWindowDimensions();
 
   useEffect(() => {
-    // הצגת רק רשומות עם clicks > 0 כברירת מחדל
     setVisibleAgents(data.filter(agent => agent.clicks > 0).map(agent => agent.name));
   }, [data]);
 
@@ -45,9 +44,42 @@ export default function DonutChartWithLegend({ data }: Props) {
   const strokeWidth = 15;
   const size = radius * 2 + strokeWidth;
   const center = size / 2;
-  const circumference = 2 * Math.PI * radius;
+  const innerRadius = radius - strokeWidth / 2;
+  const outerRadius = radius + strokeWidth / 2;
 
-  let currentOffset = 0;
+  const polarToCartesian = (cx: number, cy: number, r: number, angleInDegrees: number) => {
+    const angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180.0;
+    return {
+      x: cx + r * Math.cos(angleInRadians),
+      y: cy + r * Math.sin(angleInRadians),
+    };
+  };
+
+  const createArcPath = (
+    cx: number,
+    cy: number,
+    startAngle: number,
+    endAngle: number,
+    innerR: number,
+    outerR: number
+  ) => {
+    const startOuter = polarToCartesian(cx, cy, outerR, endAngle);
+    const endOuter = polarToCartesian(cx, cy, outerR, startAngle);
+    const startInner = polarToCartesian(cx, cy, innerR, startAngle);
+    const endInner = polarToCartesian(cx, cy, innerR, endAngle);
+
+    const largeArcFlag = endAngle - startAngle > 180 ? 1 : 0;
+
+    return `
+      M ${startOuter.x} ${startOuter.y}
+      A ${outerR} ${outerR} 0 ${largeArcFlag} 0 ${endOuter.x} ${endOuter.y}
+      L ${startInner.x} ${startInner.y}
+      A ${innerR} ${innerR} 0 ${largeArcFlag} 1 ${endInner.x} ${endInner.y}
+      Z
+    `;
+  };
+
+  let startAngle = 0;
 
   const showTooltip = (agent: AgentItem, percent: number, x: number, y: number) => {
     setTooltip({ agent, percent, x, y });
@@ -65,56 +97,66 @@ export default function DonutChartWithLegend({ data }: Props) {
     <View style={styles.wrapper}>
       <View style={{ position: 'relative' }}>
         <Svg width={size} height={size}>
-          <G rotation="-90" origin={`${center}, ${center}`}>
+          <G>
             {filteredData.map((item, index) => {
               const percent = item.clicks / total;
-              const strokeDasharray = circumference;
-              const strokeDashoffset = currentOffset;
+              const sweepAngle = percent * 360;
+              const endAngle = startAngle + sweepAngle;
 
-              const commonEvents = {
-                onPressIn: (e: any) => {
-                  if (Platform.OS !== 'web') {
-                    const { locationX, locationY } = e.nativeEvent;
-                    showTooltip(item, percent * 100, locationX, locationY);
-                  }
-                },
-                onMouseEnter: (e: any) => {
-                  if (Platform.OS === 'web') {
-                    const { locationX, locationY } = e.nativeEvent;
-                    showTooltip(item, percent * 100, locationX, locationY);
-                  }
-                },
-              };
+              const path = createArcPath(
+                center,
+                center,
+                startAngle,
+                endAngle,
+                innerRadius,
+                outerRadius
+              );
 
-              currentOffset += circumference * percent;
+              const midAngle = startAngle + sweepAngle / 2;
+              const mid = polarToCartesian(center, center, outerRadius, midAngle);
 
-              return (
-                <Circle
+              const slice = (
+                <Path
                   key={index}
-                  cx={center}
-                  cy={center}
-                  r={radius}
-                  stroke={item.color}
-                  strokeWidth={strokeWidth}
-                  strokeDasharray={`${strokeDasharray}`}
-                  strokeDashoffset={strokeDashoffset}
-                  strokeLinecap="butt"
-                  fill="transparent"
-                  {...commonEvents}
+                  d={path}
+                  fill={item.color}
+                  onPressIn={(e: any) => {
+                    if (Platform.OS !== 'web') {
+                      const { locationX, locationY } = e.nativeEvent;
+                      showTooltip(item, percent * 100, locationX, locationY);
+                    }
+                  }}
+                  onMouseEnter={(e: any) => {
+                    if (Platform.OS === 'web') {
+                      const { locationX, locationY } = e.nativeEvent;
+                      showTooltip(item, percent * 100, locationX, locationY);
+                    }
+                  }}
                 />
               );
+
+              startAngle += sweepAngle;
+              return slice;
             })}
           </G>
         </Svg>
 
         {tooltip && (
           <View
-            style={[styles.tooltipBox, {
-              left: tooltip.x + 10,
-              top: tooltip.y - 10,
-            }]}
+            style={[
+              styles.tooltipBox,
+              {
+                left: tooltip.x + 10,
+                top: tooltip.y - 10,
+              },
+            ]}
           >
-            <View style={[styles.tooltipColor, { backgroundColor: tooltip.agent.color }]} />
+            <View
+              style={[
+                styles.tooltipColor,
+                { backgroundColor: tooltip.agent.color },
+              ]}
+            />
             <Text style={styles.tooltipText}>{tooltip.agent.name}</Text>
             <Text style={styles.tooltipPercent}>
               {tooltip.percent.toFixed(1)}% ({tooltip.agent.clicks})
@@ -124,41 +166,41 @@ export default function DonutChartWithLegend({ data }: Props) {
       </View>
 
       <View style={styles.legendItemsWrapper}>
-        {(() => {
-          return data
-            .filter(item => Number(item.clicks) > 0 || visibleAgents.includes(item.name))
-            .map((item) => {
-              const isVisible = visibleAgents.includes(item.name);
-              const filteredClicks = filteredData.find(f => f.name === item.name)?.clicks ?? 0;
-              const percent = total > 0 ? ((filteredClicks / total) * 100).toFixed(0) : '0';
+        {data
+          .filter(item => Number(item.clicks) > 0 || visibleAgents.includes(item.name))
+          .map((item) => {
+            const isVisible = visibleAgents.includes(item.name);
+            const filteredClicks = filteredData.find(f => f.name === item.name)?.clicks ?? 0;
+            const percent = total > 0 ? ((filteredClicks / total) * 100).toFixed(0) : '0';
 
-              return (
-                <TouchableOpacity
-                  key={item.name}
-                  onPress={() => toggleAgent(item.name)}
+            return (
+              <TouchableOpacity
+                key={item.name}
+                onPress={() => toggleAgent(item.name)}
+                style={[
+                  styles.legendItem,
+                  {
+                    maxWidth: width < 400 ? '48%' : width < 600 ? '30%' : '22%',
+                  },
+                ]}
+              >
+                <View
                   style={[
-                    styles.legendItem,
-                    {
-                      maxWidth: width < 400 ? '48%' : width < 600 ? '30%' : '22%',
-                    },
-                  ]}
-                >
-                  <View style={[
                     styles.colorBox,
                     {
                       backgroundColor: isVisible ? item.color : 'transparent',
                       borderColor: item.color,
-                    }
-                  ]}>
-                    {isVisible && <Text style={styles.checkmark}>✓</Text>}
-                  </View>
-                  <Text style={styles.legendText}>
-                    {item.name} {percent}%
-                  </Text>
-                </TouchableOpacity>
-              );
-            });
-        })()}
+                    },
+                  ]}
+                >
+                  {isVisible && <Text style={styles.checkmark}>✓</Text>}
+                </View>
+                <Text style={styles.legendText}>
+                  {item.name} {percent}%
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
       </View>
     </View>
   );
