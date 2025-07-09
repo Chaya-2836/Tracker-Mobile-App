@@ -143,45 +143,45 @@ export default function App() {
   };
 
   const renderScene = ({ route }: any) => {
-    if (loading) return <Spinner/>;
+    if (loading) return <Spinner />;
 
     const isClicks = route.key === 'clicks';
 
     return (
       <ScrollView>
-     <View style={{ marginTop: 10 }}>
+        <View style={{ marginTop: 10 }}>
           <SuspiciousTrafficPanel />
         </View>
 
-        <View style={{ paddingTop: 12 }}>
+        <View style={styles.container}>
           <StatCard
             title={isClicks ? "Clicks Recorded Today" : "Impressions Recorded Today"}
             value={isClicks ? clicksToday : impressionsToday}
           />
+        </View>
+        <View style={styles.container}>
+          <Text style={Chartstyles.title}>{getChartTitle(selectedFilters)}</Text>
+          <FilterBar
+            options={filterOptions}
+            selected={selectedFilters}
+            onSelect={setSelectedFilters}
+            expanded={expandedSections}
+            onToggleExpand={toggleExpand}
+            searchText={searchTexts}
+            onSearchTextChange={setSearchTexts}
+            onClear={handleClear}
+            onApply={handleApply}
+          />
+          <TrendChart data={isClicks ? clickTrend : impressionTrend} />
 
-          <View style={Chartstyles.chartContainer}>
-            <Text style={Chartstyles.title}>{getChartTitle(selectedFilters)}</Text>
-            <FilterBar
-              options={filterOptions}
-              selected={selectedFilters}
-              onSelect={setSelectedFilters}
-              expanded={expandedSections}
-              onToggleExpand={toggleExpand}
-              searchText={searchTexts}
-              onSearchTextChange={setSearchTexts}
-              onClear={handleClear}
-              onApply={handleApply}
-            />
-
-            <TrendChart data={isClicks ? clickTrend : impressionTrend} />
-          </View>
         </View>
 
-        <View style={{ flex: 1 }}>
+
+        <View style={styles.container}>
           <TopDashboard scene={route.key} />
         </View>
 
-        <View style={{ padding: 16 }}>
+        <View style={styles.container}>
           <DonutWithSelector />
         </View>
       </ScrollView>
@@ -189,7 +189,7 @@ export default function App() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.containerpage}>
       <View style={styles.headerRow}>
         <Text style={styles.header}>Engagement Tracker</Text>
       </View>

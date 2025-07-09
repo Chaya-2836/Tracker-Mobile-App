@@ -16,7 +16,7 @@ import {
 import Spinner from "./Spinner";
 
 export default function TopDashboard({ scene }: { scene: string }) {
-  const [topN, setTopN] = useState(1);
+  const [topN, setTopN] = useState(9);
   const [mediaData, setMediaData] = useState([]);
   const [agencyData, setAgencyData] = useState([]);
   const [appData, setAppData] = useState([]);

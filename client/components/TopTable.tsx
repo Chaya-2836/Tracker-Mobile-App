@@ -1,6 +1,6 @@
 import { View, Text, useWindowDimensions } from "react-native";
 import styles from "@/app/styles/topStyles";
-import { formatNumber, safeName } from "../Api/utils";
+import { formatNumber, safeName } from "../Api/utils"
 
 type TopCardProps = {
   title: string;
@@ -12,7 +12,7 @@ type TopCardProps = {
 export default function TopCard({ title, data, topN, sortBy }: TopCardProps) {
   const { width } = useWindowDimensions();
 
-  const isLargeScreen = width >= 768; // 768px ומעלה = מסך רחב (כמו מחשב/טאבלט)
+  const isLargeScreen = width >= 768; // 768px and above = wide screen (like desktop/tablet)
 
   const topData = [...data]
     .sort((a, b) => Number(b[sortBy]) - Number(a[sortBy]))
@@ -21,24 +21,24 @@ export default function TopCard({ title, data, topN, sortBy }: TopCardProps) {
   let columns: Array<typeof topData> = [];
 
   if (isLargeScreen) {
-    // מחלק ל־3 עמודות במסכים גדולים
+    // Split into 3 columns on large screens
     columns = [[], [], []];
     topData.forEach((item, i) => {
       columns[i % 3].push(item);
     });
   } else {
-    // מסך קטן = עמודה אחת
+    // Small screen = single column
     columns = [topData];
   }
 
   return (
-    <View style={styles.card}>
-      <Text style={styles.title}>{title}</Text>
+    <View >
+      <Text style={[styles.title, {  paddingLeft: isLargeScreen ? 30 : 0  }]}>{title}</Text>
       <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
         {columns.map((column, colIndex) => (
           <View
             key={colIndex}
-            style={{ flex: 1, paddingHorizontal: isLargeScreen ? 8 : 0 }}
+            style={{ flex: 1, paddingHorizontal: isLargeScreen ? 34 : 0 }}
           >
             {column.map((item, i) => (
               <View key={i} style={styles.row}>
