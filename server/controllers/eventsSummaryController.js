@@ -17,7 +17,6 @@ export async function getEventsSummary(req, res) {
       daysMode = 'week',
       date,
       unified_app_id,
-      user_agent,
       fromDate,
       toDate
     } = req.query;
@@ -42,10 +41,6 @@ export async function getEventsSummary(req, res) {
     if (unified_app_id) {
       filters.push(`unified_app_id = @unified_app_id`);
       params.unified_app_id = unified_app_id;
-    }
-    if (user_agent) {
-      filters.push(`user_agent = @user_agent`);
-      params.user_agent = user_agent;
     }
 
     params.engagement_type = engagement_type || 'click';
