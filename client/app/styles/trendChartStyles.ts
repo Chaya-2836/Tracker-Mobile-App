@@ -12,26 +12,7 @@ type ChartConfig = {
 };
 
 const Chartstyles = StyleSheet.create({
-  chartContainer: {
-    backgroundColor: '#fff',
-    marginBottom: 20,
-    padding: 16,
-    borderRadius: 12,
-    alignSelf: 'center',
-    overflow: 'hidden',
-    width:"95%",
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOpacity: 0.05,
-        shadowOffset: { width: 0, height: 2 },
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
-  },
+
   title: {
     fontSize: 16,
     fontWeight: '600',
