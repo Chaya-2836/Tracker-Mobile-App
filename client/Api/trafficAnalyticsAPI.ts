@@ -45,6 +45,12 @@ export const fetchAppTrafficConversions = async (appId: string, limit: number = 
   return data;
 };
 
+// Platforms
+export const fetchTopPlatforms = async (): Promise<ApiResponse> => {
+  const { data } = await axios.get(`${BASE_URL}/platforms/top`);
+  return data;
+};
+
 //Alerts
 export const fetchHighTrafficAlerts = async (): Promise<ApiResponse> => {
   const { data } = await axios.get(`${BASE_URL}/alert/high-traffic`);
@@ -62,8 +68,5 @@ export const fetchSuspiciousTrafficCases = async (
   return data;
 };
 
-export const fetchTopPlatforms = async (): Promise<ApiResponse> => {
-  const { data } = await axios.get(`${BASE_URL}/platforms/top`);
-  return data;
-};
+
 

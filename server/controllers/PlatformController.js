@@ -13,7 +13,6 @@ export const getTopPlatforms = async (req, res) => {
     WHERE platform IS NOT NULL
     GROUP BY platform
     ORDER BY clicks DESC
-    LIMIT 10
   `;
   const [rows] = await bigquery.query({ query });
   res.json(rows);

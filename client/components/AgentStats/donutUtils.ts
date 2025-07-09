@@ -1,4 +1,3 @@
-// פונקציות עזר מתמטיות לדונאט צ'ארט
 
 export function polarToCartesian(cx: number, cy: number, r: number, angleInDegrees: number) {
   const angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180.0;
