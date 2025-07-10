@@ -21,10 +21,8 @@ const TrendChart: React.FC<TrendChartProps> = ({ data }) => {
   const scrollRef = useRef<ScrollView>(null);
   const [scrollX, setScrollX] = useState(0);
 
-  const labels = data.map((item, index) =>
-    index % 2 === 0
-      ? item.label.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
-      : ''
+  const labels = data.map((item) =>
+    item.label.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
   );
   const values = data.map(item => item.value);
   const POINT_WIDTH = (screenWidth * 1.5) / data.length;
@@ -58,14 +56,7 @@ const TrendChart: React.FC<TrendChartProps> = ({ data }) => {
 
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-      {/* ציר Y מקובע */}
-      <View style={{ width: 40, justifyContent: 'space-between', height: 220 }}>
-        <Text>{maxY}</Text>
-        <Text>{midY}</Text>
-        <Text>0</Text>
-      </View>
 
-      {/* חצים מעל הגרף */}
       <View style={{ position: 'relative', flex: 1 }}>
         <TouchableOpacity style={Chartstyles.leftArrow} onPress={scrollLeft}>
           <Text style={Chartstyles.arrowIcon}>‹</Text>
@@ -99,12 +90,19 @@ const TrendChart: React.FC<TrendChartProps> = ({ data }) => {
               }}
             />
             {tooltipPos.visible && (
-              <TooltipForChart
-                x={tooltipPos.x}
-                y={tooltipPos.y}
-                value={tooltipPos.value}
-                label={tooltipPos.label}
-              />
+              <View
+                style={{
+                  position: 'fixed',
+                  zIndex: 9999,
+                }}
+              >
+                <TooltipForChart
+                  x={tooltipPos.x}
+                  y={tooltipPos.y}
+                  value={tooltipPos.value}
+                  label={tooltipPos.label}
+                />
+              </View>
             )}
           </View>
         </ScrollView>

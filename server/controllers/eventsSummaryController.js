@@ -76,7 +76,16 @@ export async function getEventsSummary(req, res) {
       filters.push(`DATE(event_time) BETWEEN DATE(@fromDate) AND DATE(@toDate)`);
 
       console.log("📅 daysDiff:", daysDiff);
-      if (daysDiff > 365) {
+      if (daysDiff> 1095){
+         selectClause = `
+            SELECT FORMAT_DATE('%Y-%m-%d', DATE_TRUNC(DATE(event_time), YEAR)) AS event_date,
+            COUNT(*) AS count
+        `;
+        groupClause = `GROUP BY event_date ORDER BY event_date`;
+
+        console.log("🗓️ Using yearly aggregation");
+      }
+      else if (daysDiff > 365) {
         selectClause = `
             SELECT FORMAT_DATE('%Y-%m-%d', DATE_TRUNC(DATE(event_time), MONTH)) AS event_date,
             COUNT(*) AS count

@@ -40,7 +40,7 @@ function fillMissingPointsByGranularity(data: TrendPoint[], from?: Date, to?: Da
   const end = to ?? new Date();
 
   const daysDiff = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-  const step = daysDiff > 365 ? 30 : daysDiff > 30 ? 7 : 1;
+  const step = daysDiff>1095?365:daysDiff > 365 ? 30 : daysDiff > 30 ? 7 : 1;
 
   const cursor = new Date(start);
   while (cursor <= end) {
@@ -58,7 +58,7 @@ function fillMissingPointsByGranularity(data: TrendPoint[], from?: Date, to?: Da
 }
 const convertToTrendPoints = (data: any[]): TrendPoint[] =>
   data.map(item => ({
-    label: new Date(item.event_date?.value || item.event_date), // לטפל בשני הפורמטים
+    label: new Date(item.event_date?.value || item.event_date), 
     value: Number(item.count) || 0,
   }));
 
