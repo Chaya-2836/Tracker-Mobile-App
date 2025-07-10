@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import { DatePickerModal } from 'react-native-paper-dates';
+import React from 'react';
+import { View, Text } from 'react-native';
+import { DatePickerInput } from 'react-native-paper-dates';
 import { format } from 'date-fns';
-import { IconButton } from 'react-native-paper';
 import styles from '../../app/styles/filterMenuStyles';
 
 type Props = {
@@ -18,80 +17,34 @@ export default function DateRangePickerSection({
   onFromDateChange,
   onToDateChange,
 }: Props) {
-  const [fromVisible, setFromVisible] = useState(false);
-  const [toVisible, setToVisible] = useState(false);
-
   return (
     <View style={styles.dropdownScroll}>
       <Text style={styles.filterLabel}>From:</Text>
-      <TouchableOpacity
-        onPress={() => setFromVisible(true)}
-        style={styles.searchInput}
-      >
-        <View style={{ flexDirection: 'row-reverse', alignItems: 'center' }}>
-          <Text
-            style={{ flex: 1, textAlign: 'left' }}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {fromDate || 'Start date'}
-          </Text>
-          <IconButton
-            icon="calendar"
-            size={20}
-            style={{ margin: 0, marginLeft: 4 }}
-          />
-        </View>
-      </TouchableOpacity>
-
-      <DatePickerModal
+      <DatePickerInput
         locale="en"
-        mode="single"
-        visible={fromVisible}
-        date={fromDate ? new Date(fromDate) : undefined}
-        onDismiss={() => setFromVisible(false)}
-        onConfirm={({ date }: { date: Date | undefined }) => {
-          setFromVisible(false);
+        label="Start date"
+        value={fromDate ? new Date(fromDate) : undefined}
+        onChange={(date) => {
           if (date) {
             onFromDateChange?.(format(date, 'yyyy-MM-dd'));
           }
         }}
+        inputMode="start"
+        style={styles.searchInput}
       />
-      <View style={styles.dropdownScroll}>
-        <Text style={styles.filterLabel}>To:</Text>
-        <TouchableOpacity
-          onPress={() => setToVisible(true)}
-          style={styles.searchInput}
-        >
-          <View style={{ flexDirection: 'row-reverse', alignItems: 'center' }}>
-            <Text
-              style={{ flex: 1, textAlign: 'left' }}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              {toDate || 'End date'}
-            </Text>
-            <IconButton
-              icon="calendar"
-              size={20}
-              style={{ margin: 0, marginLeft: 4 }}
-            />
-          </View>
-        </TouchableOpacity>
-      </View>
 
-      <DatePickerModal
+      <Text style={styles.filterLabel}>To:</Text>
+      <DatePickerInput
         locale="en"
-        mode="single"
-        visible={toVisible}
-        date={toDate ? new Date(toDate) : undefined}
-        onDismiss={() => setToVisible(false)}
-        onConfirm={({ date }: { date: Date | undefined }) => {
-          setToVisible(false);
+        label="End date"
+        value={toDate ? new Date(toDate) : undefined}
+        onChange={(date) => {
           if (date) {
             onToDateChange?.(format(date, 'yyyy-MM-dd'));
           }
         }}
+        inputMode="end"
+        style={styles.searchInput}
       />
     </View>
   );

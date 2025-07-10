@@ -155,30 +155,30 @@ export default function App() {
             title={isClicks ? "Clicks Recorded Today" : "Impressions Recorded Today"}
             value={isClicks ? clicksToday : impressionsToday}
           />
+        </View>
+        <View style={styles.container}>
+          <Text style={Chartstyles.title}>{getChartTitle(selectedFilters)}</Text>
+          <FilterBar
+            options={filterOptions}
+            selected={selectedFilters}
+            onSelect={setSelectedFilters}
+            expanded={expandedSections}
+            onToggleExpand={toggleExpand}
+            searchText={searchTexts}
+            onSearchTextChange={setSearchTexts}
+            onClear={handleClear}
+            onApply={handleApply}
+          />
+          <TrendChart data={isClicks ? clickTrend : impressionTrend} />
 
-          <View style={Chartstyles.chartContainer}>
-            <Text style={Chartstyles.title}>{getChartTitle(selectedFilters)}</Text>
-            <FilterBar
-              options={filterOptions}
-              selected={selectedFilters}
-              onSelect={setSelectedFilters}
-              expanded={expandedSections}
-              onToggleExpand={toggleExpand}
-              searchText={searchTexts}
-              onSearchTextChange={setSearchTexts}
-              onClear={handleClear}
-              onApply={handleApply}
-            />
-
-            <TrendChart data={isClicks ? clickTrend : impressionTrend} />
-          </View>
         </View>
 
-        <View style={{ flex: 1 }}>
+
+        <View style={styles.container}>
           <TopDashboard scene={route.key} />
         </View>
 
-        <View style={{ padding: 16 }}>
+        <View style={styles.container}>
           <DonutWithSelector />
         </View>
       </ScrollView>

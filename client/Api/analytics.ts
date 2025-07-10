@@ -33,26 +33,32 @@ async function fetchEventSummary(
   }
 }
 
-function fillMissingDays(data: TrendPoint[], from?: Date, to?: Date): TrendPoint[] {
+function fillMissingPointsByGranularity(data: TrendPoint[], from?: Date, to?: Date): TrendPoint[] {
   const filled: TrendPoint[] = [];
 
-  const start = from ?? new Date(Date.now() - 7 * 24 * 60 * 60 * 1000); // Default: last 7 days
+  const start = from ?? new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
   const end = to ?? new Date();
 
+  const daysDiff = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+  const step = daysDiff > 365 ? 30 : daysDiff > 30 ? 7 : 1;
+
   const cursor = new Date(start);
-  while (cursor < end) {
-    const iso = cursor.toISOString().slice(0, 10);
-    const existing = data.find(item => item.label.toISOString().slice(0, 10) === iso);
+  while (cursor <= end) {
+    const existing = data.find(item =>
+      step === 30
+        ? item.label.getFullYear() === cursor.getFullYear() && item.label.getMonth() === cursor.getMonth()
+        : item.label.toISOString().slice(0, 10) === cursor.toISOString().slice(0, 10)
+    );
+
     filled.push(existing || { label: new Date(cursor), value: 0 });
-    cursor.setDate(cursor.getDate() + 1);
+    cursor.setDate(cursor.getDate() + step);
   }
 
   return filled;
 }
-
 const convertToTrendPoints = (data: any[]): TrendPoint[] =>
   data.map(item => ({
-    label: new Date(item.event_date),
+    label: new Date(item.event_date?.value || item.event_date), // לטפל בשני הפורמטים
     value: Number(item.count) || 0,
   }));
 
@@ -83,11 +89,11 @@ export async function getWeeklyTrends(filters: Filters = {}) {
   ]);
 
   const clicksRow = Array.isArray(clicksRowResult)
-    ? fillMissingDays(convertToTrendPoints(clicksRowResult), from, to)
+    ? fillMissingPointsByGranularity(convertToTrendPoints(clicksRowResult), from, to)
     : [];
 
   const impressionsRow = Array.isArray(impressionsRowResult)
-    ? fillMissingDays(convertToTrendPoints(impressionsRowResult), from, to)
+    ? fillMissingPointsByGranularity(convertToTrendPoints(impressionsRowResult), from, to)
     : [];
 
   return {
