@@ -1,90 +1,85 @@
-/**
-* בקר התראות / הונאות
-* מזהה אנומליות כמו תנועה גבוהה ושיעורי המרה נמוכים.
-*/
+// controllers/alertController.js
 
-// ייבוא אובייקטי BigQuery והגדרת שם בסיס הנתונים מתוך קובץ קונפיגורציה
 import { bigquery, nameDB } from '../config/bigqueryConfig.js';
 
-// הגדרת שמות הטבלאות לפי שם הדאטאבייס
 const eventsTable = `${nameDB}.attribution_end_user_events.end_user_events`;
 const conversionsTable = `${nameDB}.conversions.conversions`;
 
 /**
- * פונקציה לבדיקת טראפיק גבוה במיוחד — אם עובר את סף מסוים נשלחת התראה
+ * Identifies media sources that generated traffic above a defined threshold.
+ * Used to detect unusually high activity.
  */
 export const alertHighTraffic = async (req, res) => {
-  const threshold = 70000000000; // סף טראפיק (קליקים + חשיפות) לצורך התראה
+  const threshold = 70000000000;
 
   const query = `
-    SELECT media_source,
-           sub_param_1 AS app_id,
-           COUNTIF(engagement_type = 'click') AS clicks,         -- סופרים רק אירועים מסוג "click"
-           COUNTIF(engagement_type = 'impression') AS impressions -- סופרים רק אירועים מסוג "impression"
+    SELECT
+      media_source ,
+      sub_param_1 AS app_id,
+      COUNTIF(engagement_type = 'click') AS clicks,
+      COUNTIF(engagement_type = 'impression') AS impressions
     FROM \`${eventsTable}\`
     GROUP BY media_source, app_id
-    HAVING clicks + impressions > ${threshold} -- סינון על סך כל הטראפיק (קליקים + חשיפות)
+    HAVING clicks + impressions > @threshold
     ORDER BY clicks + impressions DESC
-    LIMIT 50 -- הגבלת כמות התוצאות ל-50 שורות
+    LIMIT 50
   `;
 
   try {
-    const [rows] = await bigquery.query(query); // ביצוע השאילתה מול BigQuery
-    const alert = rows.length > 0; // בדיקה אם יש תוצאות שעוברות את הסף
-    res.json({ alert, data: rows }); // החזרת תוצאות וסטטוס התראה
+    const [rows] = await bigquery.query({ query, params: { threshold } });
+    const alert = rows.length > 0;
+    res.json({ alert, data: rows });
   } catch (err) {
-    res.status(500).send(err.message); // במקרה של שגיאה — החזרת קוד שגיאה והודעה
+    console.error('❌ Error in alertHighTraffic:', err);
+    res.status(500).json({ error: err.message });
   }
 };
 
 /**
- * פונקציה לזיהוי מקרים חשודים — טראפיק גבוה אך המרות נמוכות (CVR נמוך)
+ * Detects suspicious traffic patterns: high traffic but very few conversions.
+ * Accepts query params: ?minTraffic=...&minConversions=...&limit=...
  */
 export const getSuspiciousTrafficCases = async (req, res) => {
-  // קבלת פרמטרים מה-Query string או שימוש בערכים ברירת מחדל
-  const minTraffic = parseInt(req.query.minTraffic) || 70000000000;
-  const minConversions = parseInt(req.query.minConversions) || 10;
-  const limit = parseInt(req.query.limit) || 50;
+  const minTraffic = parseInt(req.query.minTraffic, 10) || 70000000000;
+  const minConversions = parseInt(req.query.minConversions, 10) || 10;
+  const limit = parseInt(req.query.limit, 10) || 50;
 
   const query = `
     WITH joined_data AS (
       SELECT
-        ev.media_source,                     -- מקור המדיה
-        ev.sub_param_1 AS app_id,           -- מזהה האפליקציה
-        ev.engagement_type,                 -- סוג האירוע (click / impression)
-        ev.event_time AS event_time_click,  -- מועד הקליק / חשיפה
-        conv.event_time AS conversion_time  -- מועד ההמרה (אם קיימת)
+        ev.media_source,
+        ev.sub_param_1 AS app_id,
+        ev.engagement_type,
+        ev.event_time AS event_time_click,
+        conv.event_time AS conversion_time
       FROM \`${eventsTable}\` ev
       LEFT JOIN \`${conversionsTable}\` conv
         ON ev.customer_user_id = conv.customer_user_id
-           AND TIMESTAMP_DIFF(conv.event_time, ev.event_time, SECOND) BETWEEN 0 AND 3600
-           -- חיבור לפי מזהה משתמש, רק אם ההמרה התרחשה תוך שעה מהאירוע
-      WHERE ev.customer_user_id IS NOT NULL -- רק אם יש מזהה משתמש
+        AND TIMESTAMP_DIFF(conv.event_time, ev.event_time, SECOND) BETWEEN 0 AND 3600
+      WHERE ev.customer_user_id IS NOT NULL
     )
     SELECT
       media_source,
       app_id,
-      COUNTIF(engagement_type = 'click') AS clicks,               -- סך הקליקים
-      COUNTIF(engagement_type = 'impression') AS impressions,     -- סך החשיפות
-      COUNT(DISTINCT conversion_time) AS conversions,             -- סך ההמרות הייחודיות
+      COUNTIF(engagement_type = 'click') AS clicks,
+      COUNTIF(engagement_type = 'impression') AS impressions,
+      COUNT(DISTINCT conversion_time) AS conversions,
       SAFE_DIVIDE(COUNT(DISTINCT conversion_time), COUNTIF(engagement_type = 'click')) AS CVR
-        -- חישוב יחס ההמרה (CVR), תוך הגנה מפני חלוקה באפס
     FROM joined_data
     GROUP BY media_source, app_id
-    HAVING (clicks + impressions) > @minTraffic
-       AND conversions < @minConversions
-       -- סינון לפי טראפיק גבוה אך המרות נמוכות
-    ORDER BY CVR ASC -- כדי לחשוף קודם את המקרים הכי חשודים (יחס המרה נמוך במיוחד)
+    HAVING (clicks + impressions) > @minTraffic AND conversions < @minConversions
+    ORDER BY CVR ASC
     LIMIT @limit
   `;
 
   try {
     const [rows] = await bigquery.query({
       query,
-      params: { minTraffic, minConversions, limit } // הכנסת ערכים דינמיים לשאילתה
+      params: { minTraffic, minConversions, limit }
     });
-    res.json(rows); // החזרת התוצאות בצורת JSON
+    res.json(rows);
   } catch (err) {
-    res.status(500).send(err.message); // במקרה של שגיאה - החזרת קוד 500 עם פירוט
+    console.error('❌ Error in getSuspiciousTrafficCases:', err);
+    res.status(500).json({ error: err.message });
   }
 };

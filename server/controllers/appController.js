@@ -1,114 +1,131 @@
-/**
- * בקר אפליקציות
- * מטפל בניתוחים לפי אפליקציות: אפליקציות עם הכי הרבה טראפיק, פירוט לפי מקורות וסוכנויות, והמרות.
- */
+// controllers/appController.js
 
 import { bigquery, nameDB } from '../config/bigqueryConfig.js';
 
-// שמות הטבלאות מתוך הקונפיגורציה
 const eventsTable = `${nameDB}.attribution_end_user_events.end_user_events`;
 const conversionsTable = `${nameDB}.conversions.conversions`;
 
 /**
- * החזרת אפליקציות עם הכי הרבה טראפיק (קליקים + חשיפות)
+ * Returns the top apps by total traffic (clicks + impressions).
+ * Optional query param: ?limit=10
  */
 export const getTopApps = async (req, res) => {
-  const { limit = 10 } = req.query; // מספר שורות להחזיר, ברירת מחדל 10
-
-  const query = `
-    SELECT sub_param_1 AS app_id,
-           COUNTIF(engagement_type = 'click') AS clicks,         -- סך הקליקים
-           COUNTIF(engagement_type = 'impression') AS impressions -- סך החשיפות
-    FROM \`${eventsTable}\`
-    WHERE sub_param_1 IS NOT NULL -- נוודא שיש מזהה אפליקציה
-    GROUP BY app_id
-    ORDER BY clicks + impressions DESC -- סידור לפי טראפיק כולל
-    LIMIT ${limit}
-  `;
-
+    
+      const { limit, startDate, endDate, sortBy } = req.query;
+  
+      const defaultEndDate = dayjs().startOf('day');
+      const defaultStartDate = defaultEndDate.subtract(7, 'day');
+  
+      const parsedStartDate = startDate ? dayjs(startDate) : defaultStartDate;
+      const parsedEndDate = endDate ? dayjs(endDate) : defaultEndDate;
+  
+      const limitClause = limit && limit.toUpperCase() === 'ALL' ? '' : `LIMIT ${parseInt(limit) || 10}`;
+  
+      const validSorts = ['clicks', 'impressions'];
+      const orderByColumn = validSorts.includes(sortBy) ? sortBy : 'clicks';
+  
+      const query = `
+        SELECT
+          sub_param_1 AS app_id,
+          sub_param_1 AS name,
+          COUNTIF(engagement_type = 'click') AS clicks,
+          COUNTIF(engagement_type = 'impression') AS impressions
+        FROM \`${eventsTable}\`
+        WHERE sub_param_1 IS NOT NULL
+          AND event_time BETWEEN TIMESTAMP("${parsedStartDate.toISOString()}") AND TIMESTAMP("${parsedEndDate.toISOString()}")
+        GROUP BY sub_param_1
+        ORDER BY ${orderByColumn} DESC
+        ${limitClause}
+      `;
+    
   try {
-    const [rows] = await bigquery.query(query); // ביצוע השאילתה
-    res.json(rows); // החזרת התוצאה למשתמש
-  } catch (error) {
-    res.status(500).send(error.message); // טיפול בשגיאות
+    const [rows] = await bigquery.query({ query, params: { limit } });
+    res.json(rows);
+  } catch (err) {
+    console.error('❌ Error fetching top apps:', err);
+    res.status(500).json({ error: err.message });
   }
 };
 
 /**
- * החזרת פירוט תנועה לפי מקור מדיה וסוכנות עבור אפליקציה מסוימת
+ * Returns traffic breakdown by media source and agency for a specific app.
+ * Required query param: ?appId=...
  */
 export const getAppsTrafficBreakdown = async (req, res) => {
-  const { appId, limit = 10 } = req.query;
+  const { appId } = req.query;
 
-  if (!appId) return res.status(400).json({ error: 'Missing appId' }); // ולידציה לפרמטר חובה
+  if (!appId || typeof appId !== 'string' || appId.trim() === '') {
+    return res.status(400).json({ error: 'Missing or invalid appId param' });
+  }
 
   const query = `
-    SELECT media_source,
-           agency,
-           COUNTIF(engagement_type = 'click') AS clicks,         -- סך הקליקים מכל מקור+סוכנות
-           COUNTIF(engagement_type = 'impression') AS impressions -- סך החשיפות
+    SELECT
+      media_source,
+      agency,
+      COUNTIF(engagement_type = 'click') AS clicks,
+      COUNTIF(engagement_type = 'impression') AS impressions
     FROM \`${eventsTable}\`
     WHERE sub_param_1 = @appId
     GROUP BY media_source, agency
-    ORDER BY clicks + impressions DESC -- דירוג לפי טראפיק כולל
-    LIMIT ${limit}
+    ORDER BY clicks + impressions DESC
   `;
 
   try {
-    const [rows] = await bigquery.query({ query, params: { appId } }); // שאילתה עם פרמטר
+    const [rows] = await bigquery.query({ query, params: { appId } });
     res.json(rows);
-  } catch (error) {
-    res.status(500).send(error.message); // החזרת שגיאה במקרה הצורך
+  } catch (err) {
+    console.error('❌ Error fetching traffic breakdown:', err);
+    res.status(500).json({ error: err.message });
   }
 };
 
 /**
- * החזרת נתוני תנועה + המרות + יחס המרה (CVR) לפי מקור וסוכנות עבור אפליקציה מסוימת
+ * Returns conversion data for an app, grouped by media source and agency.
+ * Includes: clicks, impressions, conversions, and CVR (conversion rate).
+ * Required query param: ?appId=...
  */
 export const getAppsTrafficConversions = async (req, res) => {
-  const { appId, limit = 10 } = req.query;
-  if (!appId) return res.status(400).json({ error: 'Missing appId' });
+  const { appId } = req.query;
+
+  if (!appId || typeof appId !== 'string' || appId.trim() === '') {
+    return res.status(400).json({ error: 'Missing or invalid appId param' });
+  }
 
   const query = `
-    WITH base_events AS (
-      SELECT customer_user_id, media_source, agency, sub_param_1 AS app_id,
-             engagement_type, event_time AS event_time_click
+    WITH events AS (
+      SELECT
+        customer_user_id,
+        media_source,
+        agency,
+        engagement_type
       FROM \`${eventsTable}\`
       WHERE sub_param_1 = @appId
-        AND engagement_type IN ('click', 'impression') -- רק אירועים רלוונטיים
-        AND customer_user_id IS NOT NULL -- חייב להיות מזהה משתמש לקישור
     ),
-    base_conversions AS (
-      SELECT customer_user_id, unified_app_id AS app_id, event_time AS conversion_time
+    conversions AS (
+      SELECT
+        customer_user_id,
+        unified_app_id AS app_id,
+        event_time AS conversion_time
       FROM \`${conversionsTable}\`
-      WHERE unified_app_id = @appId
-        AND customer_user_id IS NOT NULL
-    ),
-    joined_data AS (
-      SELECT ev.media_source, ev.agency, ev.engagement_type,
-             ev.event_time_click, conv.conversion_time
-      FROM base_events ev
-      LEFT JOIN base_conversions conv
-        ON ev.customer_user_id = conv.customer_user_id
-        AND TIMESTAMP_DIFF(conv.event_time, ev.event_time_click, SECOND) BETWEEN 0 AND 3600
-        -- קישור המרה רק אם בוצעה תוך שעה מהאירוע
     )
-    SELECT media_source, agency,
-           COUNTIF(engagement_type = 'click') AS clicks,
-           COUNTIF(engagement_type = 'impression') AS impressions,
-           COUNT(DISTINCT conversion_time) AS conversions, -- מספר המרות ייחודיות
-           SAFE_DIVIDE(COUNT(DISTINCT conversion_time), COUNTIF(engagement_type = 'click')) AS CVR
-           -- יחס המרה תוך מניעת חלוקה באפס
-    FROM joined_data
+    SELECT
+      media_source,
+      agency,
+      COUNTIF(engagement_type = 'click') AS clicks,
+      COUNTIF(engagement_type = 'impression') AS impressions,
+      COUNT(DISTINCT conversion_time) AS conversions,
+      SAFE_DIVIDE(COUNT(DISTINCT conversion_time), COUNTIF(engagement_type = 'click')) AS CVR
+    FROM events
+    LEFT JOIN conversions USING (customer_user_id)
     GROUP BY media_source, agency
-    ORDER BY conversions DESC -- סידור לפי כמות המרות
-    LIMIT ${limit}
+    ORDER BY clicks + impressions DESC
   `;
 
   try {
-    const [rows] = await bigquery.query({ query, params: { appId } }); // שליחת פרמטרים לשאילתה
+    const [rows] = await bigquery.query({ query, params: { appId } });
     res.json(rows);
-  } catch (error) {
-    res.status(500).send(error.message); // טיפול בשגיאה
+  } catch (err) {
+    console.error('❌ Error fetching app conversions:', err);
+    res.status(500).json({ error: err.message });
   }
 };

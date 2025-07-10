@@ -102,3 +102,4 @@ router.get('/alert/suspicious', getSuspiciousTrafficCases);
 router.get('/platforms/top', getTopPlatforms);
 
 export default router;
+
