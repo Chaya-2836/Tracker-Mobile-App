@@ -157,7 +157,7 @@ export default function App() {
           />
         </View>
         <View style={styles.container}>
-          {/* <Text style={Chartstyles.title}>{getChartTitle(selectedFilters)}</Text> */}
+          <Text style={Chartstyles.title}>{getChartTitle(selectedFilters)}</Text>
           <FilterBar
             options={filterOptions}
             selected={selectedFilters}

@@ -109,7 +109,7 @@ export async function getEventsSummary(req, res) {
       }
     }
 
-    // ✅ יום נוכחי או לפי תאריך יחיד
+    // ✅ current day or single day
     else if (daysMode === 'day') {
       if (useCurrentDate) {
         filters.push(`DATE(event_time, "Asia/Jerusalem") = CURRENT_DATE("Asia/Jerusalem")`);
@@ -123,7 +123,7 @@ export async function getEventsSummary(req, res) {
       groupClause = `GROUP BY event_date ORDER BY event_date`;
     }
 
-    // ✅ ברירת מחדל — שבוע אחרון
+    // ✅ default-last week
     else {
       if (useCurrentDate) {
         filters.push(`
