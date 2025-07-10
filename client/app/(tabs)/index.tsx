@@ -17,7 +17,7 @@ import ChartPanel from '../../components/Dashboard/ChartPanel';
 import FiltersPanel from '../../components/Dashboard/FiltersPanel';
 import DashboardPanel from '../../components/Dashboard/DashboardPanel';
 import DonutPanel from '../../components/Dashboard/DonutPanel';
-
+// import Spinner from '../../components/ui/Spinner';
 const initialLayout = { width: Dimensions.get('window').width };
 
 export default function App() {
@@ -44,7 +44,7 @@ export default function App() {
   } = useDashboardData();
 
   const renderScene = ({ route }: any) => {
-    if (loading) return <ActivityIndicator size="large" color="#0000ff" />;
+    // if (loading) return <Spinner />;
 
     const isClicks = route.key === 'clicks';
 
@@ -52,33 +52,42 @@ export default function App() {
       <ScrollView>
         <SuspiciousPanel />
         <View style={{ paddingTop: 12 }}>
-          <StatsPanel isClicks={isClicks} clicksToday={clicksToday} impressionsToday={impressionsToday} />
-          <FiltersPanel
-            filterOptions={filterOptions}
-            selectedFilters={selectedFilters}
-            expandedSections={expandedSections}
-            searchTexts={searchTexts}
-            onSelect={setSelectedFilters}
-            onToggleExpand={toggleExpand}
-            onSearchTextChange={setSearchTexts}
-            onClear={handleClear}
-            onApply={handleApply}
-          />
-          <ChartPanel
-            isClicks={isClicks}
-            clickTrend={clickTrend}
-            impressionTrend={impressionTrend}
-            chartTitle={getChartTitle(selectedFilters)}
-          />
+          <View style={styles.container}>
+            <StatsPanel isClicks={isClicks} clicksToday={clicksToday} impressionsToday={impressionsToday} />
+          </View>
+          <View style={styles.container}>
+
+            <FiltersPanel
+              filterOptions={filterOptions}
+              selectedFilters={selectedFilters}
+              expandedSections={expandedSections}
+              searchTexts={searchTexts}
+              onSelect={setSelectedFilters}
+              onToggleExpand={toggleExpand}
+              onSearchTextChange={setSearchTexts}
+              onClear={handleClear}
+              onApply={handleApply}
+            />
+            <ChartPanel
+              isClicks={isClicks}
+              clickTrend={clickTrend}
+              impressionTrend={impressionTrend}
+              chartTitle={getChartTitle(selectedFilters)}
+            />
+          </View>
+          <View style={styles.container}>
+            <DashboardPanel scene={route.key} />
+          </View>
         </View>
-        <DashboardPanel scene={route.key} />
-        <DonutPanel />
+        <View style={styles.container}>
+          <DonutPanel />
+        </View>
       </ScrollView>
     );
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.containerpage}>
       <View style={styles.headerRow}>
         <Text style={styles.header}>Engagement Tracker</Text>
       </View>

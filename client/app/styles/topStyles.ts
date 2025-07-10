@@ -1,7 +1,10 @@
 import { StyleSheet } from 'react-native';
 
 const styles = StyleSheet.create({
-
+  container: {
+    padding: 20,
+    flex: 1,
+  },
   selector: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -11,32 +14,17 @@ const styles = StyleSheet.create({
   selectorLabel: {
     fontSize: 16,
     fontWeight: '500',
+    marginLeft: 15,
   },
   input: {
     width: 60,
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 6,
-    padding: 6,
+     padding: 5,
     textAlign: 'center',
   },
-  rowWrap: {
-    flexDirection: 'row',
-    gap: 20,
-    paddingRight: 20,
-  },
-  card: {
-    backgroundColor: '#fff',
-    padding: 16,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 8,
-    elevation: 2,
-    marginBottom: 20,
-    width: 315,
-  },
+
   title: {
     fontSize: 16,
     fontWeight: '600',

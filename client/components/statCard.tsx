@@ -10,7 +10,7 @@ interface StatCardProps {
 
 const StatCard: React.FC<StatCardProps> = ({ title, value }) => {
   return (
-    <View style={styles.card}>
+    <View>
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.value}>{value}</Text>
     </View>

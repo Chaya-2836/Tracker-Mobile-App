@@ -1,6 +1,7 @@
 import React from 'react';
-import TrendChart from '../../components/TrendChart';
+import TrendChart from './TrendChart';
 import Chartstyles from '../../app/styles/trendChartStyles';
+import styles from '../../app/styles/appStyles';
 import { Text, View } from 'react-native';
 
 interface ChartPanelProps {
@@ -12,7 +13,7 @@ interface ChartPanelProps {
 
 export default function ChartPanel({ isClicks, clickTrend, impressionTrend, chartTitle }: ChartPanelProps) {
   return (
-    <View style={Chartstyles.chartContainer}>
+    <View>
       <Text style={Chartstyles.title}>{chartTitle}</Text>
       <TrendChart data={isClicks ? clickTrend : impressionTrend} />
     </View>

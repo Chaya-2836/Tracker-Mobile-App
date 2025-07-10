@@ -1,7 +1,7 @@
 import React from 'react';
 import { useWindowDimensions } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
-import Chartstyles, { chartConfig } from '../app/styles/trendChartStyles';
+import Chartstyles, { chartConfig } from '../../app/styles/trendChartStyles';
 
 interface TrendChartProps {
   data: { label: Date; value: number }[];

@@ -27,11 +27,10 @@ export default function DonutWithSelector() {
     platform: 'Platform',
   };
 
-  const title = `Traffic Distribution by ${groupByLabels[groupBy] || 'Group'}`;
+  const title = `Traffic Distribution by ${groupByLabels[groupBy] || 'Group'} (Last Week)`;
 
   return (
-    <View style={styles.wrapper}>
-      <View style={styles.container}>
+    <View >
         <Text style={styles.title}>{title}</Text>
         <GroupBySelector value={groupBy} onChange={setGroupBy} />
         {loading ? (
@@ -42,6 +41,5 @@ export default function DonutWithSelector() {
           <DonutChartWithLegend data={data} />
         )}
       </View>
-    </View>
   );
 }
