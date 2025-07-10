@@ -4,8 +4,10 @@ import { BigQuery } from '@google-cloud/bigquery';
 import eventsSummaryRoutes from './routes/eventsSummaryRoutes.js';
 import filtersRoutes from './routes/filtersRoutes.js';
 import pushRoutes from './routes/pushRoutes.js';
-import { scheduleDailyCheck } from './push/pushService.js';
+import { scheduleDailyCheck } from './push/PushService.js';
 import trafficAnalyticsRoutes from './routes/trafficAnalyticsRoutes.js';
+import analyticsRoutes from './routes/trafficAnalyticsRoutes.js';
+
 const app = express();
 const port = 8021;
 // פתרון בעיית ה cors
@@ -27,10 +29,11 @@ app.use('/events_summary', eventsSummaryRoutes);
 app.use('/filters', filtersRoutes);
 app.use('/push', pushRoutes);
 app.use('/trafficAnalytics', trafficAnalyticsRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 
 // קריאה לפונקציית בדיקת הפוש המתוזמנת
-scheduleDailyCheck();
+// scheduleDailyCheck();
 
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);

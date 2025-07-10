@@ -61,3 +61,9 @@ export const fetchSuspiciousTrafficCases = async (
   });
   return data;
 };
+
+export const fetchTopPlatforms = async (): Promise<ApiResponse> => {
+  const { data } = await axios.get(`${BASE_URL}/platforms/top`);
+  return data;
+};
+

@@ -1,5 +1,6 @@
-import { StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import { StyleSheet, ViewStyle, TextStyle, Platform } from 'react-native';
 interface AppStyles {
+  containerpage: ViewStyle;
   container: ViewStyle;
   headerRow: ViewStyle;
   header: TextStyle;
@@ -11,12 +12,39 @@ const styles = StyleSheet.create<AppStyles>({
 headerContainer: {
   paddingHorizontal: 16,
   paddingTop: 20,
-  paddingBottom: 16, // was 5 → now 16 to add space below the button
+  paddingBottom: 16, 
   alignItems: 'center',
   position: 'relative',
-},
+},  
+container: {
+   alignSelf: "center",
+    backgroundColor: '#fff',
+    marginHorizontal: 20,
+    marginBottom: 20,
+    padding: 16,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 8,
+    elevation: 2,
+    width:"95%",
+        overflow: 'hidden',
+        ...Platform.select({
+          ios: {
+            shadowColor: '#000',
+            shadowOpacity: 0.05,
+            shadowOffset: { width: 0, height: 2 },
+            shadowRadius: 8,
+          },
+          android: {
+            elevation: 3,
+          },
+        }),
+    
+  },
 
-  container: {
+  containerpage: {
     flex: 1,
     backgroundColor: '#f7f9fc',
     paddingTop: 20,
@@ -43,6 +71,7 @@ header: {
 
   tabBarStyle: {
     backgroundColor: '#ecf0f1',
+    marginBottom: 10,
   },
 
   tabBarLabel: {

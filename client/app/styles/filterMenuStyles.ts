@@ -5,7 +5,7 @@ const styles = StyleSheet.create({
     position: 'relative',
     zIndex: 10,
     backgroundColor: '#fff',
-    paddingTop: 6, // slight drop down
+    paddingTop: 6, 
   },
   scrollWrapper: {
     paddingHorizontal: 10,

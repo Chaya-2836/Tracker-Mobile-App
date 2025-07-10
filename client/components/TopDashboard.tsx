@@ -1,5 +1,4 @@
-// TopDashboard.tsx
-import style from "@/app/styles/topStyles";
+import style from "../app/styles/topStyles";
 import { View, Text, ScrollView, Dimensions } from "react-native";
 import React, { useState, useEffect } from "react";
 import { TabView, TabBar, SceneMap } from "react-native-tab-view";
@@ -12,13 +11,12 @@ import {
   fetchTopAgencies,
   fetchTopApps,
   fetchTopMediaSources,
-} from "@/app/Api/trafficAnalyticsAPI";
+} from "../Api/trafficAnalyticsAPI";
 
-import ErrorComponent from "./ErrorComponent";
 import Spinner from "./Spinner";
 
 export default function TopDashboard({ scene }: { scene: string }) {
-  const [topN, setTopN] = useState(1);
+  const [topN, setTopN] = useState(9);
   const [mediaData, setMediaData] = useState([]);
   const [agencyData, setAgencyData] = useState([]);
   const [appData, setAppData] = useState([]);
@@ -77,7 +75,7 @@ export default function TopDashboard({ scene }: { scene: string }) {
               {...props}
               indicatorStyle={styles.tabBarIndicator}
               style={styles.tabBarStyle}
-              labelStyle={styles.tabBarLabel}
+              // labelStyle={styles.tabBarLabel}
               activeColor="#2c62b4"
               inactiveColor="#7f8c8d"
             />

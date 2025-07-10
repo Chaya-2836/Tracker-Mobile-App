@@ -28,6 +28,7 @@ import {
   getSuspiciousTrafficCases
 } from '../controllers/alertController.js';
 
+import { getTopPlatforms } from '../controllers/PlatformController.js';
 // ----------------------------------------------------
 // ראוטים למקורות מדיה
 // ----------------------------------------------------
@@ -98,5 +99,6 @@ router.get('/alert/high-traffic', alertHighTraffic);
  */
 router.get('/alert/suspicious', getSuspiciousTrafficCases);
 
-// ייצוא הנתיבים החוצה (לשימוש ב-app.js)
+router.get('/platforms/top', getTopPlatforms);
+
 export default router;
