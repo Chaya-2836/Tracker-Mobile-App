@@ -1,4 +1,4 @@
-import { fetchSuspiciousTrafficCases } from "@/app/Api/trafficAnalyticsAPI";
+import { fetchSuspiciousTrafficCases } from "../../Api/trafficAnalyticsAPI";
 import { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, useWindowDimensions } from "react-native";
 import styles from "../../app/styles/suspiciousTrafficPanelStyles";

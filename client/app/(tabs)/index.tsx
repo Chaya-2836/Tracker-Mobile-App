@@ -12,13 +12,18 @@ import {
 import { TabView, TabBar } from 'react-native-tab-view';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
-
 import styles from '../styles/appStyles';
 import StatCard from '../../components/statCard';
 import TrendChart from '../../components/TrendChart';
-import FilterBar from '../../components/FilterMenu';
-import { getTodayStats, getWeeklyTrends } from '../Api/analytics';
-import { fetchAllFilters } from '../Api/filters';
+import FilterBar from '../../components/FilterBar/FilterBar';
+import { getTodayStats, getWeeklyTrends } from '../../Api/analytics';
+import { fetchAllFilters } from '../../Api/filters';
+import TopDashboard from '../../components/TopDashboard';
+import SuspiciousTrafficPanel from '../../components/ui/SuspiciousTrafficPanel';
+import Chartstyles from '../styles/trendChartStyles';
+import DonutWithSelector from '../../components/AgentStats/DonutWithSelector';
+import Spinner from '../../components/Spinner';
+
 
 interface TrendPoint {
   label: Date;
@@ -51,30 +56,10 @@ export default function App() {
   const [searchTexts, setSearchTexts] = useState<{ [label: string]: string }>({});
 
   useEffect(() => {
-    registerForPushNotifications();
     fetchData();
     fetchTrends({});
     fetchFilterData();
   }, []);
-
-  async function registerForPushNotifications() {
-    if (Device.isDevice) {
-      const { status: existingStatus } = await Notifications.getPermissionsAsync();
-      let finalStatus = existingStatus;
-      if (existingStatus !== 'granted') {
-        const { status } = await Notifications.requestPermissionsAsync();
-        finalStatus = status;
-      }
-      if (finalStatus === 'granted') {
-        const token = (await Notifications.getExpoPushTokenAsync()).data;
-        await fetch('http://localhost:3000/push/register-token', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token }),
-        });
-      }
-    }
-  }
 
   async function fetchData() {
     try {
@@ -150,51 +135,65 @@ async function fetchTrends(filters: { [key: string]: string[] }) {
   const getChartTitle = (filters: { [key: string]: string[] }) => {
     const from = filters.fromDate?.[0];
     const to = filters.toDate?.[0];
-    const type= index === 0 ? 'Clicks' : 'Impressions';
-    if (from && to ) {
+    const type = index === 0 ? 'Clicks' : 'Impressions';
+
+    if (from && to) {
       return `${type} Volume Trend (${formatDate(from)} → ${formatDate(to)})`;
     }
-
-    return 'Click Volume Trend (Last 7 Days)';
+    else if (from) {
+      return `${type} Volume Trend (${formatDate(from)} → ${new Date().toLocaleDateString('en-CA')})`;
+    }
+    return `${type} Volume Trend (Last 7 Days)`;
   };
   
   const renderScene = ({ route }: any) => {
-    if (loading) return <ActivityIndicator size="large" color="#0000ff" />;
+    if (loading) return <Spinner />;
+
+    const isClicks = route.key === 'clicks';
 
     return (
       <ScrollView>
-        <FilterBar
-          options={filterOptions}
-          selected={selectedFilters}
-          onSelect={setSelectedFilters}
-          expanded={expandedSections}
-          onToggleExpand={toggleExpand}
-          searchText={searchTexts}
-          onSearchTextChange={setSearchTexts}
-          onClear={handleClear}
-          onApply={handleApply}
-        />
+        <View style={{ marginTop: 10 }}>
+          <SuspiciousTrafficPanel />
+        </View>
 
-        <View style={{ paddingTop: 12 }}>
-          {route.key === 'clicks' ? (
-            <>
-              <StatCard title="Clicks Recorded Today" value={clicksToday} />
-              <TrendChart title={getChartTitle(selectedFilters)} data={clickTrend} />
-            </>
-          ) : (
-            <>
-              <StatCard title="Impressions Recorded Today" value={impressionsToday} />
-              <TrendChart title={getChartTitle(selectedFilters)} data={impressionTrend} />
-            </>
-          )}
+        <View style={styles.container}>
+          <StatCard
+            title={isClicks ? "Clicks Recorded Today" : "Impressions Recorded Today"}
+            value={isClicks ? clicksToday : impressionsToday}
+          />
+        </View>
+        <View style={styles.container}>
+          <Text style={Chartstyles.title}>{getChartTitle(selectedFilters)}</Text>
+          <FilterBar
+            options={filterOptions}
+            selected={selectedFilters}
+            onSelect={setSelectedFilters}
+            expanded={expandedSections}
+            onToggleExpand={toggleExpand}
+            searchText={searchTexts}
+            onSearchTextChange={setSearchTexts}
+            onClear={handleClear}
+            onApply={handleApply}
+          />
+          <TrendChart data={isClicks ? clickTrend : impressionTrend} />
+
+        </View>
+
+
+        <View style={styles.container}>
+          <TopDashboard scene={route.key} />
+        </View>
+
+        <View style={styles.container}>
+          <DonutWithSelector />
         </View>
       </ScrollView>
     );
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
+    <SafeAreaView style={styles.containerpage}>
       <View style={styles.headerRow}>
         <Text style={styles.header}>Engagement Tracker</Text>
       </View>
@@ -208,18 +207,17 @@ async function fetchTrends(filters: { [key: string]: string[] }) {
           initialLayout={initialLayout}
           swipeEnabled={false}
           animationEnabled={false}
-          renderTabBar={props => <TabBar
-            {...props}
-            indicatorStyle={styles.tabBarIndicator}
-            style={styles.tabBarStyle}
-            labelStyle={styles.tabBarLabel}
-            activeColor="#2c62b4"
-            inactiveColor="#7f8c8d"
-          />}
+          renderTabBar={props => (
+            <TabBar
+              {...props}
+              indicatorStyle={styles.tabBarIndicator}
+              style={styles.tabBarStyle}
+              activeColor="#2c62b4"
+              inactiveColor="#7f8c8d"
+            />
+          )}
         />
       </View>
     </SafeAreaView>
   );
 }
-
-

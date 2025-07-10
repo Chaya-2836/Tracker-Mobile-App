@@ -3,9 +3,9 @@ import cors from 'cors';
 import eventsSummaryRoutes from './routes/eventsSummaryRoutes.js';
 import filtersRoutes from './routes/filtersRoutes.js';
 import pushRoutes from './routes/pushRoutes.js';
-import { scheduleDailyCheck } from './push/pushService.js';
+import { scheduleDailyCheck } from './push/PushService.js';
 import trafficAnalyticsRoutes from './routes/trafficAnalyticsRoutes.js';
-import { createBigQueryClient } from './config/bigqueryClient.js'; // חדש
+import analyticsRoutes from './routes/trafficAnalyticsRoutes.js';
 
 const app = express();
 const port = 8021;
@@ -22,14 +22,16 @@ createBigQueryClient()
     app.locals.bigquery = bigquery;
     app.locals.nameDB = nameDB;
 
-    // רישום ראוטים
-    app.use('/events_summary', eventsSummaryRoutes);
-    app.use('/filters', filtersRoutes);
-    app.use('/push', pushRoutes);
-    app.use('/trafficAnalytics', trafficAnalyticsRoutes);
+// רישום ראוטים
+app.use('/events_summary', eventsSummaryRoutes);
+app.use('/filters', filtersRoutes);
+app.use('/push', pushRoutes);
+app.use('/trafficAnalytics', trafficAnalyticsRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
-    // קריאה לפונקציית בדיקת הפוש המתוזמנת
-    scheduleDailyCheck();
+
+// קריאה לפונקציית בדיקת הפוש המתוזמנת
+// scheduleDailyCheck();
 
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);

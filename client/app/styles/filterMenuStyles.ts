@@ -5,7 +5,7 @@ const styles = StyleSheet.create({
     position: 'relative',
     zIndex: 10,
     backgroundColor: '#fff',
-    paddingTop: 6, // slight drop down
+    paddingTop: 6, 
   },
   scrollWrapper: {
     paddingHorizontal: 10,
@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
     borderColor: '#dfe6e9',
     marginTop:2,
     marginBottom: 8,
-    paddingLeft:8,
+    paddingLeft:6,
     fontSize: 13,
   },
   optionItem: {
