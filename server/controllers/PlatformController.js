@@ -22,6 +22,7 @@ export const getTopPlatforms = async (req, res) => {
     const query = `
       SELECT
         platform,
+        platform AS name,
         COUNTIF(engagement_type = 'click') AS clicks,
         COUNTIF(engagement_type = 'impression') AS impressions
       FROM \`${eventsTable}\`

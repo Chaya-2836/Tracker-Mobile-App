@@ -29,6 +29,7 @@ export const getTopMediaSources = async (req, res) => {
 
     const query = `
       SELECT
+        media_source,
         media_source AS name,
         COUNTIF(engagement_type = 'click') AS clicks,
         COUNTIF(engagement_type = 'impression') AS impressions

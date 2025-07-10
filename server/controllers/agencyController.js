@@ -26,6 +26,7 @@ export const getTopAgencies = async (req, res) => {
 
     const query = `
       SELECT
+        agency,
         agency AS name,
         COUNTIF(engagement_type = 'click') AS clicks,
         COUNTIF(engagement_type = 'impression') AS impressions

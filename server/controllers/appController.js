@@ -26,6 +26,7 @@ export const getTopApps = async (req, res) => {
   
       const query = `
         SELECT
+          sub_param_1 AS app_id,
           sub_param_1 AS name,
           COUNTIF(engagement_type = 'click') AS clicks,
           COUNTIF(engagement_type = 'impression') AS impressions
