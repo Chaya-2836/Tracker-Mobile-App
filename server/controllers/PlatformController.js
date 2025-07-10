@@ -1,7 +1,6 @@
-import { BigQuery } from '@google-cloud/bigquery';
+import { bigquery, nameDB } from '../config/bigqueryConfig.js';
 import dayjs from 'dayjs';
 
-const bigquery = new BigQuery();
 const eventsTable = `${nameDB}.attribution_end_user_events.end_user_events`;
 
 export const getTopPlatforms = async (req, res) => {

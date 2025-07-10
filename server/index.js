@@ -11,8 +11,9 @@ import appRoutes from './routes/appRoutes.js';
 import alertRoutes from './routes/alertRoutes.js';
 
 
-import { scheduleDailyCheck } from './push/pushService.js';
 import { createBigQueryClient } from './config/bigqueryClient.js';
+import { scheduleDailyCheck } from './push/PushService.js';
+import analyticsRoutes from './routes/trafficAnalyticsRoutes.js';
 
 const app = express();
 const port = 8021;
@@ -38,7 +39,7 @@ createBigQueryClient()
     app.use('/trafficAnalytics/agency', agencyRoutes);
     app.use('/trafficAnalytics/apps', appRoutes);
     app.use('/trafficAnalytics/alert', alertRoutes);
-
+    app.use('/api/analytics', analyticsRoutes);
     // Start daily scheduled push check
     scheduleDailyCheck();
 
@@ -46,7 +47,7 @@ createBigQueryClient()
       console.log(`Server is running at http://localhost:${port}`);
     });
   })
-  .catch(err => {
+ .catch(err => {
     console.error('Error initializing BigQuery client:', err);
     process.exit(1); // Exit the process if BigQuery client fails to initialize
   });
