@@ -11,21 +11,31 @@ const conversionsTable = `${nameDB}.conversions.conversions`;
  * Optional query param: ?limit=10
  */
 export const getTopAgencies = async (req, res) => {
-  const limit = parseInt(req.query.limit, 10) || 10;
+      const { limit, startDate, endDate, sortBy } = req.query;
 
-  const query = `
-    SELECT
-      agency,
-      sub_param_1 AS app_id,
-      COUNTIF(engagement_type = 'click') AS clicks,
-      COUNTIF(engagement_type = 'impression') AS impressions
-    FROM \`${eventsTable}\`
-    WHERE agency IS NOT NULL
-    GROUP BY agency, app_id
-    ORDER BY clicks DESC
-    LIMIT @limit
-  `;
+    const defaultEndDate = dayjs().startOf('day');
+    const defaultStartDate = defaultEndDate.subtract(7, 'day');
 
+    const parsedStartDate = startDate ? dayjs(startDate) : defaultStartDate;
+    const parsedEndDate = endDate ? dayjs(endDate) : defaultEndDate;
+
+    const limitClause = limit && limit.toUpperCase() === 'ALL' ? '' : `LIMIT ${parseInt(limit) || 10}`;
+
+    const validSorts = ['clicks', 'impressions'];
+    const orderByColumn = validSorts.includes(sortBy) ? sortBy : 'clicks';
+
+    const query = `
+      SELECT
+        agency AS name,
+        COUNTIF(engagement_type = 'click') AS clicks,
+        COUNTIF(engagement_type = 'impression') AS impressions
+      FROM \`${eventsTable}\`
+      WHERE agency IS NOT NULL
+        AND event_time BETWEEN TIMESTAMP("${parsedStartDate.toISOString()}") AND TIMESTAMP("${parsedEndDate.toISOString()}")
+      GROUP BY agency
+      ORDER BY ${orderByColumn} DESC
+      ${limitClause}
+    `;
   try {
     const [rows] = await bigquery.query({ query, params: { limit } });
     res.json(rows);

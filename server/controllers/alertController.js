@@ -14,7 +14,7 @@ export const alertHighTraffic = async (req, res) => {
 
   const query = `
     SELECT
-      media_source,
+      media_source ,
       sub_param_1 AS app_id,
       COUNTIF(engagement_type = 'click') AS clicks,
       COUNTIF(engagement_type = 'impression') AS impressions

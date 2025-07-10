@@ -19,6 +19,7 @@ export const fetchAppsByMediaSource = async (mediaSource: string): Promise<ApiRe
 // Advertising agencies
 export const fetchTopAgencies = async (limit: number = 10): Promise<ApiResponse> => {
   const { data } = await axios.get(`${BASE_URL}/agency/top`, { params: { limit } });
+  console.log('Top agencies data:', data);
   return data;
 };
 
@@ -61,3 +62,9 @@ export const fetchSuspiciousTrafficCases = async (
   });
   return data;
 };
+
+export const fetchTopPlatforms = async (): Promise<ApiResponse> => {
+  const { data } = await axios.get(`${BASE_URL}/platforms/top`);
+  return data;
+};
+
