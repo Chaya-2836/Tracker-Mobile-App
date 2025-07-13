@@ -48,7 +48,7 @@ const TrendChart: React.FC<TrendChartProps> = ({ data, granularity }) => {
   };
 
   const scrollRight = () => {
-    const maxX = Math.max(chartWidth - availableWidth, 0);
+    const maxX = Math.max(chartWidth - containerWidth, 0);
     const nextX = Math.min(scrollX + screenWidth / 2, maxX);
     scrollRef.current?.scrollTo({ x: nextX, animated: true });
     setScrollX(nextX);
@@ -62,16 +62,22 @@ const TrendChart: React.FC<TrendChartProps> = ({ data, granularity }) => {
     visible: false,
   });
 
-  const availableWidth = screenWidth - 32; // adjust for page padding
-  const chartWidth =
-    data.length <= 10
-      ? availableWidth
-      : Math.max(availableWidth, data.length * 40);
+  const containerWidth = screenWidth - 32;
+  const pointWidth = 60; // increase for better spacing
+
+  const computedWidth = data.length * pointWidth;
+
+  const chartWidth = Math.max(containerWidth, computedWidth);
+  const enableScroll = chartWidth > containerWidth;
+
+  const tooltipX = Math.min(Math.max(tooltipPos.x, 5), chartWidth - 80);
+  const tooltipY =
+    tooltipPos.y < 40 ? tooltipPos.y + 30 : tooltipPos.y - 30;
 
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
       <View style={{ position: 'relative', flex: 1 }}>
-        {chartWidth > availableWidth && (
+        {enableScroll && (
           <>
             <TouchableOpacity style={Chartstyles.leftArrow} onPress={scrollLeft}>
               <Text style={Chartstyles.arrowIcon}>‹</Text>
@@ -82,52 +88,52 @@ const TrendChart: React.FC<TrendChartProps> = ({ data, granularity }) => {
             </TouchableOpacity>
           </>
         )}
-
-        <ScrollView
-          horizontal={chartWidth > availableWidth}
-          ref={scrollRef}
-          onScroll={handleScroll}
-          scrollEventThrottle={16}
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ minWidth: availableWidth }}
-        >
-          <View style={Chartstyles.chartContainer}>
-            <LineChart
-              data={{ labels, datasets: [{ data: values }] }}
-              width={chartWidth}
-              height={220}
-              withDots
-              withInnerLines={false}
-              withOuterLines={false}
-              chartConfig={chartConfig}
-              style={Chartstyles.chart}
-              onDataPointClick={({ index, value, x, y }) => {
-                const label = labels[index];
-                setTooltipPos({ x, y, value, label, visible: true });
-                setTimeout(
-                  () => setTooltipPos(p => ({ ...p, visible: false })),
-                  3000
-                );
-              }}
-            />
-{tooltipPos.visible && (
-  <View
-    style={{
-      position: 'absolute',
-      zIndex: 9999,
-    }}
-  >
-    <TooltipForChart
-      x={Math.min(Math.max(tooltipPos.x, 10), screenWidth - 100)} // keep tooltip inside horizontal bounds
-      y={tooltipPos.y < 40 ? tooltipPos.y + 30 : tooltipPos.y - 30} // if too high, show below
-      value={tooltipPos.value}
-      label={tooltipPos.label}
+<ScrollView
+  horizontal
+  ref={scrollRef}
+  onScroll={handleScroll}
+  scrollEventThrottle={16}
+  showsHorizontalScrollIndicator={false}
+  contentContainerStyle={{ width: chartWidth }}
+>
+  <View style={Chartstyles.chartContainer}>
+    <LineChart
+      data={{ labels, datasets: [{ data: values }] }}
+      width={chartWidth}
+      height={220}
+      withDots
+      withInnerLines={false}
+      withOuterLines={false}
+      chartConfig={chartConfig}
+      style={Chartstyles.chart}
+      onDataPointClick={({ index, value, x, y }) => {
+        const label = labels[index];
+        setTooltipPos({ x, y, value, label, visible: true });
+        setTimeout(
+          () => setTooltipPos(p => ({ ...p, visible: false })),
+          3000
+        );
+      }}
     />
+    {tooltipPos.visible && (
+      <View
+        style={{
+          position: 'absolute',
+          zIndex: 9999,
+        }}
+      >
+        <TooltipForChart
+          x={tooltipX}
+          y={tooltipY}
+          value={tooltipPos.value}
+          label={tooltipPos.label}
+        />
+      </View>
+    )}
   </View>
-)}
+</ScrollView>
 
-          </View>
-        </ScrollView>
+
       </View>
     </View>
   );
