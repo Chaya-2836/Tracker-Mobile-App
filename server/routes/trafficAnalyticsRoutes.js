@@ -49,10 +49,6 @@ router.get('/media/apps', getAppsByMediaSource);
 // ראוטים לסוכנויות פרסום
 // ----------------------------------------------------
 
-/**
- * החזרת סוכנויות פרסום עם הכי הרבה קליקים / הצגות
- * דוגמה לקריאה: GET /api/analytics/agency/top
- */
 router.get('/agency/top', getTopAgencies);
 
 /**

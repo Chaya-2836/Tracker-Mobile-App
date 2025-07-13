@@ -3,7 +3,7 @@
  * מטפל בניתוחים לפי אפליקציות: אפליקציות עם הכי הרבה טראפיק, פירוט לפי מקורות וסוכנויות, והמרות.
  */
 
-import { bigquery, nameDB } from '../config/bigqueryConfig.js';
+import { bigQuery, nameDB } from '../config/bigQueryConfig.js';
 
 // שמות הטבלאות מתוך הקונפיגורציה
 const eventsTable = `${nameDB}.attribution_end_user_events.end_user_events`;
@@ -27,7 +27,7 @@ export const getTopApps = async (req, res) => {
   `;
 
   try {
-    const [rows] = await bigquery.query(query); // ביצוע השאילתה
+    const [rows] = await bigQuery.query(query); // ביצוע השאילתה
     res.json(rows); // החזרת התוצאה למשתמש
   } catch (error) {
     res.status(500).send(error.message); // טיפול בשגיאות
@@ -55,7 +55,7 @@ export const getAppsTrafficBreakdown = async (req, res) => {
   `;
 
   try {
-    const [rows] = await bigquery.query({ query, params: { appId } }); // שאילתה עם פרמטר
+    const [rows] = await bigQuery.query({ query, params: { appId } }); // שאילתה עם פרמטר
     res.json(rows);
   } catch (error) {
     res.status(500).send(error.message); // החזרת שגיאה במקרה הצורך
@@ -106,7 +106,7 @@ export const getAppsTrafficConversions = async (req, res) => {
   `;
 
   try {
-    const [rows] = await bigquery.query({ query, params: { appId } }); // שליחת פרמטרים לשאילתה
+    const [rows] = await bigQuery.query({ query, params: { appId } }); // שליחת פרמטרים לשאילתה
     res.json(rows);
   } catch (error) {
     res.status(500).send(error.message); // טיפול בשגיאה

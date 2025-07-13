@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ActivityIndicator, Platform } from 'react-native';
 import GroupBySelector from './GroupBySelector';
 import DonutChartWithLegend from './DonutChartWithLegend';
-import { getAgentStatsByGroup, AgentItem } from '../../Api/getAgentStatsByGroup';
+import { getAgentStatsByGroup, AgentItem } from '../../api/getAgentStatsByGroup';
 import styles from '../../app/styles/DonutWithSelectorStyle';
 
 export default function DonutWithSelector() {

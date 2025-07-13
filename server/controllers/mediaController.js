@@ -3,7 +3,7 @@
  * מטפל בפעולות הקשורות למקורות מדיה: ניתוח תנועה, סטטיסטיקות לפי אפליקציה וכו'.
  */
 
-import { bigquery, nameDB } from '../config/bigqueryConfig.js';
+import { bigQuery, nameDB } from '../config/bigQueryConfig.js';
 
 // הגדרת שמות הטבלאות מתוך קובץ קונפיגורציה
 const eventsTable = `${nameDB}.attribution_end_user_events.end_user_events`;
@@ -29,7 +29,7 @@ export const getTopMediaSources = async (req, res) => {
   `;
 
   try {
-    const [rows] = await bigquery.query(query); // שליחת השאילתה
+    const [rows] = await bigQuery.query(query); // שליחת השאילתה
     res.json(rows);                             // החזרת התוצאה למשתמש
   } catch (err) {
     res.status(500).send(err.message);          // טיפול בשגיאה
@@ -75,7 +75,7 @@ export const getAppsByMediaSource = async (req, res) => {
   `;
 
   try {
-    const [rows] = await bigquery.query({ query, params: { mediaSource, limit } });
+    const [rows] = await bigQuery.query({ query, params: { mediaSource, limit } });
     res.json(rows); // החזרת התוצאות
   } catch (err) {
     res.status(500).send(err.message); // טיפול בשגיאה

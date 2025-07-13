@@ -1,4 +1,4 @@
-import { bigquery, nameDB } from '../config/bigqueryConfig.js';
+import { bigQuery, nameDB } from '../config/bigQueryConfig.js';
 
 const eventsTable = `${nameDB}.attribution_end_user_events.end_user_events`;
 const conversionsTable = `${nameDB}.conversions.conversions`;
@@ -14,6 +14,6 @@ export const getTopPlatforms = async (req, res) => {
     GROUP BY platform
     ORDER BY clicks DESC
   `;
-  const [rows] = await bigquery.query({ query });
+  const [rows] = await bigQuery.query({ query });
   res.json(rows);
 };

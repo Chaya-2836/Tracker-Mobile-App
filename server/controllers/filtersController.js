@@ -1,4 +1,4 @@
-import { bigquery, nameDB } from '../config/bigqueryConfig.js';
+import { bigQuery, nameDB } from '../config/bigQueryConfig.js';
 
 // שליפת כל הקמפיינים
 export async function getCampaigns(req, res) {
@@ -10,7 +10,7 @@ export async function getCampaigns(req, res) {
       WHERE campaign_name IS NOT NULL
       ORDER BY campaign_name
     `;
-    const [job] = await bigquery.createQueryJob({ query, location: 'US' });
+    const [job] = await bigQuery.createQueryJob({ query, location: 'US' });
     const [rows] = await job.getQueryResults();
     const campaigns = rows.map(r => r.campaign_name);
     res.status(200).json(campaigns);
@@ -30,7 +30,7 @@ export async function getPlatforms(req, res) {
       WHERE platform IS NOT NULL
       ORDER BY platform
     `;
-    const [job] = await bigquery.createQueryJob({ query, location: 'US' });
+    const [job] = await bigQuery.createQueryJob({ query, location: 'US' });
     const [rows] = await job.getQueryResults();
     const platforms = rows.map(r => r.platform);
     res.status(200).json(platforms);
@@ -50,7 +50,7 @@ export async function getMediaSources(req, res) {
       WHERE media_source IS NOT NULL
       ORDER BY media_source
     `;
-    const [job] = await bigquery.createQueryJob({ query, location: 'US' });
+    const [job] = await bigQuery.createQueryJob({ query, location: 'US' });
     const [rows] = await job.getQueryResults();
     const sources = rows.map(r => r.media_source);
     res.status(200).json(sources);
@@ -70,7 +70,7 @@ export async function getAgencies(req, res) {
       WHERE agency IS NOT NULL
       ORDER BY agency
     `;
-    const [job] = await bigquery.createQueryJob({ query, location: 'US' });
+    const [job] = await bigQuery.createQueryJob({ query, location: 'US' });
     const [rows] = await job.getQueryResults();
     const agencies = rows.map(r => r.agency);
     res.status(200).json(agencies);

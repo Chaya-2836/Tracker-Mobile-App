@@ -1,7 +1,8 @@
 import axios from 'axios';
 
-// Set base address
-const BASE_URL = 'http://localhost:8021/trafficAnalytics';
+import { CONFIG } from '../config';
+
+const BASE_URL = CONFIG.BASE_URL + "/trafficAnalytics";
 
 // General type for responses from the server – can be replaced in the future according to the real data
 type ApiResponse<T = any> = T;

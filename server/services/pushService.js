@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import cron from 'node-cron';
-import { getTodayStats } from '../services/statsService.js';
+import { getTodayStats } from './statsService.js';
 import { checkAndSendTrafficAlert } from "../controllers/alertSlackController.js"
 
 const __dirname = path.resolve();

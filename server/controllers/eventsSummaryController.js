@@ -1,4 +1,4 @@
-import { bigquery, nameDB } from '../config/bigqueryConfig.js';
+import { bigQuery, nameDB } from '../config/bigQueryConfig.js';
 import { parseISO, isAfter } from 'date-fns';
 
 export async function getEventsSummary(req, res) {
@@ -107,7 +107,7 @@ export async function getEventsSummary(req, res) {
       ${whereClause}
       ${groupClause}
     `;
-    console.log('📦 Final PARAMS to BigQuery:', params);
+    console.log('📦 Final PARAMS to bigQuery:', params);
     // הסר את כל הפרמטרים שהם undefined
     Object.entries(params).forEach(([key, val]) => {
       if (val === undefined) {
@@ -122,7 +122,7 @@ export async function getEventsSummary(req, res) {
     };
     console.log('🧪 PARAMS:', params);
 
-    const [job] = await bigquery.createQueryJob(options);
+    const [job] = await bigQuery.createQueryJob(options);
     const [rows] = await job.getQueryResults();
 
     if (daysMode === 'day') {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { getTodayStats, getWeeklyTrends } from '../../Api/analytics';
-import { fetchAllFilters } from '../../Api/filters';
+import { getTodayStats, getWeeklyTrends } from '../../api/analytics';
+import { fetchAllFilters } from '../../api/filters';
 import { Dimensions } from 'react-native';
 
 interface TrendPoint {

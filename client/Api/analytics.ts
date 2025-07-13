@@ -1,4 +1,6 @@
-const API_BASE = "http://localhost:8021/events_summary/";
+import { CONFIG } from '../config';
+
+const BASE_URL = CONFIG.BASE_URL + "events_summary/";
 
 type DaysMode = 'day' | 'week';
 type Filters = Record<string, string>;
@@ -19,7 +21,7 @@ async function fetchEventSummary(
     delete filters.date;
   }
   const query = new URLSearchParams({ engagement_type: type, daysMode, ...filters });
-  const url = `${API_BASE}?${query.toString()}`;
+  const url = `${BASE_URL}?${query.toString()}`;
   console.log("fetchEventSummary URL:", url); // ✅ Debug to confirm correct query
 
   const res = await fetch(url);

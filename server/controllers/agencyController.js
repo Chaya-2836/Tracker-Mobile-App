@@ -5,7 +5,7 @@
  * כולל: סוכנויות עם הכי הרבה קליקים / הצגות, וניתוח לפי אפליקציות
  */
 
-import { bigquery, nameDB } from '../config/bigqueryConfig.js';
+import { bigQuery, nameDB } from '../config/bigQueryConfig.js';
 
 // שמות הטבלאות לפי בסיס הנתונים מהקונפיגורציה
 const eventsTable = `${nameDB}.attribution_end_user_events.end_user_events`;
@@ -31,7 +31,7 @@ export const getTopAgencies = async (req, res) => {
   `;
 
   try {
-    const [rows] = await bigquery.query(query); // ביצוע השאילתה מול BigQuery
+    const [rows] = await bigQuery.query(query); // ביצוע השאילתה מול bigQuery
     res.json(rows); // החזרת התוצאות ללקוח בפורמט JSON
   } catch (err) {
     res.status(500).send(err.message); // במקרה של שגיאה – החזרת קוד 500 והודעה
@@ -73,7 +73,7 @@ export const getAppsByAgency = async (req, res) => {
   `;
 
   try {
-    const [rows] = await bigquery.query({ query, params: { agency, limit } }); // הרצת השאילתה עם פרמטרים דינמיים
+    const [rows] = await bigQuery.query({ query, params: { agency, limit } }); // הרצת השאילתה עם פרמטרים דינמיים
     res.json(rows); // החזרת התוצאות בפורמט JSON
   } catch (err) {
     res.status(500).send(err.message); // במקרה של שגיאה – החזרת הודעה עם סטטוס 500
