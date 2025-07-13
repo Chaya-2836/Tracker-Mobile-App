@@ -8,7 +8,8 @@ import {
   ScrollView,
 } from 'react-native';
 import { TabView, TabBar } from 'react-native-tab-view';
-
+import * as Notifications from 'expo-notifications';
+import * as Device from 'expo-device';
 import styles from '../styles/appStyles';
 import StatCard from '../../components/statCard';
 import TrendChart from '../../components/TrendChart';
@@ -19,6 +20,8 @@ import TopDashboard from '../../components/TopDashboard';
 import SuspiciousTrafficPanel from '../../components/ui/SuspiciousTrafficPanel';
 import Chartstyles from '../styles/trendChartStyles';
 import DonutWithSelector from '../../components/AgentStats/DonutWithSelector';
+import Spinner from '../../components/Spinner';
+
 
 interface TrendPoint {
   label: Date;
@@ -140,7 +143,7 @@ export default function App() {
   };
 
   const renderScene = ({ route }: any) => {
-    if (loading) return <ActivityIndicator size="large" color="#0000ff" />;
+    if (loading) return <Spinner />;
 
     const isClicks = route.key === 'clicks';
 
@@ -150,7 +153,7 @@ export default function App() {
           <SuspiciousTrafficPanel />
         </View>
 
-        <View style={{ paddingTop: 12 }}>
+        <View style={styles.container}>
           <StatCard
             title={isClicks ? "Clicks Recorded Today" : "Impressions Recorded Today"}
             value={isClicks ? clicksToday : impressionsToday}
@@ -186,7 +189,7 @@ export default function App() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.containerpage}>
       <View style={styles.headerRow}>
         <Text style={styles.header}>Engagement Tracker</Text>
       </View>

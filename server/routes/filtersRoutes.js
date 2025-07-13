@@ -1,5 +1,3 @@
-// routes/filtersRoutes.js
-
 import express from 'express';
 import {
   getCampaigns,
@@ -11,7 +9,6 @@ import {
 
 const router = express.Router();
 
-// Define individual filter endpoints
 router.get('/campaigns', getCampaigns);
 router.get('/platforms', getPlatforms);
 router.get('/media-sources', getMediaSources);

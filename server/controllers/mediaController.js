@@ -1,100 +1,83 @@
-// controllers/mediaController.js
+/**
+ * בקר מדיה
+ * מטפל בפעולות הקשורות למקורות מדיה: ניתוח תנועה, סטטיסטיקות לפי אפליקציה וכו'.
+ */
 
 import { bigquery, nameDB } from '../config/bigqueryConfig.js';
-import dayjs from 'dayjs';
 
-// Define full table names from project configuration
+// הגדרת שמות הטבלאות מתוך קובץ קונפיגורציה
 const eventsTable = `${nameDB}.attribution_end_user_events.end_user_events`;
 const conversionsTable = `${nameDB}.conversions.conversions`;
 
 /**
- * Fetch top media sources by number of clicks and impressions,
- * grouped by app ID.
- * Query param: ?limit=10 (default: 10)
+ * החזרת מקורות המדיה עם הכי הרבה קליקים או חשיפות
+ * עבור כל מקור מדיה מוצגים גם מזהי האפליקציות שהוא עבד איתן
  */
 export const getTopMediaSources = async (req, res) => {
-  
-    const { limit, startDate, endDate, sortBy } = req.query;
+  const limit = parseInt(req.query.limit) || 10; // ברירת מחדל: 10 תוצאות
 
-    const defaultEndDate = dayjs().startOf('day');
-    const defaultStartDate = defaultEndDate.subtract(7, 'day');
+  const query = `
+    SELECT media_source,
+           sub_param_1 AS app_id,                                -- מזהה האפליקציה מתוך האירוע
+           COUNTIF(engagement_type = 'click') AS clicks,         -- ספירת קליקים
+           COUNTIF(engagement_type = 'impression') AS impressions -- ספירת חשיפות
+    FROM \`${eventsTable}\`
+    WHERE media_source IS NOT NULL                              -- סינון רשומות ריקות
+    GROUP BY media_source, app_id
+    ORDER BY clicks DESC                                        -- מיון לפי קליקים
+    LIMIT ${limit}
+  `;
 
-    const parsedStartDate = startDate ? dayjs(startDate) : defaultStartDate;
-    const parsedEndDate = endDate ? dayjs(endDate) : defaultEndDate;
-
-    const limitClause = limit && limit.toUpperCase() === 'ALL' ? '' : `LIMIT ${parseInt(limit) || 10}`;
-
-    const validSorts = ['clicks', 'impressions'];
-    const orderByColumn = validSorts.includes(sortBy) ? sortBy : 'clicks';
-
-    const query = `
-      SELECT
-        media_source,
-        media_source AS name,
-        COUNTIF(engagement_type = 'click') AS clicks,
-        COUNTIF(engagement_type = 'impression') AS impressions
-      FROM \`${eventsTable}\`
-      WHERE media_source IS NOT NULL
-        AND event_time BETWEEN TIMESTAMP("${parsedStartDate.toISOString()}") AND TIMESTAMP("${parsedEndDate.toISOString()}")
-      GROUP BY media_source
-      ORDER BY ${orderByColumn} DESC
-      ${limitClause}
-    `;
   try {
-    const [rows] = await bigquery.query({ query });
-    res.json(rows);
-
-  } catch (error) {
-    console.error('Error in getTopMediaSources:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    const [rows] = await bigquery.query(query); // שליחת השאילתה
+    res.json(rows);                             // החזרת התוצאה למשתמש
+  } catch (err) {
+    res.status(500).send(err.message);          // טיפול בשגיאה
   }
 };
+
 /**
- * Fetch apps associated with a specific media source,
- * including traffic stats and conversion rate (CVR).
- * Query params: ?mediaSource=...&limit=10
+ * החזרת אפליקציות שעבדו עם מקור מדיה מסוים
+ * כולל קליקים, חשיפות, מספר המרות, ויחס המרה (CVR) לכל אפליקציה
  */
 export const getAppsByMediaSource = async (req, res) => {
   const { mediaSource, limit = 10 } = req.query;
 
-  if (!mediaSource || typeof mediaSource !== 'string' || mediaSource.trim() === '') {
-    return res.status(400).json({ error: 'Missing or invalid mediaSource param' });
-  }
+  // בדיקת קלט - חובה לשלוח mediaSource בשאילתה
+  if (!mediaSource) return res.status(400).json({ error: 'Missing mediaSource param' });
 
   const query = `
     WITH events AS (
-      SELECT
-        customer_user_id,
-        sub_param_1 AS app_id,
-        engagement_type
+      SELECT customer_user_id,
+             sub_param_1 AS app_id,
+             engagement_type
       FROM \`${eventsTable}\`
-      WHERE media_source = @mediaSource
+      WHERE media_source = @mediaSource -- סינון לפי מקור מדיה
     ),
     conversions AS (
-      SELECT
-        customer_user_id,
-        unified_app_id AS app_id,
-        event_time AS conversion_time
+      SELECT customer_user_id,
+             unified_app_id AS app_id,
+             event_time AS conversion_time
       FROM \`${conversionsTable}\`
     )
-    SELECT
-      app_id,
-      COUNTIF(engagement_type = 'click') AS clicks,
-      COUNTIF(engagement_type = 'impression') AS impressions,
-      COUNT(DISTINCT conversion_time) AS conversions,
-      SAFE_DIVIDE(COUNT(DISTINCT conversion_time), COUNTIF(engagement_type = 'click')) AS CVR
+    SELECT app_id,
+           COUNTIF(engagement_type = 'click') AS clicks,               -- סך קליקים
+           COUNTIF(engagement_type = 'impression') AS impressions,     -- סך חשיפות
+           COUNT(DISTINCT conversion_time) AS conversions,             -- כמות המרות ייחודיות
+           SAFE_DIVIDE(COUNT(DISTINCT conversion_time), COUNTIF(engagement_type = 'click')) AS CVR
+           -- חישוב יחס המרה תוך מניעת חלוקה באפס
     FROM events
-    LEFT JOIN conversions USING (customer_user_id)
+    LEFT JOIN conversions
+    USING (customer_user_id) -- חיבור לפי מזהה משתמש
     GROUP BY app_id
-    ORDER BY clicks + impressions DESC
+    ORDER BY clicks + impressions DESC -- מיון לפי סך טראפיק
     LIMIT @limit
   `;
 
   try {
     const [rows] = await bigquery.query({ query, params: { mediaSource, limit } });
-    res.json(rows);
+    res.json(rows); // החזרת התוצאות
   } catch (err) {
-    console.error('Error fetching apps by media source:', err);
-    res.status(500).json({ error: err.message });
+    res.status(500).send(err.message); // טיפול בשגיאה
   }
 };
