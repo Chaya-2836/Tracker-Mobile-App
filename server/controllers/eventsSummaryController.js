@@ -1,5 +1,3 @@
-// controllers/eventsSummaryController.js
-
 import { bigquery, nameDB } from '../config/bigqueryConfig.js';
 import { parseISO, isAfter, differenceInDays } from 'date-fns';
 
@@ -25,9 +23,9 @@ export async function getEventsSummary(req, res) {
       toDate
     } = req.query;
 
+
     console.log('🧾 req.query:', req.query);
 
-    // Basic filters
     if (campaign_name) {
       filters.push(`campaign_name = @campaign_name`);
       params.campaign_name = campaign_name;
@@ -52,7 +50,6 @@ export async function getEventsSummary(req, res) {
     params.engagement_type = engagement_type || 'click';
     filters.push(`engagement_type = @engagement_type`);
 
-    // Handle date logic
     let useCurrentDate = true;
     if (date) {
       try {
@@ -62,11 +59,11 @@ export async function getEventsSummary(req, res) {
           params.date = date;
         }
       } catch (e) {
-        console.warn('⚠️ Invalid date format. Falling back to current date.');
+        console.warn('⚠️ תאריך לא תקין. ייעשה שימוש בתאריך של היום.');
       }
     }
 
-    // Time range filters
+    // ✅ טווח מותאם אישית
     if (fromDate && toDate) {
       const from = parseISO(fromDate);
       const to = parseISO(toDate);
@@ -109,7 +106,7 @@ export async function getEventsSummary(req, res) {
       }
     }
 
-    // ✅ current day or single day
+    // ✅ יום נוכחי או לפי תאריך יחיד
     else if (daysMode === 'day') {
       if (useCurrentDate) {
         filters.push(`DATE(event_time, "Asia/Jerusalem") = CURRENT_DATE("Asia/Jerusalem")`);
@@ -123,20 +120,12 @@ export async function getEventsSummary(req, res) {
       groupClause = `GROUP BY event_date ORDER BY event_date`;
     }
 
-    // ✅ default-last week
+    // ✅ ברירת מחדל — שבוע אחרון
     else {
       if (useCurrentDate) {
-        filters.push(`
-          DATE(event_time) BETWEEN
-          DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY)
-          AND DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY)
-        `);
+        filters.push(`DATE(event_time) BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY) AND DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY)`);
       } else {
-        filters.push(`
-          DATE(event_time) BETWEEN
-          DATE_SUB(DATE(@date), INTERVAL 7 DAY)
-          AND DATE_SUB(DATE(@date), INTERVAL 1 DAY)
-        `);
+        filters.push(`DATE(event_time) BETWEEN DATE_SUB(DATE(@date), INTERVAL 7 DAY) AND DATE_SUB(DATE(@date), INTERVAL 1 DAY)`);
       }
 
       selectClause = `
@@ -159,7 +148,7 @@ export async function getEventsSummary(req, res) {
 
     Object.entries(params).forEach(([key, val]) => {
       if (val === undefined) {
-        console.log(`⚠️ Removed undefined param: ${key}`);
+        console.log(`⚠️ הסרתי param מיותר: ${key} = undefined`);
         delete params[key];
       }
     });
@@ -170,9 +159,7 @@ export async function getEventsSummary(req, res) {
       params,
     };
 
-    console.log('📦 Final BigQuery params:', params);
-
-    const [job] = await bigquery.createQueryJob({ query, location: 'US', params });
+    const [job] = await bigquery.createQueryJob(options);
     const [rows] = await job.getQueryResults();
     console.log("🧾 BigQuery rows:", JSON.stringify(rows, null, 2));
     if (daysMode === 'day' && !fromDate && !toDate) {
@@ -182,9 +169,8 @@ export async function getEventsSummary(req, res) {
 
       res.status(200).json(rows);
     }
-
   } catch (err) {
-    console.error('💥 Error in getEventsSummary:', err);
-    res.status(500).json({ error: 'Error while running the summary query' });
+    console.error('😒 ERROR ב־getEventsSummary:', err);
+    res.status(500).json({ error: 'אירעה שגיאה בעת ביצוע השאילתה' });
   }
 }
