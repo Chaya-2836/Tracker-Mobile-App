@@ -13,6 +13,13 @@ type ChartConfig = {
 };
 
 const Chartstyles = StyleSheet.create({
+  title:{
+        fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 10,
+    color: '#34495e',
+    textAlign: 'center'
+  },
   chartContainer: {
     backgroundColor: '#fff',
     marginBottom: 20,
@@ -59,7 +66,7 @@ const Chartstyles = StyleSheet.create({
   },
   arrowIcon: {
   fontSize: 28,
-  color: '#666', // אפור כהה
+  color: '#666', 
   textAlign: 'center',
 },
 
@@ -82,7 +89,7 @@ export const chartConfig: ChartConfig = {
     borderRadius: 16,
   },
   propsForDots: {
-    r: '3', // 👈 נקודה קטנה יותר
+    r: '3',
     strokeWidth: '1',
     stroke: '#2c62b4',
   },
