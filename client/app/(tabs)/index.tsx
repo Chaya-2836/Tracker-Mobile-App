@@ -3,25 +3,21 @@ import {
   SafeAreaView,
   Text,
   View,
-  ActivityIndicator,
   Dimensions,
   ScrollView,
 } from 'react-native';
 import { TabView, TabBar } from 'react-native-tab-view';
-import * as Notifications from 'expo-notifications';
-import * as Device from 'expo-device';
 import styles from '../styles/appStyles';
 import StatCard from '../../components/statCard';
 import TrendChart from '../../components/TrendChart';
 import FilterBar from '../../components/FilterBar/FilterBar';
-import { getTodayStats, getWeeklyTrends } from '../../Api/analytics';
+import { getTodayStats, getWeeklyTrends, Granularity } from '../../Api/analytics';
 import { fetchAllFilters } from '../../Api/filters';
 import TopDashboard from '../../components/TopDashboard';
 import SuspiciousTrafficPanel from '../../components/ui/SuspiciousTrafficPanel';
 import Chartstyles from '../styles/trendChartStyles';
 import DonutWithSelector from '../../components/AgentStats/DonutWithSelector';
 import Spinner from '../../components/Spinner';
-
 
 interface TrendPoint {
   label: Date;
@@ -35,6 +31,7 @@ export default function App() {
   const [impressionsToday, setImpressionsToday] = useState(0);
   const [clickTrend, setClickTrend] = useState<TrendPoint[]>([]);
   const [impressionTrend, setImpressionTrend] = useState<TrendPoint[]>([]);
+  const [granularity, setGranularity] = useState<Granularity>('daily');
   const [loading, setLoading] = useState(true);
 
   const [index, setIndex] = useState(0);
@@ -79,16 +76,12 @@ export default function App() {
         })
       );
 
-      const { clicks = [], impressions = [] } = await getWeeklyTrends(filtersAsQuery);
+      const { clicks = [], impressions = [], granularity } = await getWeeklyTrends(filtersAsQuery);
 
-      const toPoints = (arr: any[]) =>
-        arr.map(item => ({
-          label: new Date(item.label),
-          value: Number(item.value || 0),
-        }));
+      setClickTrend(clicks);
+      setImpressionTrend(impressions);
+      setGranularity(granularity);
 
-      setClickTrend(toPoints(clicks));
-      setImpressionTrend(toPoints(impressions));
     } catch (err) {
       console.error('❌ Failed to fetch weekly trends:', err);
     } finally {
@@ -124,20 +117,16 @@ export default function App() {
     }));
   };
 
-  const formatDate = (iso: string) => {
-    return new Date(iso).toLocaleDateString('en-CA');
-  };
-
   const getChartTitle = (filters: { [key: string]: string[] }) => {
     const from = filters.fromDate?.[0];
     const to = filters.toDate?.[0];
     const type = index === 0 ? 'Clicks' : 'Impressions';
 
     if (from && to) {
-      return `${type} Volume Trend (${formatDate(from)} → ${formatDate(to)})`;
+      return `${type} Volume Trend (${from} → ${to})`;
     }
     else if (from) {
-      return `${type} Volume Trend (${formatDate(from)} → ${new Date().toLocaleDateString('en-CA')})`;
+      return `${type} Volume Trend (${from} → ${new Date().toISOString().slice(0, 10)})`;
     }
     return `${type} Volume Trend (Last 7 Days)`;
   };
@@ -172,10 +161,11 @@ export default function App() {
             onClear={handleClear}
             onApply={handleApply}
           />
-          <TrendChart data={isClicks ? clickTrend : impressionTrend} />
-
+          <TrendChart
+            data={isClicks ? clickTrend : impressionTrend}
+            granularity={granularity}
+          />
         </View>
-
 
         <View style={styles.container}>
           <TopDashboard scene={route.key} />
