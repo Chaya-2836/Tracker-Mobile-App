@@ -4,7 +4,7 @@ import { BigQuery } from '@google-cloud/bigquery';
 import eventsSummaryRoutes from './routes/eventsSummaryRoutes.js';
 import filtersRoutes from './routes/filtersRoutes.js';
 import pushRoutes from './routes/pushRoutes.js';
-import { scheduleDailyCheck } from './push/PushService.js';
+import { scheduleDailyCheck } from './push/pushService.js';
 import trafficAnalyticsRoutes from './routes/trafficAnalyticsRoutes.js';
 import analyticsRoutes from './routes/trafficAnalyticsRoutes.js';
 
