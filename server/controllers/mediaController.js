@@ -1,49 +1,50 @@
-/**
- * בקר מדיה
- * מטפל בפעולות הקשורות למקורות מדיה: ניתוח תנועה, סטטיסטיקות לפי אפליקציה וכו'.
- */
+// controllers/mediaController.js
 
-import { bigQuery, nameDB } from '../config/bigQueryConfig.js';
+import { bigQuery, nameDB } from '../../config/bigQueryConfig.js';
 
-// הגדרת שמות הטבלאות מתוך קובץ קונפיגורציה
+// Define full table names from project configuration
 const eventsTable = `${nameDB}.attribution_end_user_events.end_user_events`;
 const conversionsTable = `${nameDB}.conversions.conversions`;
 
+import { parseDateRange } from '../utils/queryUtils.js';
+import { fetchTopMediaSources } from '../services/mediaService.js';
+
 /**
- * החזרת מקורות המדיה עם הכי הרבה קליקים או חשיפות
- * עבור כל מקור מדיה מוצגים גם מזהי האפליקציות שהוא עבד איתן
+ * Controller: Returns top media sources based on number of clicks and impressions.
+ * Optional query params: ?limit=10&startDate=YYYY-MM-DD&endDate=YYYY-MM-DD&sortBy=clicks|impressions
  */
 export const getTopMediaSources = async (req, res) => {
-  const limit = parseInt(req.query.limit) || 10; // ברירת מחדל: 10 תוצאות
-
-  const query = `
-    SELECT media_source,
-           sub_param_1 AS app_id,                                -- מזהה האפליקציה מתוך האירוע
-           COUNTIF(engagement_type = 'click') AS clicks,         -- ספירת קליקים
-           COUNTIF(engagement_type = 'impression') AS impressions -- ספירת חשיפות
-    FROM \`${eventsTable}\`
-    WHERE media_source IS NOT NULL                              -- סינון רשומות ריקות
-    GROUP BY media_source, app_id
-    ORDER BY clicks DESC                                        -- מיון לפי קליקים
-    LIMIT ${limit}
-  `;
-
   try {
-    const [rows] = await bigQuery.query(query); // שליחת השאילתה
-    res.json(rows);                             // החזרת התוצאה למשתמש
+
+    const { limit, startDate, endDate, sortBy } = req.query;
+
+    // Resolve and format date range
+    const { startDate: from, endDate: to } = parseDateRange(startDate, endDate);
+
+    // Forward to service for query execution
+    const results = await fetchTopMediaSources({
+      limit,
+      startDate: from,
+      endDate: to,
+      sortBy
+    });
+
+    res.json(results);
   } catch (err) {
-    res.status(500).send(err.message);          // טיפול בשגיאה
+    console.error('❌ Error in getTopMediaSources:', err);
+    res.status(500).json({ error: err.message }); 
   }
 };
 
 /**
- * החזרת אפליקציות שעבדו עם מקור מדיה מסוים
- * כולל קליקים, חשיפות, מספר המרות, ויחס המרה (CVR) לכל אפליקציה
+ * Fetch apps associated with a specific media source,
+ * including traffic stats and conversion rate (CVR).
+ * Query params: ?mediaSource=...&limit=10
  */
+// The function is currently not in use.
 export const getAppsByMediaSource = async (req, res) => {
   const { mediaSource, limit = 10 } = req.query;
 
-  // בדיקת קלט - חובה לשלוח mediaSource בשאילתה
   if (!mediaSource) return res.status(400).json({ error: 'Missing mediaSource param' });
 
   const query = `
@@ -52,7 +53,7 @@ export const getAppsByMediaSource = async (req, res) => {
              sub_param_1 AS app_id,
              engagement_type
       FROM \`${eventsTable}\`
-      WHERE media_source = @mediaSource -- סינון לפי מקור מדיה
+      WHERE media_source = @mediaSource 
     ),
     conversions AS (
       SELECT customer_user_id,
@@ -61,23 +62,22 @@ export const getAppsByMediaSource = async (req, res) => {
       FROM \`${conversionsTable}\`
     )
     SELECT app_id,
-           COUNTIF(engagement_type = 'click') AS clicks,               -- סך קליקים
-           COUNTIF(engagement_type = 'impression') AS impressions,     -- סך חשיפות
-           COUNT(DISTINCT conversion_time) AS conversions,             -- כמות המרות ייחודיות
+           COUNTIF(engagement_type = 'click') AS clicks,               
+           COUNTIF(engagement_type = 'impression') AS impressions,    
+           COUNT(DISTINCT conversion_time) AS conversions,             
            SAFE_DIVIDE(COUNT(DISTINCT conversion_time), COUNTIF(engagement_type = 'click')) AS CVR
-           -- חישוב יחס המרה תוך מניעת חלוקה באפס
     FROM events
     LEFT JOIN conversions
-    USING (customer_user_id) -- חיבור לפי מזהה משתמש
+    USING (customer_user_id)
     GROUP BY app_id
-    ORDER BY clicks + impressions DESC -- מיון לפי סך טראפיק
+    ORDER BY clicks + impressions DESC 
     LIMIT @limit
   `;
-
   try {
+
     const [rows] = await bigQuery.query({ query, params: { mediaSource, limit } });
-    res.json(rows); // החזרת התוצאות
+    res.json(rows); 
   } catch (err) {
-    res.status(500).send(err.message); // טיפול בשגיאה
+    res.status(500).send(err.message);
   }
 };

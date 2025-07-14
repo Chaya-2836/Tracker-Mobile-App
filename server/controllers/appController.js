@@ -1,82 +1,90 @@
-/**
- * בקר אפליקציות
- * מטפל בניתוחים לפי אפליקציות: אפליקציות עם הכי הרבה טראפיק, פירוט לפי מקורות וסוכנויות, והמרות.
- */
 
-import { bigQuery, nameDB } from '../config/bigQueryConfig.js';
+import { bigQuery, nameDB } from '../../config/bigQueryConfig.js';
 
-// שמות הטבלאות מתוך הקונפיגורציה
+
 const eventsTable = `${nameDB}.attribution_end_user_events.end_user_events`;
 const conversionsTable = `${nameDB}.conversions.conversions`;
+import { parseDateRange } from '../utils/queryUtils.js';
+import { fetchTopApps } from '../services/appService.js';
 
 /**
- * החזרת אפליקציות עם הכי הרבה טראפיק (קליקים + חשיפות)
+ * Controller: Returns top apps based on total engagement (clicks + impressions).
+ * Optional query params: ?limit=10&startDate=YYYY-MM-DD&endDate=YYYY-MM-DD&sortBy=clicks|impressions
  */
 export const getTopApps = async (req, res) => {
-  const { limit = 10 } = req.query; // מספר שורות להחזיר, ברירת מחדל 10
-
-  const query = `
-    SELECT sub_param_1 AS app_id,
-           COUNTIF(engagement_type = 'click') AS clicks,         -- סך הקליקים
-           COUNTIF(engagement_type = 'impression') AS impressions -- סך החשיפות
-    FROM \`${eventsTable}\`
-    WHERE sub_param_1 IS NOT NULL -- נוודא שיש מזהה אפליקציה
-    GROUP BY app_id
-    ORDER BY clicks + impressions DESC -- סידור לפי טראפיק כולל
-    LIMIT ${limit}
-  `;
-
   try {
-    const [rows] = await bigQuery.query(query); // ביצוע השאילתה
-    res.json(rows); // החזרת התוצאה למשתמש
-  } catch (error) {
-    res.status(500).send(error.message); // טיפול בשגיאות
+    const { limit, startDate, endDate, sortBy } = req.query;
+
+    // Parse date range with default fallback
+    const { startDate: from, endDate: to } = parseDateRange(startDate, endDate);
+
+    // Call the service function
+    const results = await fetchTopApps({
+      limit,
+      startDate: from,
+      endDate: to,
+      sortBy
+    });
+
+    res.json(results);
+  } catch (err) {
+    console.error('❌ Error in getTopApps:', err);
+    res.status(500).json({ error: err.message }); 
   }
 };
 
+
 /**
- * החזרת פירוט תנועה לפי מקור מדיה וסוכנות עבור אפליקציה מסוימת
+ * Returns traffic breakdown by media source and agency for a specific app.
+ * Required query param: ?appId=...
  */
+// The function is currently not in use..
 export const getAppsTrafficBreakdown = async (req, res) => {
   const { appId, limit = 10 } = req.query;
 
-  if (!appId) return res.status(400).json({ error: 'Missing appId' }); // ולידציה לפרמטר חובה
-
+  if (!appId || typeof appId !== 'string' || appId.trim() === '') {
+    return res.status(400).json({ error: 'Missing or invalid appId param' });
+  }
   const query = `
     SELECT media_source,
            agency,
-           COUNTIF(engagement_type = 'click') AS clicks,         -- סך הקליקים מכל מקור+סוכנות
-           COUNTIF(engagement_type = 'impression') AS impressions -- סך החשיפות
+           COUNTIF(engagement_type = 'click') AS clicks,         
+           COUNTIF(engagement_type = 'impression') AS impressions 
     FROM \`${eventsTable}\`
     WHERE sub_param_1 = @appId
     GROUP BY media_source, agency
-    ORDER BY clicks + impressions DESC -- דירוג לפי טראפיק כולל
+    ORDER BY clicks + impressions DESC 
     LIMIT ${limit}
   `;
 
   try {
-    const [rows] = await bigQuery.query({ query, params: { appId } }); // שאילתה עם פרמטר
+
+    const [rows] = await bigQuery.query({ query, params: { appId } }); 
     res.json(rows);
   } catch (error) {
-    res.status(500).send(error.message); // החזרת שגיאה במקרה הצורך
-  }
+    console.error('❌ Error fetching traffic breakdown:', err);
+    res.status(500).json({ error: err.message });  }
 };
 
 /**
- * החזרת נתוני תנועה + המרות + יחס המרה (CVR) לפי מקור וסוכנות עבור אפליקציה מסוימת
+ * Returns conversion data for an app, grouped by media source and agency.
+ * Includes: clicks, impressions, conversions, and CVR (conversion rate).
+ * Required query param: ?appId=...
  */
+// The function is currently not in use.
 export const getAppsTrafficConversions = async (req, res) => {
   const { appId, limit = 10 } = req.query;
-  if (!appId) return res.status(400).json({ error: 'Missing appId' });
-
+  if (!appId || typeof appId !== 'string' || appId.trim() === '') {
+    return res.status(400).json({ error: 'Missing or invalid appId param' });
+  }
   const query = `
     WITH base_events AS (
       SELECT customer_user_id, media_source, agency, sub_param_1 AS app_id,
              engagement_type, event_time AS event_time_click
       FROM \`${eventsTable}\`
       WHERE sub_param_1 = @appId
-        AND engagement_type IN ('click', 'impression') -- רק אירועים רלוונטיים
-        AND customer_user_id IS NOT NULL -- חייב להיות מזהה משתמש לקישור
+        AND engagement_type IN ('click', 'impression') 
+        AND customer_user_id IS NOT NULL 
     ),
     base_conversions AS (
       SELECT customer_user_id, unified_app_id AS app_id, event_time AS conversion_time
@@ -91,24 +99,23 @@ export const getAppsTrafficConversions = async (req, res) => {
       LEFT JOIN base_conversions conv
         ON ev.customer_user_id = conv.customer_user_id
         AND TIMESTAMP_DIFF(conv.event_time, ev.event_time_click, SECOND) BETWEEN 0 AND 3600
-        -- קישור המרה רק אם בוצעה תוך שעה מהאירוע
     )
     SELECT media_source, agency,
            COUNTIF(engagement_type = 'click') AS clicks,
            COUNTIF(engagement_type = 'impression') AS impressions,
-           COUNT(DISTINCT conversion_time) AS conversions, -- מספר המרות ייחודיות
+           COUNT(DISTINCT conversion_time) AS conversions, 
            SAFE_DIVIDE(COUNT(DISTINCT conversion_time), COUNTIF(engagement_type = 'click')) AS CVR
-           -- יחס המרה תוך מניעת חלוקה באפס
     FROM joined_data
     GROUP BY media_source, agency
-    ORDER BY conversions DESC -- סידור לפי כמות המרות
+    ORDER BY conversions DESC 
     LIMIT ${limit}
   `;
 
   try {
-    const [rows] = await bigQuery.query({ query, params: { appId } }); // שליחת פרמטרים לשאילתה
+
+    const [rows] = await bigQuery.query({ query, params: { appId } }); 
     res.json(rows);
   } catch (error) {
-    res.status(500).send(error.message); // טיפול בשגיאה
+    res.status(500).send(error.message); 
   }
 };

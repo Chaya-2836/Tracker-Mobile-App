@@ -1,81 +1,80 @@
 
-/**
- * קונטרולר סוכנויות פרסום
- * מטפל בפעולות הקשורות לניתוח טראפיק לפי סוכנויות פרסום
- * כולל: סוכנויות עם הכי הרבה קליקים / הצגות, וניתוח לפי אפליקציות
- */
+// controllers/agencyController.js
 
-import { bigQuery, nameDB } from '../config/bigQueryConfig.js';
+import { bigQuery, nameDB } from '../../config/bigQueryConfig.js';
 
-// שמות הטבלאות לפי בסיס הנתונים מהקונפיגורציה
 const eventsTable = `${nameDB}.attribution_end_user_events.end_user_events`;
 const conversionsTable = `${nameDB}.conversions.conversions`;
+import { parseDateRange } from '../utils/queryUtils.js';
+import { fetchTopAgencies } from '../services/agencyService.js';
 
 /**
- * החזרת סוכנויות פרסום עם הכי הרבה קליקים / חשיפות (impressions)
- * עבור כל סוכנות נציג את מספר הקליקים והחשיפות שלה לכל אפליקציה
+ * Controller: Returns top agencies based on click and impression volume.
+ * Optional query params: ?limit=10&startDate=YYYY-MM-DD&endDate=YYYY-MM-DD&sortBy=clicks|impressions
  */
 export const getTopAgencies = async (req, res) => {
-  const limit = parseInt(req.query.limit) || 10; // מספר תוצאות להחזיר (ברירת מחדל 10)
-
-  const query = `
-    SELECT agency,
-           sub_param_1 AS app_id, -- מזהה האפליקציה מתוך האירוע
-           COUNTIF(engagement_type = 'click') AS clicks,         -- ספירת קליקים בלבד
-           COUNTIF(engagement_type = 'impression') AS impressions -- ספירת חשיפות בלבד
-    FROM \`${eventsTable}\`
-    WHERE agency IS NOT NULL -- רק אם הסוכנות קיימת
-    GROUP BY agency, app_id
-    ORDER BY clicks DESC -- סידור לפי כמות הקליקים הגבוהה ביותר
-    LIMIT ${limit}
-  `;
-
   try {
-    const [rows] = await bigQuery.query(query); // ביצוע השאילתה מול bigQuery
-    res.json(rows); // החזרת התוצאות ללקוח בפורמט JSON
+    const { limit, startDate, endDate, sortBy } = req.query;
+
+    // Parse date range or fallback to default 7 days
+    const { startDate: from, endDate: to } = parseDateRange(startDate, endDate);
+
+    // Delegate the query to the service
+    const results = await fetchTopAgencies({
+      limit,
+      startDate: from,
+      endDate: to,
+      sortBy
+    });
+
+    res.json(results);
   } catch (err) {
-    res.status(500).send(err.message); // במקרה של שגיאה – החזרת קוד 500 והודעה
+    console.error('❌ Error in getTopAgencies:', err);
+    res.status(500).json({ error: err.message }); 
   }
 };
 
+
 /**
- * החזרת אפליקציות שעבדו עם סוכנות מסוימת
- * כולל: קליקים, חשיפות, כמות המרות ויחס המרה (CVR) לכל אפליקציה
+ * Returns traffic and conversion metrics per app for a given agency.
+ * Required query param: ?agency=...
+ * Optional: &limit=10
  */
+// The function is currently not in use.
 export const getAppsByAgency = async (req, res) => {
   const { agency, limit = 10 } = req.query;
 
-  // בדיקה שהפרמטר 'agency' קיים בשאילתה
-  if (!agency) return res.status(400).json({ error: 'Missing agency param' });
-
+  if (!agency || typeof agency !== 'string' || agency.trim() === '') {
+    return res.status(400).json({ error: 'Missing or invalid agency param' });
+  }
   const query = `
     WITH events AS (
       SELECT customer_user_id, sub_param_1 AS app_id, engagement_type
       FROM \`${eventsTable}\`
-      WHERE agency = @agency -- סינון לפי שם הסוכנות שנשלח בבקשה
+      WHERE agency = @agency 
     ),
     conversions AS (
       SELECT customer_user_id, unified_app_id AS app_id, event_time AS conversion_time
       FROM \`${conversionsTable}\`
     )
     SELECT app_id,
-           COUNTIF(engagement_type = 'click') AS clicks,               -- סך הקליקים
-           COUNTIF(engagement_type = 'impression') AS impressions,     -- סך החשיפות
-           COUNT(DISTINCT conversion_time) AS conversions,             -- סך ההמרות הייחודיות
+           COUNTIF(engagement_type = 'click') AS clicks,               
+           COUNTIF(engagement_type = 'impression') AS impressions,     
+           COUNT(DISTINCT conversion_time) AS conversions,             
            SAFE_DIVIDE(COUNT(DISTINCT conversion_time), COUNTIF(engagement_type = 'click')) AS CVR
-           -- חישוב יחס המרה (Conversion Rate) תוך הגנה מחלוקה באפס
     FROM events
     LEFT JOIN conversions
-    USING (customer_user_id) -- חיבור לפי מזהה המשתמש
+    USING (customer_user_id) 
     GROUP BY app_id
-    ORDER BY clicks + impressions DESC -- דירוג לפי הטראפיק הכולל
+    ORDER BY clicks + impressions DESC 
     LIMIT @limit
   `;
 
   try {
-    const [rows] = await bigQuery.query({ query, params: { agency, limit } }); // הרצת השאילתה עם פרמטרים דינמיים
-    res.json(rows); // החזרת התוצאות בפורמט JSON
+
+    const [rows] = await bigquery.query({ query, params: { agency, limit } }); 
+    res.json(rows); 
   } catch (err) {
-    res.status(500).send(err.message); // במקרה של שגיאה – החזרת הודעה עם סטטוס 500
-  }
+    console.error('❌ Error fetching apps by agency:', err);
+    res.status(500).json({ error: err.message });  }
 };
