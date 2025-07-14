@@ -16,7 +16,7 @@ import ChartPanel from '../../components/Dashboard/ChartPanel';
 import FiltersPanel from '../../components/Dashboard/FiltersPanel';
 import DashboardPanel from '../../components/Dashboard/DashboardPanel';
 import DonutPanel from '../../components/Dashboard/DonutPanel';
-// import Spinner from '../../components/ui/Spinner';
+import Spinner from '../../components/Spinner';
 const initialLayout = { width: Dimensions.get('window').width };
 
 export default function App() {
@@ -42,20 +42,8 @@ export default function App() {
     initialLayout,
   } = useDashboardData();
 
-// import { Granularity } from '../../Api/analytics';
-
-  // const [granularity, setGranularity] = useState<Granularity>('daily');
- 
-
-  
-
-     
-
- 
-
   const renderScene = ({ route }: any) => {
-    // if (loading) return <Spinner />;
-
+    if (loading) return <Spinner />;
     const isClicks = route.key === 'clicks';
 
     return (
