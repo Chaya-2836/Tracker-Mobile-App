@@ -1,4 +1,3 @@
-// index.js
 import express from 'express';
 import cors from 'cors';
 
@@ -16,7 +15,6 @@ import { createBigQueryClient } from './config/bigqueryClient.js';
 
 const app = express();
 const port = 8021;
-
 app.use(cors());
 app.use(express.json());
 
@@ -24,6 +22,8 @@ app.use(express.json());
 const nameDB = 'platform-hackaton-2025';
 
 // Initialize BigQuery client asynchronously
+export {  nameDB };
+
 createBigQueryClient()
   .then(bigquery => {
     // Attach BigQuery and dataset name to app locals for access in routes

@@ -1,8 +1,10 @@
 const API_BASE = "http://localhost:8021/events_summary/";
 
+export type Granularity = 'daily' | 'weekly' | 'monthly' | 'yearly';
+
 type DaysMode = 'day' | 'week';
 type Filters = Record<string, string>;
-type TrendPoint = {
+export type TrendPoint = {
   label: Date;
   value: number;
 };
@@ -20,7 +22,7 @@ async function fetchEventSummary(
   }
   const query = new URLSearchParams({ engagement_type: type, daysMode, ...filters });
   const url = `${API_BASE}?${query.toString()}`;
-  console.log("fetchEventSummary URL:", url); // ✅ Debug to confirm correct query
+  console.log("fetchEventSummary URL:", url);
 
   const res = await fetch(url);
 
@@ -33,30 +35,60 @@ async function fetchEventSummary(
   }
 }
 
-function fillMissingDays(data: TrendPoint[], from?: Date, to?: Date): TrendPoint[] {
+export function fillMissingPointsByGranularity(
+  data: TrendPoint[],
+  from?: Date,
+  to?: Date
+): { filled: TrendPoint[], granularity: Granularity } {
   const filled: TrendPoint[] = [];
 
-  const start = from ?? new Date(Date.now() - 7 * 24 * 60 * 60 * 1000); // Default: last 7 days
+  const start = from ?? new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
   const end = to ?? new Date();
 
-  const cursor = new Date(start);
-  while (cursor < end) {
-    const iso = cursor.toISOString().slice(0, 10);
-    const existing = data.find(item => item.label.toISOString().slice(0, 10) === iso);
-    filled.push(existing || { label: new Date(cursor), value: 0 });
-    cursor.setDate(cursor.getDate() + 1);
+  const daysDiff = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+
+  let step: number;
+  let granularity: Granularity;
+  if (daysDiff > 1095) {
+    step = 365;
+    granularity = 'yearly';
+  } else if (daysDiff > 365) {
+    step = 30;
+    granularity = 'monthly';
+  } else if (daysDiff > 30) {
+    step = 7;
+    granularity = 'weekly';
+  } else {
+    step = 1;
+    granularity = 'daily';
   }
 
-  return filled;
+  const cursor = new Date(start);
+  while (cursor <= end) {
+    const existing = data.find(item =>
+      step === 30
+        ? item.label.getFullYear() === cursor.getFullYear() && item.label.getMonth() === cursor.getMonth()
+        : item.label.toISOString().slice(0, 10) === cursor.toISOString().slice(0, 10)
+    );
+
+    filled.push(existing || { label: new Date(cursor), value: 0 });
+
+    if (step === 30) {
+      cursor.setMonth(cursor.getMonth() + 1); // ✅ fixes duplicate months
+    } else {
+      cursor.setDate(cursor.getDate() + step);
+    }
+  }
+
+  return { filled, granularity };
 }
 
-const convertToTrendPoints = (data: any[]): TrendPoint[] =>
+export const convertToTrendPoints = (data: any[]): TrendPoint[] =>
   data.map(item => ({
-    label: new Date(item.event_date),
+    label: new Date(item.event_date?.value || item.event_date),
     value: Number(item.count) || 0,
   }));
 
-// 📊 Day-based summary: returns numbers
 export async function getTodayStats(filters: Filters = {}) {
   const [clicks, impressions] = await Promise.all([
     fetchEventSummary('click', 'day', filters) as Promise<number>,
@@ -66,15 +98,17 @@ export async function getTodayStats(filters: Filters = {}) {
   return { clicks, impressions };
 }
 
-// 📈 Week-based summary: returns arrays
-export async function getWeeklyTrends(filters: Filters = {}) {
+export async function getWeeklyTrends(filters: Filters = {}): Promise<{
+  clicks: TrendPoint[],
+  impressions: TrendPoint[],
+  granularity: Granularity
+}> {
   const from = filters.fromDate ? new Date(filters.fromDate) : undefined;
   const to = filters.toDate ? new Date(filters.toDate) : undefined;
 
-  // ❗ Optional: prevent invalid range
   if (from && to && from > to) {
     console.warn("Invalid date range: fromDate is after toDate");
-    return { clicks: [], impressions: [] };
+    return { clicks: [], impressions: [], granularity: 'daily' };
   }
 
   const [clicksRowResult, impressionsRowResult] = await Promise.all([
@@ -82,16 +116,21 @@ export async function getWeeklyTrends(filters: Filters = {}) {
     fetchEventSummary('impression', 'week', filters)
   ]);
 
-  const clicksRow = Array.isArray(clicksRowResult)
-    ? fillMissingDays(convertToTrendPoints(clicksRowResult), from, to)
-    : [];
+  const emptyResult = { filled: [] as TrendPoint[], granularity: 'daily' as Granularity };
 
-  const impressionsRow = Array.isArray(impressionsRowResult)
-    ? fillMissingDays(convertToTrendPoints(impressionsRowResult), from, to)
-    : [];
+  const clicksProcessed = Array.isArray(clicksRowResult)
+    ? fillMissingPointsByGranularity(convertToTrendPoints(clicksRowResult), from, to)
+    : emptyResult;
+
+  const impressionsProcessed = Array.isArray(impressionsRowResult)
+    ? fillMissingPointsByGranularity(convertToTrendPoints(impressionsRowResult), from, to)
+    : emptyResult;
 
   return {
-    clicks: clicksRow,
-    impressions: impressionsRow,
+    clicks: clicksProcessed.filled,
+    impressions: impressionsProcessed.filled,
+    granularity: clicksProcessed.granularity
   };
 }
+
+

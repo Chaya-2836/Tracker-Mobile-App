@@ -1,5 +1,4 @@
 // controllers/appController.js
-
 import { bigquery, nameDB } from '../config/bigqueryConfig.js';
 
 const eventsTable = `${nameDB}.attribution_end_user_events.end_user_events`;
@@ -38,32 +37,31 @@ export const getTopApps = async (req, res) => {
  * Returns traffic breakdown by media source and agency for a specific app.
  * Required query param: ?appId=...
  */
+// The function is currently not in use..
 export const getAppsTrafficBreakdown = async (req, res) => {
-  const { appId } = req.query;
+  const { appId, limit = 10 } = req.query;
 
   if (!appId || typeof appId !== 'string' || appId.trim() === '') {
     return res.status(400).json({ error: 'Missing or invalid appId param' });
   }
-
   const query = `
-    SELECT
-      media_source,
-      agency,
-      COUNTIF(engagement_type = 'click') AS clicks,
-      COUNTIF(engagement_type = 'impression') AS impressions
+    SELECT media_source,
+           agency,
+           COUNTIF(engagement_type = 'click') AS clicks,         
+           COUNTIF(engagement_type = 'impression') AS impressions 
     FROM \`${eventsTable}\`
     WHERE sub_param_1 = @appId
     GROUP BY media_source, agency
-    ORDER BY clicks + impressions DESC
+    ORDER BY clicks + impressions DESC 
+    LIMIT ${limit}
   `;
 
   try {
-    const [rows] = await bigquery.query({ query, params: { appId } });
+    const [rows] = await bigquery.query({ query, params: { appId } }); 
     res.json(rows);
-  } catch (err) {
+  } catch (error) {
     console.error('❌ Error fetching traffic breakdown:', err);
-    res.status(500).json({ error: err.message });
-  }
+    res.status(500).json({ error: err.message });  }
 };
 
 /**
@@ -71,48 +69,50 @@ export const getAppsTrafficBreakdown = async (req, res) => {
  * Includes: clicks, impressions, conversions, and CVR (conversion rate).
  * Required query param: ?appId=...
  */
+// The function is currently not in use.
 export const getAppsTrafficConversions = async (req, res) => {
-  const { appId } = req.query;
-
+  const { appId, limit = 10 } = req.query;
   if (!appId || typeof appId !== 'string' || appId.trim() === '') {
     return res.status(400).json({ error: 'Missing or invalid appId param' });
   }
-
   const query = `
-    WITH events AS (
-      SELECT
-        customer_user_id,
-        media_source,
-        agency,
-        engagement_type
+    WITH base_events AS (
+      SELECT customer_user_id, media_source, agency, sub_param_1 AS app_id,
+             engagement_type, event_time AS event_time_click
       FROM \`${eventsTable}\`
       WHERE sub_param_1 = @appId
+        AND engagement_type IN ('click', 'impression') 
+        AND customer_user_id IS NOT NULL 
     ),
-    conversions AS (
-      SELECT
-        customer_user_id,
-        unified_app_id AS app_id,
-        event_time AS conversion_time
+    base_conversions AS (
+      SELECT customer_user_id, unified_app_id AS app_id, event_time AS conversion_time
       FROM \`${conversionsTable}\`
+      WHERE unified_app_id = @appId
+        AND customer_user_id IS NOT NULL
+    ),
+    joined_data AS (
+      SELECT ev.media_source, ev.agency, ev.engagement_type,
+             ev.event_time_click, conv.conversion_time
+      FROM base_events ev
+      LEFT JOIN base_conversions conv
+        ON ev.customer_user_id = conv.customer_user_id
+        AND TIMESTAMP_DIFF(conv.event_time, ev.event_time_click, SECOND) BETWEEN 0 AND 3600
     )
-    SELECT
-      media_source,
-      agency,
-      COUNTIF(engagement_type = 'click') AS clicks,
-      COUNTIF(engagement_type = 'impression') AS impressions,
-      COUNT(DISTINCT conversion_time) AS conversions,
-      SAFE_DIVIDE(COUNT(DISTINCT conversion_time), COUNTIF(engagement_type = 'click')) AS CVR
-    FROM events
-    LEFT JOIN conversions USING (customer_user_id)
+    SELECT media_source, agency,
+           COUNTIF(engagement_type = 'click') AS clicks,
+           COUNTIF(engagement_type = 'impression') AS impressions,
+           COUNT(DISTINCT conversion_time) AS conversions, 
+           SAFE_DIVIDE(COUNT(DISTINCT conversion_time), COUNTIF(engagement_type = 'click')) AS CVR
+    FROM joined_data
     GROUP BY media_source, agency
-    ORDER BY clicks + impressions DESC
+    ORDER BY conversions DESC 
+    LIMIT ${limit}
   `;
 
   try {
-    const [rows] = await bigquery.query({ query, params: { appId } });
+    const [rows] = await bigquery.query({ query, params: { appId } }); 
     res.json(rows);
-  } catch (err) {
-    console.error('❌ Error fetching app conversions:', err);
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    res.status(500).send(error.message); 
   }
 };

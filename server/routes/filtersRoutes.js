@@ -1,5 +1,3 @@
-// routes/filtersRoutes.js
-
 import express from 'express';
 import {
   getCampaigns,

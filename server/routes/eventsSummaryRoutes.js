@@ -1,5 +1,3 @@
-// routes/eventsSummaryRoutes.js
-
 import express from 'express';
 import { getEventsSummary } from '../controllers/eventsSummaryController.js';
 

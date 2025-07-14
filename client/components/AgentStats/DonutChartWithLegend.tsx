@@ -111,8 +111,8 @@ export default function DonutChartWithLegend({ data }: Props) {
 
       if (normalizedAngle >= runningAngle && normalizedAngle <= end) {
         const midAngle = runningAngle + sweep / 2;
-const midPoint = polarToCartesian(center, center, outerRadius + 10, midAngle);
-showTooltip(item, (item.clicks / total) * 100, midPoint.x, midPoint.y);
+        const midPoint = polarToCartesian(center, center, outerRadius + 10, midAngle);
+        showTooltip(item, (item.clicks / total) * 100, midPoint.x, midPoint.y);
         break;
       }
 
@@ -147,8 +147,8 @@ showTooltip(item, (item.clicks / total) * 100, midPoint.x, midPoint.y);
               onPressIn={(e: any) => {
                 const { locationX, locationY } = e.nativeEvent;
                 const midAngle = startAngle + sweepAngle / 2;
-const midPoint = polarToCartesian(center, center, outerRadius + 10, midAngle);
-showTooltip(item, percent * 100, midPoint.x, midPoint.y);
+                const midPoint = polarToCartesian(center, center, outerRadius + 10, midAngle);
+                showTooltip(item, percent * 100, midPoint.x, midPoint.y);
               }}
             />
           );
