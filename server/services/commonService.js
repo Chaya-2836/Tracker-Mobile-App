@@ -1,4 +1,4 @@
-import { bigquery, nameDB } from '../config/bigqueryConfig.js';
+import { bigQuery, nameDB } from '../config/bigQueryConfig.js';
 
 export const fetchTopByDimension = async ({
     dimension,
@@ -33,7 +33,7 @@ export const fetchTopByDimension = async ({
       ${limitClause}
     `;
   
-    const [rows] = await bigquery.query({ query });
+    const [rows] = await bigQuery.query({ query });
     return rows;
   };
   

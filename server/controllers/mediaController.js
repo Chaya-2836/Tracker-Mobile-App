@@ -1,6 +1,6 @@
 // controllers/mediaController.js
 
-import { bigQuery, nameDB } from '../../config/bigQueryConfig.js';
+import { bigQuery, nameDB } from '../config/bigQueryConfig.js';
 
 // Define full table names from project configuration
 const eventsTable = `${nameDB}.attribution_end_user_events.end_user_events`;

@@ -1,7 +1,7 @@
 
 // controllers/agencyController.js
 
-import { bigQuery, nameDB } from '../../config/bigQueryConfig.js';
+import { bigQuery, nameDB } from '../config/bigQueryConfig.js';
 
 const eventsTable = `${nameDB}.attribution_end_user_events.end_user_events`;
 const conversionsTable = `${nameDB}.conversions.conversions`;
@@ -72,7 +72,7 @@ export const getAppsByAgency = async (req, res) => {
 
   try {
 
-    const [rows] = await bigquery.query({ query, params: { agency, limit } }); 
+    const [rows] = await bigQuery.query({ query, params: { agency, limit } }); 
     res.json(rows); 
   } catch (err) {
     console.error('❌ Error fetching apps by agency:', err);

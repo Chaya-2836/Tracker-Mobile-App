@@ -1,5 +1,5 @@
 
-import { bigQuery, nameDB } from '../../config/bigQueryConfig.js';
+import { bigQuery, nameDB } from '../config/bigQueryConfig.js';
 
 
 const eventsTable = `${nameDB}.attribution_end_user_events.end_user_events`;

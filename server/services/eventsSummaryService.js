@@ -1,4 +1,4 @@
-import { bigquery, nameDB } from '../config/bigqueryConfig.js';
+import { bigQuery, nameDB } from '../config/bigQueryConfig.js';
 import { parseISO, isAfter } from 'date-fns';
 
 export async function getEventsSummaryService(queryParams) {
@@ -58,7 +58,7 @@ export async function getEventsSummaryService(queryParams) {
 
   Object.entries(params).forEach(([k, v]) => { if (v === undefined) delete params[k]; });
 
-  const [job] = await bigquery.createQueryJob({ query, location: 'US', params });
+  const [job] = await bigQuery.createQueryJob({ query, location: 'US', params });
   const [rows] = await job.getQueryResults();
 
   return { rows, daysMode };
