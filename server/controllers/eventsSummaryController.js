@@ -1,5 +1,5 @@
 import { bigQuery, nameDB } from '../config/bigQueryConfig.js';
-import { parseISO, isAfter } from 'date-fns';
+import { parseISO, isAfter, differenceInDays } from 'date-fns';
 
 export async function getEventsSummary(req, res) {
   try {
@@ -7,6 +7,8 @@ export async function getEventsSummary(req, res) {
 
     const filters = [];
     const params = {};
+    let selectClause = '';
+    let groupClause = '';
 
     const {
       campaign_name,
@@ -20,6 +22,8 @@ export async function getEventsSummary(req, res) {
       fromDate,
       toDate
     } = req.query;
+
+
     console.log('🧾 req.query:', req.query);
 
     if (campaign_name) {
@@ -61,12 +65,56 @@ export async function getEventsSummary(req, res) {
 
     // ✅ טווח מותאם אישית
     if (fromDate && toDate) {
-      filters.push(`DATE(event_time) BETWEEN DATE(@fromDate) AND DATE(@toDate)`);
+      const from = parseISO(fromDate);
+      const to = parseISO(toDate);
+      console.log("🔍 from valid?", !isNaN(from));
+      console.log("🔍 to valid?", !isNaN(to));
+      const daysDiff = differenceInDays(to, from);
+
       params.fromDate = fromDate;
       params.toDate = toDate;
-      console.log("fromDate to Date");
+      filters.push(`DATE(event_time) BETWEEN DATE(@fromDate) AND DATE(@toDate)`);
 
+      console.log("📅 daysDiff:", daysDiff);
+      if (daysDiff> 1095){
+         selectClause = `
+            SELECT FORMAT_DATE('%Y-%m-%d', DATE_TRUNC(DATE(event_time), YEAR)) AS event_date,
+            COUNT(*) AS count
+        `;
+        groupClause = `GROUP BY event_date ORDER BY event_date`;
+
+        console.log("🗓️ Using yearly aggregation");
+      }
+      else if (daysDiff > 365) {
+        selectClause = `
+            SELECT FORMAT_DATE('%Y-%m-%d', DATE_TRUNC(DATE(event_time), MONTH)) AS event_date,
+            COUNT(*) AS count
+        `;
+        groupClause = `GROUP BY event_date ORDER BY event_date`;
+
+        console.log("🗓️ Using monthly aggregation");
+      }
+
+      else if (daysDiff > 30) {
+        selectClause = `
+            SELECT FORMAT_DATE('%Y-%m-%d', DATE_TRUNC(DATE(event_time), WEEK(SUNDAY))) AS event_date,
+            COUNT(*) AS count
+        `;
+        groupClause = `GROUP BY event_date ORDER BY event_date`;
+
+        console.log("🗓️ Using weekly aggregation");
+      } else {
+        selectClause = `
+          SELECT
+            DATE(event_time, "Asia/Jerusalem") AS event_date,
+            COUNT(*) AS count
+        `;
+        groupClause = `GROUP BY event_date ORDER BY event_date`;
+
+        console.log("📆 Using daily aggregation");
+      }
     }
+
     // ✅ יום נוכחי או לפי תאריך יחיד
     else if (daysMode === 'day') {
       if (useCurrentDate) {
@@ -74,7 +122,13 @@ export async function getEventsSummary(req, res) {
       } else {
         filters.push(`DATE(event_time) = DATE(@date)`);
       }
+
+      selectClause = `
+        SELECT DATE(event_time, "Asia/Jerusalem") AS event_date, COUNT(*) AS count
+      `;
+      groupClause = `GROUP BY event_date ORDER BY event_date`;
     }
+
     // ✅ ברירת מחדל — שבוע אחרון
     else {
       if (useCurrentDate) {
@@ -82,24 +136,14 @@ export async function getEventsSummary(req, res) {
       } else {
         filters.push(`DATE(event_time) BETWEEN DATE_SUB(DATE(@date), INTERVAL 7 DAY) AND DATE_SUB(DATE(@date), INTERVAL 1 DAY)`);
       }
-    }
 
-    const whereClause = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
-
-    let selectClause = "";
-    let groupClause = "";
-
-    if (daysMode === 'day') {
-      selectClause = `SELECT DATE(event_time, "Asia/Jerusalem") AS event_date, COUNT(*) AS count`;
-      groupClause = `GROUP BY event_date ORDER BY event_date`;
-    } else {
       selectClause = `
-        SELECT 
-          FORMAT_TIMESTAMP('%Y-%m-%d', event_time) AS event_date,
-          COUNT(*) AS count
+        SELECT FORMAT_TIMESTAMP('%Y-%m-%d', event_time) AS event_date, COUNT(*) AS count
       `;
       groupClause = `GROUP BY event_date ORDER BY event_date`;
     }
+
+    const whereClause = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
 
     const query = `
       ${selectClause}
@@ -107,7 +151,7 @@ export async function getEventsSummary(req, res) {
       ${whereClause}
       ${groupClause}
     `;
-    console.log('📦 Final PARAMS to bigQuery:', params);
+    console.log('📦 Final PARAMS to BigQuery:', params);
     // הסר את כל הפרמטרים שהם undefined
     Object.entries(params).forEach(([key, val]) => {
       if (val === undefined) {
@@ -115,20 +159,21 @@ export async function getEventsSummary(req, res) {
         delete params[key];
       }
     });
+
     const options = {
       query,
       location: 'US',
       params,
     };
-    console.log('🧪 PARAMS:', params);
 
     const [job] = await bigQuery.createQueryJob(options);
     const [rows] = await job.getQueryResults();
-
-    if (daysMode === 'day') {
+    console.log("🧾 BigQuery rows:", JSON.stringify(rows, null, 2));
+    if (daysMode === 'day' && !fromDate && !toDate) {
       const count = rows[0]?.count || 0;
       res.type('text/plain').send(count.toString());
     } else {
+
       res.status(200).json(rows);
     }
   } catch (err) {

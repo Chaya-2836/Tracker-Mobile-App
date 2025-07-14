@@ -3,7 +3,6 @@ import {
   SafeAreaView,
   Text,
   View,
-  ActivityIndicator,
   Dimensions,
   ScrollView,
 } from 'react-native';
@@ -42,6 +41,17 @@ export default function App() {
     getChartTitle,
     initialLayout,
   } = useDashboardData();
+
+// import { Granularity } from '../../Api/analytics';
+
+  // const [granularity, setGranularity] = useState<Granularity>('daily');
+ 
+
+  
+
+     
+
+ 
 
   const renderScene = ({ route }: any) => {
     // if (loading) return <Spinner />;
