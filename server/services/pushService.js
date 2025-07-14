@@ -2,12 +2,9 @@ import fs from 'fs';
 import path from 'path';
 import cron from 'node-cron';
 import { getTodayStats } from './statsService.js';
-<<<<<<< HEAD
-import { checkAndSendTrafficAlert } from "../controllers/alertSlackController.js"
-=======
+
 import { checkAndSendTrafficAlert } from '../controllers/alertSlackController.js';
 import admin from 'firebase-admin';
->>>>>>> d19b7ff39a7751fa76cb69808b95a999c0724c98
 
 const __dirname = path.resolve();
 const serviceAccountPath = path.join(__dirname, 'firebase-service-account.json');
