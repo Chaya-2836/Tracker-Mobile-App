@@ -1,13 +1,14 @@
 import fs from 'fs';
 import path from 'path';
 import cron from 'node-cron';
-import { getTodayStats } from '../services/statsService.js';
-import { checkAndSendTrafficAlert } from "../controllers/alertSlackController.js"
+import { getTodayStats } from './statsService.js';
+
+import { checkAndSendTrafficAlert } from '../controllers/alertSlackController.js';
+import admin from 'firebase-admin';
 
 const __dirname = path.resolve();
 const serviceAccountPath = path.join(__dirname, 'firebase-service-account.json');
 
-let admin;
 let firebaseReady = false;
 let currentDeviceToken = null;
 

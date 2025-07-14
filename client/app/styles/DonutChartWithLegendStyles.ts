@@ -12,17 +12,7 @@ export default StyleSheet.create({
     width: '100%',
     alignItems: 'center',
   },
-  // checkmark: {
-  //   color: 'white',
-  //   fontSize: 10,
-  //   fontWeight: 'bold',
-  //   lineHeight: 14,
-  // },
-  // legendText: {
-  //   fontFamily: 'monospace',
-  //   fontSize: 13,
-  //   color: '#333',
-  // },
+
   tooltipBox: {
     position: 'absolute',
     padding: 8,

@@ -11,7 +11,7 @@ import {
   fetchTopAgencies,
   fetchTopApps,
   fetchTopMediaSources,
-} from "../Api/trafficAnalyticsAPI";
+} from "../api/trafficAnalyticsAPI";
 
 import Spinner from "./Spinner";
 

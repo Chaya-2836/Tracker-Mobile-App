@@ -1,40 +1,53 @@
 import express from 'express';
 import cors from 'cors';
-import { BigQuery } from '@google-cloud/bigquery';
+
 import eventsSummaryRoutes from './routes/eventsSummaryRoutes.js';
 import filtersRoutes from './routes/filtersRoutes.js';
 import pushRoutes from './routes/pushRoutes.js';
-import { scheduleDailyCheck } from './push/pushService.js';
-import trafficAnalyticsRoutes from './routes/trafficAnalyticsRoutes.js';
-import analyticsRoutes from './routes/trafficAnalyticsRoutes.js';
+import mediaRoutes from './routes/mediaRoutes.js';
+import agencyRoutes from './routes/agencyRoutes.js';
+import appRoutes from './routes/appRoutes.js';
+import alertRoutes from './routes/alertRoutes.js';
+
+
+import { scheduleDailyCheck } from './services/pushService.js';
+import { createBigQueryClient } from './config/bigQueryClient.js';
 
 const app = express();
 const port = 8021;
-// פתרון בעיית ה cors
 app.use(cors());
 app.use(express.json());
 
-// אתחול BigQuery - עדכן את הנתיב לקובץ ההרשאות שלך במידה ויש
-// const bigquery = new BigQuery({
-//     keyFilename: "./config/key.json"
-// });
-
+// The name of the BigQuery dataset
 const nameDB = 'platform-hackaton-2025';
 
-// חשוב לייצא אותם לשימוש בקבצים אחרים
+// Initialize BigQuery client asynchronously
 export {  nameDB };
 
-// רישום ראוטים
-app.use('/events_summary', eventsSummaryRoutes);
-app.use('/filters', filtersRoutes);
-app.use('/push', pushRoutes);
-app.use('/trafficAnalytics', trafficAnalyticsRoutes);
-app.use('/api/analytics', analyticsRoutes);
+createBigQueryClient()
+  .then(bigquery => {
+    // Attach BigQuery and dataset name to app locals for access in routes
+    app.locals.bigquery = bigquery;
+    app.locals.nameDB = nameDB;
+
+    // Register API routes
+    app.use('/events_summary', eventsSummaryRoutes);
+    app.use('/filters', filtersRoutes);
+    app.use('/push', pushRoutes);
+    app.use('/trafficAnalytics/media', mediaRoutes);
+    app.use('/trafficAnalytics/agency', agencyRoutes);
+    app.use('/trafficAnalytics/apps', appRoutes);
+    app.use('/trafficAnalytics/alert', alertRoutes);
+
+    // Start daily scheduled push check
+    scheduleDailyCheck();
 
 
-// קריאה לפונקציית בדיקת הפוש המתוזמנת
-// scheduleDailyCheck();
-
-app.listen(port, () => {
-  console.log(`Server is running at http://localhost:${port}`);
-});
+    app.listen(port, () => {
+      console.log(`Server is running at http://localhost:${port}`);
+    });
+  })
+  .catch(err => {
+    console.error('Error initializing BigQuery client:', err);
+    process.exit(1); // Exit the process if BigQuery client fails to initialize
+  });

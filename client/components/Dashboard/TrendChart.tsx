@@ -9,9 +9,10 @@ import {
   NativeScrollEvent,
 } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
-import Chartstyles, { chartConfig } from '../app/styles/trendChartStyles';
-import TooltipForChart from './TooltipForChart';
-import { Granularity } from '../Api/analytics';
+
+import Chartstyles, { chartConfig } from '../../app/styles/trendChartStyles';
+import TooltipForChart from '../TooltipForChart';
+import { Granularity } from '../../api/analytics';
 
 interface TrendChartProps {
   data: { label: Date; value: number }[];

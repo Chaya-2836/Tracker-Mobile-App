@@ -1,4 +1,6 @@
-const API_BASE = "http://localhost:8021/events_summary/";
+import { CONFIG } from '../config';
+
+const BASE_URL = CONFIG.BASE_URL + "/events_summary/";
 
 export type Granularity = 'daily' | 'weekly' | 'monthly' | 'yearly';
 
@@ -21,8 +23,8 @@ async function fetchEventSummary(
     delete filters.date;
   }
   const query = new URLSearchParams({ engagement_type: type, daysMode, ...filters });
-  const url = `${API_BASE}?${query.toString()}`;
-  console.log("fetchEventSummary URL:", url);
+  const url = `${BASE_URL}?${query.toString()}`;
+  console.log("fetchEventSummary URL:", url); // ✅ Debug to confirm correct query
 
   const res = await fetch(url);
 

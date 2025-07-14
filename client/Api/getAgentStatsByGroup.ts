@@ -3,7 +3,7 @@ import {
   fetchTopAgencies,
   fetchTopApps,
   fetchTopPlatforms
-} from '../Api/trafficAnalyticsAPI';
+} from './trafficAnalyticsAPI';
 
 export type AgentItem = {
   name: string;
@@ -18,11 +18,15 @@ const colorPalette = [
   '#f39c12', '#a0cfff', '#c39bd3', '#50e3c2', '#e67e22',
 ];
 
-// פונקציית ניקוי אחיד
+// Normalize key function to handle undefined or null values
+// and convert to lowercase for consistency
+
 const normalizeKey = (value: string): string =>
   (value || 'Unnamed').trim().toLowerCase();
 
-// מיזוג לפי שם אחיד
+// Normalize function to aggregate data by a specific key
+// and return an array of AgentItem with colors assigned
+
 const normalize = (data: any[], key: string): AgentItem[] => {
   const mergedMap = new Map<string, { raw: string, clicks: number, impressions: number }>();
 

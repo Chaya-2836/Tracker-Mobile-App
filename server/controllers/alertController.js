@@ -3,8 +3,8 @@
 * מזהה אנומליות כמו תנועה גבוהה ושיעורי המרה נמוכים.
 */
 
-// ייבוא אובייקטי BigQuery והגדרת שם בסיס הנתונים מתוך קובץ קונפיגורציה
-import { bigquery, nameDB } from '../config/bigqueryConfig.js';
+// ייבוא אובייקטי bigQuery והגדרת שם בסיס הנתונים מתוך קובץ קונפיגורציה
+import { bigQuery, nameDB } from '../config/bigQueryConfig.js';
 
 // הגדרת שמות הטבלאות לפי שם הדאטאבייס
 const eventsTable = `${nameDB}.attribution_end_user_events.end_user_events`;
@@ -29,7 +29,7 @@ export const alertHighTraffic = async (req, res) => {
   `;
 
   try {
-    const [rows] = await bigquery.query(query); // ביצוע השאילתה מול BigQuery
+    const [rows] = await bigQuery.query(query); // ביצוע השאילתה מול bigQuery
     const alert = rows.length > 0; // בדיקה אם יש תוצאות שעוברות את הסף
     res.json({ alert, data: rows }); // החזרת תוצאות וסטטוס התראה
   } catch (err) {
@@ -79,7 +79,7 @@ export const getSuspiciousTrafficCases = async (req, res) => {
   `;
 
   try {
-    const [rows] = await bigquery.query({
+    const [rows] = await bigQuery.query({
       query,
       params: { minTraffic, minConversions, limit } // הכנסת ערכים דינמיים לשאילתה
     });

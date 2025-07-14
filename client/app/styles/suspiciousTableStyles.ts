@@ -7,21 +7,6 @@ const baseCell = {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    alignSelf: "center",
-    borderRadius: 10,
-    marginTop: 10,
-    // marginHorizontal: 10,
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOpacity: 0.06,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 6,
-    elevation: 3,
-    width: "96%",
-    backgroundColor: "#fff",
-  },
-
   headerRow: {
     flexDirection: "row",
     backgroundColor: "#e9f1f9",
