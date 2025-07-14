@@ -5,11 +5,11 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const keyPath = path.resolve(__dirname, 'key.json');
 
-const bigquery = new BigQuery({
+const bigQuery = new BigQuery({
   keyFilename: keyPath,
 });
 
 
 const nameDB = 'platform-hackaton-2025';
  
-export { bigquery, nameDB };
+export { bigQuery, nameDB };

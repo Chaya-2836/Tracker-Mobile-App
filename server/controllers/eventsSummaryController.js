@@ -1,8 +1,10 @@
+
 import { getEventsSummaryService } from '../services/eventsSummaryService.js';
 
 export async function getEventsSummary(req, res) {
   try {
     const { rows, daysMode } = await getEventsSummaryService(req.query);
+
 
     if (daysMode === 'day') {
       const count = rows[0]?.count || 0;

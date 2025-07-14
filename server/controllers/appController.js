@@ -1,5 +1,6 @@
-// controllers/appController.js
-import { bigquery, nameDB } from '../config/bigqueryConfig.js';
+
+import { bigQuery, nameDB } from '../config/bigQueryConfig.js';
+
 
 const eventsTable = `${nameDB}.attribution_end_user_events.end_user_events`;
 const conversionsTable = `${nameDB}.conversions.conversions`;
@@ -57,7 +58,8 @@ export const getAppsTrafficBreakdown = async (req, res) => {
   `;
 
   try {
-    const [rows] = await bigquery.query({ query, params: { appId } }); 
+
+    const [rows] = await bigQuery.query({ query, params: { appId } }); 
     res.json(rows);
   } catch (error) {
     console.error('❌ Error fetching traffic breakdown:', err);
@@ -110,7 +112,8 @@ export const getAppsTrafficConversions = async (req, res) => {
   `;
 
   try {
-    const [rows] = await bigquery.query({ query, params: { appId } }); 
+
+    const [rows] = await bigQuery.query({ query, params: { appId } }); 
     res.json(rows);
   } catch (error) {
     res.status(500).send(error.message); 

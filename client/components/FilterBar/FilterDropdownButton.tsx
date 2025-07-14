@@ -14,7 +14,7 @@ type Props = {
   isActive: boolean;
   onPress: () => void;
   onLayout: (layout: LayoutRectangle) => void;
-  hideHeader?: boolean; // ✅ חדש: מאפשר להסתיר את הכפתור בפנים
+  hideHeader?: boolean; 
 };
 
 export default function FilterDropdownButton({
@@ -22,7 +22,7 @@ export default function FilterDropdownButton({
   isActive,
   onPress,
   onLayout,
-  hideHeader = false, // ברירת מחדל: מציגים את הכפתור
+  hideHeader = false, 
 }: Props) {
   if (hideHeader) {
     return (

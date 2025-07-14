@@ -25,19 +25,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // card: {
-  //   backgroundColor: '#fff',
-  //   padding: 16,
-  //   borderRadius: 12,
-  //   shadowColor: '#000',
-  //   shadowOpacity: 0.05,
-  //   shadowOffset: { width: 0, height: 2 },
-  //   shadowRadius: 8,
-  //   elevation: 2,
-  //   margin: 10,
-  //   width: '95%',
-  //   alignSelf: 'center',
-  // },
   title: {
     fontSize: 16,
     fontWeight: '600',

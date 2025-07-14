@@ -1,29 +1,31 @@
-const API_BASE = "http://localhost:8021/filters"; //Your API path to the server
+import { CONFIG } from '../config';
+
+const BASE_URL = CONFIG.BASE_URL + "/filters";
 
 // Key type and filter values
 type Filters = Record<string, string[]>;
 
 // Functions for getting filter options from the server
 export async function fetchCampaigns(): Promise<string[]> {
-  const res = await fetch(`${API_BASE}/campaigns`);
+  const res = await fetch(`${BASE_URL}/campaigns`);
   if (!res.ok) throw new Error('Failed to fetch campaigns');
   return res.json();
 }
 
 export async function fetchPlatforms(): Promise<string[]> {
-  const res = await fetch(`${API_BASE}/platforms`);
+  const res = await fetch(`${BASE_URL}/platforms`);
   if (!res.ok) throw new Error('Failed to fetch platforms');
   return res.json();
 }
 
 export async function fetchMediaSources(): Promise<string[]> {
-  const res = await fetch(`${API_BASE}/media-sources`);
+  const res = await fetch(`${BASE_URL}/media-sources`);
   if (!res.ok) throw new Error('Failed to fetch media sources');
   return res.json();
 }
 
 export async function fetchAgencies(): Promise<string[]> {
-  const res = await fetch(`${API_BASE}/agencies`);
+  const res = await fetch(`${BASE_URL}/agencies`);
   if (!res.ok) throw new Error('Failed to fetch agencies');
   return res.json();
 }

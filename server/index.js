@@ -11,7 +11,7 @@ import alertRoutes from './routes/alertRoutes.js';
 
 
 import { scheduleDailyCheck } from './services/pushService.js';
-import { createBigQueryClient } from './config/bigqueryClient.js';
+import { createBigQueryClient } from './config/bigQueryClient.js';
 
 const app = express();
 const port = 8021;
@@ -41,6 +41,7 @@ createBigQueryClient()
 
     // Start daily scheduled push check
     scheduleDailyCheck();
+
 
     app.listen(port, () => {
       console.log(`Server is running at http://localhost:${port}`);

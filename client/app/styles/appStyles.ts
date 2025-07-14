@@ -1,4 +1,5 @@
 import { StyleSheet, ViewStyle, TextStyle, Platform } from 'react-native';
+
 interface AppStyles {
   containerpage: ViewStyle;
   container: ViewStyle;
@@ -8,6 +9,7 @@ interface AppStyles {
   tabBarStyle: ViewStyle;
   tabBarLabel: TextStyle;
 }
+
 const styles = StyleSheet.create<AppStyles>({
 headerContainer: {
   paddingHorizontal: 16,

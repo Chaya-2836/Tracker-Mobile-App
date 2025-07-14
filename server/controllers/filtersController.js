@@ -1,8 +1,10 @@
+
 // controllers/filtersController.js
 import { fetchDistinctValues } from '../services/filtersService.js';
 
 export async function getCampaigns(req, res) {
   try {
+
     const campaigns = await fetchDistinctValues('campaign_name');
     res.status(200).json(campaigns);
   } catch (err) {
@@ -13,6 +15,7 @@ export async function getCampaigns(req, res) {
 
 export async function getPlatforms(req, res) {
   try {
+
     const platforms = await fetchDistinctValues('platform');
     res.status(200).json(platforms);
   } catch (err) {
@@ -23,6 +26,7 @@ export async function getPlatforms(req, res) {
 
 export async function getMediaSources(req, res) {
   try {
+
     const sources = await fetchDistinctValues('media_source');
     res.status(200).json(sources);
   } catch (err) {
@@ -33,6 +37,7 @@ export async function getMediaSources(req, res) {
 
 export async function getAgencies(req, res) {
   try {
+
     const agencies = await fetchDistinctValues('agency');
     res.status(200).json(agencies);
   } catch (err) {

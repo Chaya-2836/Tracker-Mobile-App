@@ -1,7 +1,8 @@
 import axios from 'axios';
 
-// Set base address
-const BASE_URL = 'http://localhost:8021/trafficAnalytics';
+import { CONFIG } from '../config';
+
+const BASE_URL = CONFIG.BASE_URL + "/trafficAnalytics";
 
 // General type for responses from the server – can be replaced in the future according to the real data
 type ApiResponse<T = any> = T;
@@ -45,6 +46,12 @@ export const fetchAppTrafficConversions = async (appId: string, limit: number = 
   return data;
 };
 
+// Platforms
+export const fetchTopPlatforms = async (): Promise<ApiResponse> => {
+  const { data } = await axios.get(`${BASE_URL}/platforms/top`);
+  return data;
+};
+
 //Alerts
 export const fetchHighTrafficAlerts = async (): Promise<ApiResponse> => {
   const { data } = await axios.get(`${BASE_URL}/alert/high-traffic`);
@@ -62,8 +69,5 @@ export const fetchSuspiciousTrafficCases = async (
   return data;
 };
 
-export const fetchTopPlatforms = async (): Promise<ApiResponse> => {
-  const { data } = await axios.get(`${BASE_URL}/platforms/top`);
-  return data;
-};
+
 

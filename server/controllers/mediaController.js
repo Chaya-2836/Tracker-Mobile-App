@@ -1,7 +1,6 @@
 // controllers/mediaController.js
 
-
-import { bigquery, nameDB } from '../config/bigqueryConfig.js';
+import { bigQuery, nameDB } from '../config/bigQueryConfig.js';
 
 // Define full table names from project configuration
 const eventsTable = `${nameDB}.attribution_end_user_events.end_user_events`;
@@ -16,6 +15,7 @@ import { fetchTopMediaSources } from '../services/mediaService.js';
  */
 export const getTopMediaSources = async (req, res) => {
   try {
+
     const { limit, startDate, endDate, sortBy } = req.query;
 
     // Resolve and format date range
@@ -35,7 +35,6 @@ export const getTopMediaSources = async (req, res) => {
     res.status(500).json({ error: err.message }); 
   }
 };
-
 
 /**
  * Fetch apps associated with a specific media source,
@@ -74,9 +73,9 @@ export const getAppsByMediaSource = async (req, res) => {
     ORDER BY clicks + impressions DESC 
     LIMIT @limit
   `;
-
   try {
-    const [rows] = await bigquery.query({ query, params: { mediaSource, limit } });
+
+    const [rows] = await bigQuery.query({ query, params: { mediaSource, limit } });
     res.json(rows); 
   } catch (err) {
     res.status(500).send(err.message);
