@@ -1,19 +1,21 @@
-// middleware/validateQueryParam.js
+// routes/filtersRoutes.js
 
-/**
- * Middleware to ensure a required query parameter is present and valid
- * @param {string} paramName - The name of the query parameter to check
- * @returns Express middleware function
- */
-export function requireQueryParam(paramName) {
-    return function (req, res, next) {
-      const value = req.query[paramName];
-  
-      if (!value || typeof value !== 'string' || value.trim() === '') {
-        return res.status(400).json({ error: `Missing or invalid query param: ${paramName}` });
-      }
-  
-      next();
-    };
-  }
-  
+import express from 'express';
+import {
+  getCampaigns,
+  getPlatforms,
+  getMediaSources,
+  getAgencies,
+  getEngagementTypes,
+} from '../controllers/filtersController.js';
+
+const router = express.Router();
+
+//Define individual filter endpoints
+router.get('/campaigns', getCampaigns);
+router.get('/platforms', getPlatforms);
+router.get('/media-sources', getMediaSources);
+router.get('/agencies', getAgencies);
+router.get('/engagement-types', getEngagementTypes);
+
+export default router;

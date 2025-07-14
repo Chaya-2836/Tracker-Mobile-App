@@ -1,8 +1,6 @@
-// tests/eventsSummaryController.test.js
-
 import request from 'supertest';
 import express from 'express';
-import * as eventsController from '../controllers/eventsSummaryController.js';
+import * as filtersController from '../controllers/filtersController.js';
 
 jest.mock('../config/bigqueryConfig.js', () => ({
   bigquery: {
@@ -13,88 +11,72 @@ jest.mock('../config/bigqueryConfig.js', () => ({
 
 const app = express();
 app.use(express.json());
-app.get('/events_summary', eventsController.getEventsSummary);
 
-describe('🧪 Events Summary Controller Tests', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
+app.get('/filters/campaigns', filtersController.getCampaigns);
+app.get('/filters/platforms', filtersController.getPlatforms);
+app.get('/filters/media-sources', filtersController.getMediaSources);
+app.get('/filters/agencies', filtersController.getAgencies);
+app.get('/filters/engagement-types', filtersController.getEngagementTypes);
+
+describe('🧪 Filters Controller Tests', () => {
+  const mockJob = (data) => ({
+    getQueryResults: jest.fn().mockResolvedValue([data])
   });
 
-  it('✅ should return rows for weekly summary', async () => {
-    const mockRows = [
-      { event_date: '2024-07-01', count: 120 },
-      { event_date: '2024-07-02', count: 85 }
-    ];
-
-    const mockJob = {
-      getQueryResults: jest.fn().mockResolvedValue([mockRows])
-    };
+  it('✅ should return campaign names', async () => {
     const { bigquery } = require('../config/bigqueryConfig.js');
-    bigquery.createQueryJob.mockResolvedValue([mockJob]);
+    bigquery.createQueryJob.mockResolvedValueOnce([mockJob([{ campaign_name: 'Campaign A' }])]);
 
-    const res = await request(app).get('/events_summary?media_source=facebook&daysMode=week');
-
-    console.log('📊 SUCCESS: Weekly summary returned');
+    const res = await request(app).get('/filters/campaigns');
+    console.log('🎯 SUCCESS: Campaigns returned');
     expect(res.status).toBe(200);
-    expect(res.body).toEqual(mockRows);
+    expect(res.body).toEqual(['Campaign A']);
   });
 
-  it('✅ should return daily count as plain text', async () => {
-    const mockRows = [{ event_date: '2024-07-06', count: 42 }];
-
-    const mockJob = {
-      getQueryResults: jest.fn().mockResolvedValue([mockRows])
-    };
+  it('✅ should return platforms', async () => {
     const { bigquery } = require('../config/bigqueryConfig.js');
-    bigquery.createQueryJob.mockResolvedValue([mockJob]);
+    bigquery.createQueryJob.mockResolvedValueOnce([mockJob([{ platform: 'android' }])]);
 
-    const res = await request(app).get('/events_summary?platform=android&daysMode=day');
-
-    console.log('📆 SUCCESS: Daily count returned');
+    const res = await request(app).get('/filters/platforms');
+    console.log('📱 SUCCESS: Platforms returned');
     expect(res.status).toBe(200);
-    expect(res.text).toBe("42");
+    expect(res.body).toEqual(['android']);
   });
 
-  it('✅ should apply fromDate/toDate range filter', async () => {
-    const mockRows = [{ event_date: '2024-06-20', count: 25 }];
-
-    const mockJob = {
-      getQueryResults: jest.fn().mockResolvedValue([mockRows])
-    };
+  it('✅ should return media sources', async () => {
     const { bigquery } = require('../config/bigqueryConfig.js');
-    bigquery.createQueryJob.mockResolvedValue([mockJob]);
+    bigquery.createQueryJob.mockResolvedValueOnce([mockJob([{ media_source: 'facebook' }])]);
 
-    const res = await request(app).get('/events_summary?fromDate=2024-06-20&toDate=2024-06-21');
-
-    console.log('📅 SUCCESS: Custom range summary returned');
+    const res = await request(app).get('/filters/media-sources');
+    console.log('📡 SUCCESS: Media sources returned');
     expect(res.status).toBe(200);
-    expect(res.body).toEqual(mockRows);
+    expect(res.body).toEqual(['facebook']);
   });
 
-  it('⚠️ should fallback to default date if invalid date is given', async () => {
-    const mockRows = [{ event_date: '2024-07-04', count: 70 }];
-
-    const mockJob = {
-      getQueryResults: jest.fn().mockResolvedValue([mockRows])
-    };
+  it('✅ should return agencies', async () => {
     const { bigquery } = require('../config/bigqueryConfig.js');
-    bigquery.createQueryJob.mockResolvedValue([mockJob]);
+    bigquery.createQueryJob.mockResolvedValueOnce([mockJob([{ agency: 'AgencyX' }])]);
 
-    const res = await request(app).get('/events_summary?date=INVALID');
-
-    console.warn('⚠️ WARNING: Invalid date used, fallback to current');
+    const res = await request(app).get('/filters/agencies');
+    console.log('🏢 SUCCESS: Agencies returned');
     expect(res.status).toBe(200);
-    expect(res.body).toEqual(mockRows);
+    expect(res.body).toEqual(['AgencyX']);
   });
 
-  it('❌ should handle BigQuery errors gracefully', async () => {
+  it('✅ should return static engagement types', async () => {
+    const res = await request(app).get('/filters/engagement-types');
+    console.log('🔗 SUCCESS: Engagement types returned');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(['click', 'impression', 'retarget', 'fraud', 'install']);
+  });
+
+  it('❌ should handle BigQuery error in campaigns', async () => {
     const { bigquery } = require('../config/bigqueryConfig.js');
-    bigquery.createQueryJob.mockRejectedValueOnce(new Error('BigQuery failed'));
+    bigquery.createQueryJob.mockRejectedValueOnce(new Error('BigQuery crash'));
 
-    const res = await request(app).get('/events_summary');
-
-    console.error('💥 ERROR: Failed to fetch event summary');
+    const res = await request(app).get('/filters/campaigns');
+    console.error('💥 ERROR: Failed to fetch campaigns');
     expect(res.status).toBe(500);
-    expect(res.body).toEqual({ error: 'Error while running the summary query' });
+    expect(res.body).toEqual({ error: 'Failed to fetch campaigns' });
   });
 });

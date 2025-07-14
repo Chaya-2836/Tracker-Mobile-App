@@ -33,7 +33,7 @@ describe('🧪 Filters Controller Tests', () => {
     expect(res.body).toEqual(['Campaign A']);
   });
 
-  it('✅ should return platforms', async () => {
+  it('✅ should return platforms ', async () => {
     const { bigquery } = require('../config/bigqueryConfig.js');
     bigquery.createQueryJob.mockResolvedValueOnce([mockJob([{ platform: 'android' }])]);
 

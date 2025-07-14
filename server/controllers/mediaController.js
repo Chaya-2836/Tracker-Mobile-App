@@ -7,48 +7,35 @@ import dayjs from 'dayjs';
 const eventsTable = `${nameDB}.attribution_end_user_events.end_user_events`;
 const conversionsTable = `${nameDB}.conversions.conversions`;
 
+import { parseDateRange } from '../utils/queryUtils.js';
+import { fetchTopMediaSources } from '../services/mediaService.js';
+
 /**
- * Fetch top media sources by number of clicks and impressions,
- * grouped by app ID.
- * Query param: ?limit=10 (default: 10)
+ * Controller: Returns top media sources based on number of clicks and impressions.
+ * Optional query params: ?limit=10&startDate=YYYY-MM-DD&endDate=YYYY-MM-DD&sortBy=clicks|impressions
  */
 export const getTopMediaSources = async (req, res) => {
-  
+  try {
     const { limit, startDate, endDate, sortBy } = req.query;
 
-    const defaultEndDate = dayjs().startOf('day');
-    const defaultStartDate = defaultEndDate.subtract(7, 'day');
+    // Resolve and format date range
+    const { startDate: from, endDate: to } = parseDateRange(startDate, endDate);
 
-    const parsedStartDate = startDate ? dayjs(startDate) : defaultStartDate;
-    const parsedEndDate = endDate ? dayjs(endDate) : defaultEndDate;
+    // Forward to service for query execution
+    const results = await fetchTopMediaSources({
+      limit,
+      startDate: from,
+      endDate: to,
+      sortBy
+    });
 
-    const limitClause = limit && limit.toUpperCase() === 'ALL' ? '' : `LIMIT ${parseInt(limit) || 10}`;
-
-    const validSorts = ['clicks', 'impressions'];
-    const orderByColumn = validSorts.includes(sortBy) ? sortBy : 'clicks';
-
-    const query = `
-      SELECT
-        media_source,
-        media_source AS name,
-        COUNTIF(engagement_type = 'click') AS clicks,
-        COUNTIF(engagement_type = 'impression') AS impressions
-      FROM \`${eventsTable}\`
-      WHERE media_source IS NOT NULL
-        AND event_time BETWEEN TIMESTAMP("${parsedStartDate.toISOString()}") AND TIMESTAMP("${parsedEndDate.toISOString()}")
-      GROUP BY media_source
-      ORDER BY ${orderByColumn} DESC
-      ${limitClause}
-    `;
-  try {
-    const [rows] = await bigquery.query({ query });
-    res.json(rows);
-
-  } catch (error) {
-    console.error('Error in getTopMediaSources:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.json(results);
+  } catch (err) {
+    console.error('❌ Error in getTopMediaSources:', err);
+    res.status(500).json({ error: err.message }); 
   }
 };
+
 /**
  * Fetch apps associated with a specific media source,
  * including traffic stats and conversion rate (CVR).

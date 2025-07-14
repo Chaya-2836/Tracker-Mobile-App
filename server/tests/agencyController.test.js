@@ -47,6 +47,17 @@ describe('🧪 Agency Controller Tests', () => {
       expect(res.status).toBe(500);
       expect(res.body).toEqual({ error: 'BigQuery error' });
     });
+    it('✅ should accept startDate, endDate, and sortBy params', async () => {
+      const { bigquery } = require('../config/bigqueryConfig.js');
+      const mockData = [{ agency: 'MockAgency', clicks: 50, impressions: 100 }];
+      bigquery.query.mockResolvedValueOnce([mockData]);
+    
+      const res = await request(app).get('/agency/top?limit=1&sortBy=impressions&startDate=2025-07-01&endDate=2025-07-10');
+    
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(mockData);
+    });
+    
   });
 
   describe('GET /agency/apps', () => {

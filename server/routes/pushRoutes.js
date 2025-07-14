@@ -1,7 +1,7 @@
 // routes/pushRoutes.js
 
 import express from 'express';
-import { registerToken } from '../push/PushService.js';
+import { registerToken } from '../services/pushService.js';
 
 const router = express.Router();
 

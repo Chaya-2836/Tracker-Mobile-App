@@ -4,48 +4,35 @@ import { bigquery, nameDB } from '../config/bigqueryConfig.js';
 
 const eventsTable = `${nameDB}.attribution_end_user_events.end_user_events`;
 const conversionsTable = `${nameDB}.conversions.conversions`;
+import { parseDateRange } from '../utils/queryUtils.js';
+import { fetchTopApps } from '../services/appService.js';
 
 /**
- * Returns the top apps by total traffic (clicks + impressions).
- * Optional query param: ?limit=10
+ * Controller: Returns top apps based on total engagement (clicks + impressions).
+ * Optional query params: ?limit=10&startDate=YYYY-MM-DD&endDate=YYYY-MM-DD&sortBy=clicks|impressions
  */
 export const getTopApps = async (req, res) => {
-    
-      const { limit, startDate, endDate, sortBy } = req.query;
-  
-      const defaultEndDate = dayjs().startOf('day');
-      const defaultStartDate = defaultEndDate.subtract(7, 'day');
-  
-      const parsedStartDate = startDate ? dayjs(startDate) : defaultStartDate;
-      const parsedEndDate = endDate ? dayjs(endDate) : defaultEndDate;
-  
-      const limitClause = limit && limit.toUpperCase() === 'ALL' ? '' : `LIMIT ${parseInt(limit) || 10}`;
-  
-      const validSorts = ['clicks', 'impressions'];
-      const orderByColumn = validSorts.includes(sortBy) ? sortBy : 'clicks';
-  
-      const query = `
-        SELECT
-          sub_param_1 AS app_id,
-          sub_param_1 AS name,
-          COUNTIF(engagement_type = 'click') AS clicks,
-          COUNTIF(engagement_type = 'impression') AS impressions
-        FROM \`${eventsTable}\`
-        WHERE sub_param_1 IS NOT NULL
-          AND event_time BETWEEN TIMESTAMP("${parsedStartDate.toISOString()}") AND TIMESTAMP("${parsedEndDate.toISOString()}")
-        GROUP BY sub_param_1
-        ORDER BY ${orderByColumn} DESC
-        ${limitClause}
-      `;
-    
   try {
-    const [rows] = await bigquery.query({ query, params: { limit } });
-    res.json(rows);
+    const { limit, startDate, endDate, sortBy } = req.query;
+
+    // Parse date range with default fallback
+    const { startDate: from, endDate: to } = parseDateRange(startDate, endDate);
+
+    // Call the service function
+    const results = await fetchTopApps({
+      limit,
+      startDate: from,
+      endDate: to,
+      sortBy
+    });
+
+    res.json(results);
   } catch (err) {
-    console.error('❌ Error fetching top apps:', err);
-    res.status(500).json({ error: err.message });
+    console.error('❌ Error in getTopApps:', err);
+    res.status(500).json({ error: err.message }); 
   }
 };
+
 
 /**
  * Returns traffic breakdown by media source and agency for a specific app.

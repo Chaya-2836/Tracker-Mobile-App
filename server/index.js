@@ -11,7 +11,7 @@ import appRoutes from './routes/appRoutes.js';
 import alertRoutes from './routes/alertRoutes.js';
 
 
-import { scheduleDailyCheck } from './push/pushService.js';
+import { scheduleDailyCheck } from './services/pushService.js';
 import { createBigQueryClient } from './config/bigqueryClient.js';
 
 const app = express();
