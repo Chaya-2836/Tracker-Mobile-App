@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getTodayStats, getWeeklyTrends } from '../../api/analytics';
+import { getTodayStats, getWeeklyTrends, Granularity } from '../../api/analytics';
 import { fetchAllFilters } from '../../api/filters';
 import { Dimensions } from 'react-native';
 

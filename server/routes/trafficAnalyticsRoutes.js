@@ -28,7 +28,7 @@ import {
   getSuspiciousTrafficCases
 } from '../controllers/alertController.js';
 
-import { getTopPlatforms } from '../controllers/PlatformController.js';
+import { getTopPlatforms } from '../controllers/platformController.js';
 // ----------------------------------------------------
 // ראוטים למקורות מדיה
 // ----------------------------------------------------
