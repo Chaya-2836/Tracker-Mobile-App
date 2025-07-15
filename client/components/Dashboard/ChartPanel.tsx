@@ -10,17 +10,18 @@ interface ChartPanelProps {
   clickTrend: any[];
   impressionTrend: any[];
   chartTitle: string;
+  granularity: Granularity;
 }
-  const [granularity, setGranularity] = useState<Granularity>('daily');
 
-export default function ChartPanel({ isClicks, clickTrend, impressionTrend, chartTitle }: ChartPanelProps) {
+export default function ChartPanel({ isClicks, clickTrend, impressionTrend, chartTitle, granularity }: ChartPanelProps) {
   return (
     <View>
       <Text style={Chartstyles.title}>{chartTitle}</Text>
- <TrendChart
-            data={isClicks ? clickTrend : impressionTrend}
-            granularity={granularity}
-          />
-             </View>
+      <TrendChart
+        data={isClicks ? clickTrend : impressionTrend}
+        granularity={granularity}
+      />
+    </View>
   );
 }
+
