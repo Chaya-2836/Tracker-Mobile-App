@@ -40,6 +40,7 @@ export default function App() {
     toggleExpand,
     getChartTitle,
     initialLayout,
+    granularity, // <-- Added granularity here
   } = useDashboardData();
 
   const renderScene = ({ route }: any) => {
@@ -66,12 +67,14 @@ export default function App() {
               onClear={handleClear}
               onApply={handleApply}
             />
-            <ChartPanel
-              isClicks={isClicks}
-              clickTrend={clickTrend}
-              impressionTrend={impressionTrend}
-              chartTitle={getChartTitle(selectedFilters)}
-            />
+<ChartPanel
+  isClicks={isClicks}
+  clickTrend={clickTrend}
+  impressionTrend={impressionTrend}
+  chartTitle={getChartTitle(selectedFilters)}
+  granularity={granularity}
+/>
+
           </View>
           <View style={styles.container}>
             <DashboardPanel scene={route.key} />

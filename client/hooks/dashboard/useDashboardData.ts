@@ -11,7 +11,9 @@ interface TrendPoint {
 const FILTER_ORDER = ['Campaign', 'Platform', 'Media Source', 'Agency', 'Date Range'];
 const initialLayout = { width: Dimensions.get('window').width };
 
+
 export function useDashboardData() {
+  const [granularity, setGranularity] = useState<Granularity>('day' as Granularity);
   const [clicksToday, setClicksToday] = useState(0);
   const [impressionsToday, setImpressionsToday] = useState(0);
   const [clickTrend, setClickTrend] = useState<TrendPoint[]>([]);
@@ -60,16 +62,18 @@ export function useDashboardData() {
         })
       );
 
-      const { clicks = [], impressions = [] } = await getWeeklyTrends(filtersAsQuery);
+const { clicks = [], impressions = [], granularity } = await getWeeklyTrends(filtersAsQuery);
 
-      const toPoints = (arr: any[]) =>
-        arr.map(item => ({
-          label: new Date(item.label),
-          value: Number(item.value || 0),
-        }));
+const toPoints = (arr: any[]) =>
+  arr.map(item => ({
+    label: new Date(item.label),
+    value: Number(item.value || 0),
+  }));
 
-      setClickTrend(toPoints(clicks));
-      setImpressionTrend(toPoints(impressions));
+setClickTrend(toPoints(clicks));
+setImpressionTrend(toPoints(impressions));
+setGranularity(granularity);
+
     } catch (err) {
       console.error('❌ Failed to fetch weekly trends:', err);
     } finally {
@@ -144,5 +148,6 @@ export function useDashboardData() {
     toggleExpand,
     getChartTitle,
     initialLayout,
+    granularity,
   };
 }
