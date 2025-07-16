@@ -1,7 +1,7 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { Dimensions, Image, View, Text, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons'; 
+import { Ionicons } from '@expo/vector-icons';
 
 import { Colors } from '../../constants/Colors';
 import { useColorScheme } from '../../hooks/useColorScheme';
@@ -25,12 +25,12 @@ export default function TabLayout() {
           >
             <Text
               style={{
-                position: 'absolute', // כדי שתהיה תמיד במרכז
+                position: 'absolute',
                 alignSelf: 'center',
                 fontSize: 20,
                 fontWeight: 'bold',
                 color: Colors[colorScheme ?? 'light'].text,
-                paddingTop:8,
+                paddingTop: 8,
               }}
             >
               Engagement Tracker
@@ -68,10 +68,32 @@ export default function TabLayout() {
           </View>
         ),
         headerShown: true,
-        tabBarStyle: { display: 'none' }, 
+        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint, // 🎨 צבע פעיל של הטאב
       }}
     >
-     
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: 'Home',
+          tabBarLabel: () => null, // מסתיר את שם הטאב
+          tabBarIcon: ({ color }) => (
+            <Image
+              source={require('../../assets/images/image.png')}
+              style={{ width: 86, height: 86, tintColor: color }}
+              resizeMode="contain"
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="explore"
+        options={{
+          title: 'Explore',
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="paper-plane" size={28} color={color} />
+          ),
+        }}
+      />
     </Tabs>
   );
 }

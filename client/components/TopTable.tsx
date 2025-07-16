@@ -13,7 +13,8 @@ export default function TopCard({ title, data, topN, sortBy }: TopCardProps) {
   const { width } = useWindowDimensions();
 
   const isLargeScreen = width >= 768;
-const topData =  data.filter(item => item != null)
+const topData = data
+  .filter(item => item && Object.keys(item).length > 0) 
   .sort((a, b) => Number(b[sortBy]) - Number(a[sortBy]))
   .slice(0, topN);
 
