@@ -5,6 +5,8 @@ import {
   View,
   Dimensions,
   ScrollView,
+  Image,
+  StyleSheet,
 } from 'react-native';
 import { TabView, TabBar } from 'react-native-tab-view';
 
@@ -17,8 +19,8 @@ import FiltersPanel from '../../components/Dashboard/FiltersPanel';
 import DashboardPanel from '../../components/Dashboard/DashboardPanel';
 import DonutPanel from '../../components/Dashboard/DonutPanel';
 import Spinner from '../../components/Spinner';
-const initialLayout = { width: Dimensions.get('window').width };
-
+const screenWidth = Dimensions.get('window').width;
+const isLargeScreen = screenWidth >= 768;
 export default function App() {
   const {
     clicksToday,
@@ -67,32 +69,29 @@ export default function App() {
               onClear={handleClear}
               onApply={handleApply}
             />
-<ChartPanel
-  isClicks={isClicks}
-  clickTrend={clickTrend}
-  impressionTrend={impressionTrend}
-  chartTitle={getChartTitle(selectedFilters)}
-  granularity={granularity}
-/>
-
-          </View>
+            <ChartPanel
+              isClicks={isClicks}
+              clickTrend={clickTrend}
+              impressionTrend={impressionTrend}
+              chartTitle={getChartTitle(selectedFilters)}
+              granularity={granularity}
+            />
+      
+          </View> 
+           <View style={styles.container}>
+          <DonutPanel />
+        </View>
           <View style={styles.container}>
             <DashboardPanel scene={route.key} />
           </View>
         </View>
-        <View style={styles.container}>
-          <DonutPanel />
-        </View>
+       
       </ScrollView>
     );
   };
 
   return (
     <SafeAreaView style={styles.containerpage}>
-      <View style={styles.headerRow}>
-        <Text style={styles.header}>Engagement Tracker</Text>
-      </View>
-
       <View style={{ flex: 1 }}>
         <TabView
           navigationState={{ index, routes }}
