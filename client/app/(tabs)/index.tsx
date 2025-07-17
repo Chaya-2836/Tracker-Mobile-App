@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import {
   SafeAreaView,
+  Text,
   View,
   Dimensions,
   ScrollView,
+  Image,
+  StyleSheet,
 } from 'react-native';
 import { TabView, TabBar } from 'react-native-tab-view';
 
@@ -22,6 +25,7 @@ const screenWidth = Dimensions.get('window').width;
 const isLargeScreen = screenWidth >= 768;
 
 export default function App() {
+  // State to track if it's the initial loading of the page
   const [initialLoading, setInitialLoading] = useState(true);
 
   const {
@@ -29,7 +33,7 @@ export default function App() {
     impressionsToday,
     clickTrend,
     impressionTrend,
-    loading,
+    loading, // Indicates whether data is currently being fetched
     index,
     setIndex,
     routes,
@@ -45,29 +49,18 @@ export default function App() {
     getChartTitle,
     initialLayout,
     granularity,
-    fromDate,
+     fromDate,
     setFromDate,
     toDate,
-    setToDate,
+    setToDate
   } = useDashboardData();
 
   useEffect(() => {
+    // When the first loading finishes, remove the initial spinner
     if (!loading && initialLoading) {
       setInitialLoading(false);
     }
   }, [loading]);
-
-  const handleDateChange = (newFromDate: string, newToDate: string) => {
-    setFromDate(newFromDate);
-    setToDate(newToDate);
-    const updatedFilters = {
-      ...selectedFilters,
-      fromDate: [newFromDate],
-      toDate: [newToDate],
-    };
-    setSelectedFilters(updatedFilters);
-    handleApply(updatedFilters);
-  };
 
   const renderScene = ({ route }: any) => {
     const isClicks = route.key === 'clicks';
@@ -83,13 +76,12 @@ export default function App() {
               impressionsToday={impressionsToday}
             />
           </View>
-          {/* Date range picker now lives here */}
-          <DateRangePickerSection
-            fromDate={fromDate}
-            toDate={toDate}
-            onFromDateChange={(date) => handleDateChange(date, toDate)}
-            onToDateChange={(date) => handleDateChange(fromDate, date)}
-          />
+          <DateRangePickerSection 
+           fromDate={fromDate}
+           toDate={toDate}
+           onFromDateChange={setFromDate}
+           onToDateChange={setToDate}
+         />
           <View style={styles.container}>
             <FilterBar
               options={filterOptions}
@@ -103,10 +95,10 @@ export default function App() {
               onApply={handleApply}
             />
             {loading ? (
-              <Spinner />
+              <Spinner /> // Show spinner only for partial loading (e.g., data refresh)
             ) : (
               <TrendChart
-                chartTitle={getChartTitle(selectedFilters)}
+                chartTitle={getChartTitle()}
                 data={isClicks ? clickTrend : impressionTrend}
                 granularity={granularity}
               />
@@ -127,7 +119,7 @@ export default function App() {
     <SafeAreaView style={styles.containerpage}>
       <View style={{ flex: 1 }}>
         {initialLoading ? (
-          <Spinner />
+          <Spinner /> // Show full-screen spinner only during initial page load
         ) : (
           <TabView
             navigationState={{ index, routes }}
