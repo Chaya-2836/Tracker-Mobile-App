@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text } from 'react-native';
 import { DatePickerInput } from 'react-native-paper-dates';
 import { format } from 'date-fns';
-import styles from '../../app/styles/filterMenuStyles';
+import styles from '../../styles/filterMenuStyles';
 
 type Props = {
   fromDate?: string;

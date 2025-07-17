@@ -7,7 +7,7 @@ import {
   LayoutRectangle,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import styles from '../../app/styles/filterMenuStyles';
+import styles from '../../styles/filterMenuStyles';
 
 type Props = {
   label: string;

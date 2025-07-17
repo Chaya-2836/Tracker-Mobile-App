@@ -1,7 +1,7 @@
 import { fetchSuspiciousTrafficCases } from "../../api/trafficAnalyticsAPI";
 import { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, useWindowDimensions } from "react-native";
-import styles from "../../app/styles/suspiciousTrafficPanelStyles";
+import styles from "../../styles/suspiciousTrafficPanelStyles";
 import SuspiciousTable from "./SuspiciousTable";
 import { IconButton } from "react-native-paper";
 

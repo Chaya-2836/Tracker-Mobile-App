@@ -1,19 +1,12 @@
-import style from "../app/styles/topStyles";
+import style from "../../styles/topStyles";
 import { View, Text, ScrollView, Dimensions } from "react-native";
 import React, { useState, useEffect } from "react";
 import { TabView, TabBar, SceneMap } from "react-native-tab-view";
-import styles from '../app/styles/appStyles';
- 
-
-import TopSelector from "./TopSelector";
-import TopTable from "./TopTable";
-import {
-  fetchTopAgencies,
-  fetchTopApps,
-  fetchTopMediaSources,
-} from "../api/trafficAnalyticsAPI";
-
-import Spinner from "./Spinner";
+import styles from '../../styles/appStyles';
+import TopSelector from "../TopSelector";
+import TopTable from "../TopTable";
+import {fetchTopAgencies,fetchTopApps,fetchTopMediaSources,} from "../../api/trafficAnalyticsAPI";
+import Spinner from "../Spinner";
 
 export default function TopDashboard({ scene }: { scene: string }) {
   const [topN, setTopN] = useState(9);
