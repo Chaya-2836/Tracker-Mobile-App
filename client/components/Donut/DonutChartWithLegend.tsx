@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import Svg, { G, Path } from 'react-native-svg';
 import { View, Platform, useWindowDimensions } from 'react-native';
-import styles from '../../app/styles/DonutChartWithLegendStyles';
+import styles from '../../styles/DonutChartWithLegendStyles';
 import { polarToCartesian, createArcPath, getPercent, filterAgentsByVisibility } from './donutUtils';
 import TooltipBox from './TooltipBox';
 import DonutLegend from './DonutLegend';

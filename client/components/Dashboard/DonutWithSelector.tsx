@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ActivityIndicator, Platform } from 'react-native';
-import GroupBySelector from './GroupBySelector';
-import DonutChartWithLegend from './DonutChartWithLegend';
+import GroupBySelector from '../Donut/GroupBySelector';
+import DonutChartWithLegend from '../Donut/DonutChartWithLegend';
 import { getAgentStatsByGroup, AgentItem } from '../../api/getAgentStatsByGroup';
-import styles from '../../app/styles/DonutWithSelectorStyle';
+import styles from '../../styles/DonutWithSelectorStyle';
 
 export default function DonutWithSelector() {
   const [groupBy, setGroupBy] = useState('media_source');

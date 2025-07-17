@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { Platform } from 'react-native';
-import { AgentItem } from '../../components/AgentStats/DonutChartWithLegend';
+import { AgentItem } from '../../components/Donut/DonutChartWithLegend';
 
 export interface TooltipData {
   agent: AgentItem;

@@ -1,5 +1,5 @@
 import { View, Text, useWindowDimensions } from "react-native";
-import styles from "../app/styles/topStyles";
+import styles from "../styles/topStyles";
 import { formatNumber, safeName } from "../api/utils"
 
 type TopCardProps = {

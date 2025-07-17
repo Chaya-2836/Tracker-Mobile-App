@@ -1,5 +1,5 @@
 import { View, Text, ScrollView, useWindowDimensions } from "react-native";
-import styles from "../../app/styles/suspiciousTableStyles";
+import styles from "../../styles/suspiciousTableStyles";
 
 type SuspiciousItem = {
     media_source: string;
