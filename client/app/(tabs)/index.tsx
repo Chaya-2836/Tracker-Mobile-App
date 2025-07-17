@@ -1,30 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import {
   SafeAreaView,
-  Text,
   View,
   Dimensions,
   ScrollView,
-  Image,
-  StyleSheet,
 } from 'react-native';
 import { TabView, TabBar } from 'react-native-tab-view';
 
 import styles from '../../styles/appStyles';
 import { useDashboardData } from '../../hooks/dashboard/useDashboardData';
 import SuspiciousPanel from '../../components/Dashboard/SuspiciousPanel';
-import FiltersPanel from '../../components/Dashboard/FiltersPanel';
+import FilterBar from '../../components/Dashboard/FilterBar';
 import Spinner from '../../components/Spinner';
 import TrendChart from '../../components/Dashboard/TrendChart';
 import TopDashboard from '../../components/Dashboard/TopDashboard';
 import StatCard from '../../components/Dashboard/statCard';
-import DonutWithSelector from '@/components/Dashboard/DonutWithSelector';
+import DonutWithSelector from '../../components/Dashboard/DonutWithSelector';
+import DateRangePickerSection from '../../components/FilterBar/DateRangePickerSection';
 
 const screenWidth = Dimensions.get('window').width;
 const isLargeScreen = screenWidth >= 768;
 
 export default function App() {
-  // State to track if it's the initial loading of the page
   const [initialLoading, setInitialLoading] = useState(true);
 
   const {
@@ -32,7 +29,7 @@ export default function App() {
     impressionsToday,
     clickTrend,
     impressionTrend,
-    loading, // Indicates whether data is currently being fetched
+    loading,
     index,
     setIndex,
     routes,
@@ -48,14 +45,29 @@ export default function App() {
     getChartTitle,
     initialLayout,
     granularity,
+    fromDate,
+    setFromDate,
+    toDate,
+    setToDate,
   } = useDashboardData();
 
   useEffect(() => {
-    // When the first loading finishes, remove the initial spinner
     if (!loading && initialLoading) {
       setInitialLoading(false);
     }
   }, [loading]);
+
+  const handleDateChange = (newFromDate: string, newToDate: string) => {
+    setFromDate(newFromDate);
+    setToDate(newToDate);
+    const updatedFilters = {
+      ...selectedFilters,
+      fromDate: [newFromDate],
+      toDate: [newToDate],
+    };
+    setSelectedFilters(updatedFilters);
+    handleApply(updatedFilters);
+  };
 
   const renderScene = ({ route }: any) => {
     const isClicks = route.key === 'clicks';
@@ -71,12 +83,19 @@ export default function App() {
               impressionsToday={impressionsToday}
             />
           </View>
+          {/* Date range picker now lives here */}
+          <DateRangePickerSection
+            fromDate={fromDate}
+            toDate={toDate}
+            onFromDateChange={(date) => handleDateChange(date, toDate)}
+            onToDateChange={(date) => handleDateChange(fromDate, date)}
+          />
           <View style={styles.container}>
-            <FiltersPanel
-              filterOptions={filterOptions}
-              selectedFilters={selectedFilters}
-              expandedSections={expandedSections}
-              searchTexts={searchTexts}
+            <FilterBar
+              options={filterOptions}
+              selected={selectedFilters}
+              expanded={expandedSections}
+              searchText={searchTexts}
               onSelect={setSelectedFilters}
               onToggleExpand={toggleExpand}
               onSearchTextChange={setSearchTexts}
@@ -84,7 +103,7 @@ export default function App() {
               onApply={handleApply}
             />
             {loading ? (
-              <Spinner /> // Show spinner only for partial loading (e.g., data refresh)
+              <Spinner />
             ) : (
               <TrendChart
                 chartTitle={getChartTitle(selectedFilters)}
@@ -108,7 +127,7 @@ export default function App() {
     <SafeAreaView style={styles.containerpage}>
       <View style={{ flex: 1 }}>
         {initialLoading ? (
-          <Spinner /> // Show full-screen spinner only during initial page load
+          <Spinner />
         ) : (
           <TabView
             navigationState={{ index, routes }}
