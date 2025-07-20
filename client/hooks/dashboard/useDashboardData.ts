@@ -125,15 +125,14 @@ export function useDashboardData() {
     return new Date(iso).toLocaleDateString('en-CA');
   };
 
-  
+
   const getTitle = () => {
-    const type = index === 0 ? 'Clicks' : 'Impressions';
     if (fromDate && toDate) {
-      return `${type} Volume Trend (${formatDate(fromDate)} → ${formatDate(toDate)})`;
+      return ` (${formatDate(fromDate)} → ${formatDate(toDate)})`;
     } else if (fromDate) {
-      return `${type} Volume Trend (${formatDate(fromDate)} → ${new Date().toLocaleDateString('en-CA')})`;
+      return `(${formatDate(fromDate)} → ${new Date().toLocaleDateString('en-CA')})`;
     }
-    return `${type} Volume Trend (Last 7 Days)`;
+    return ` (Last 7 Days)`;
   };
 
   return {

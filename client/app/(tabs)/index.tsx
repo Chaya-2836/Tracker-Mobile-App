@@ -83,6 +83,7 @@ export default function App() {
            onToDateChange={setToDate}
          />
           <View style={styles.container}>
+            <Text style={styles.title}>{route.title} trends volume {getTitle()}</Text>
             <FilterBar
               options={filterOptions}
               selected={selectedFilters}
@@ -98,7 +99,6 @@ export default function App() {
               <Spinner /> // Show spinner only for partial loading (e.g., data refresh)
             ) : (
               <TrendChart
-                chartTitle={route.title + " trends volume" + getTitle()}
                 data={isClicks ? clickTrend : impressionTrend}
                 granularity={granularity}
               />

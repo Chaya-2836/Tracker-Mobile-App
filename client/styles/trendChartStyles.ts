@@ -13,13 +13,7 @@ type ChartConfig = {
 };
 
 const Chartstyles = StyleSheet.create({
-  title:{
-        fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 10,
-    color: '#34495e',
-    textAlign: 'center'
-  },
+ 
   chartContainer: {
     backgroundColor: '#fff',
     marginBottom: 20,

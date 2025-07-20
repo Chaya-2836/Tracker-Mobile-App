@@ -8,9 +8,17 @@ interface AppStyles {
   tabBarIndicator: ViewStyle;
   tabBarStyle: ViewStyle;
   tabBarLabel: TextStyle;
+  title: TextStyle;
 }
 
 const styles = StyleSheet.create<AppStyles>({
+   title:{
+        fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 10,
+    color: '#34495e',
+    textAlign: 'center'
+  },
 headerContainer: {
   paddingHorizontal: 16,
   paddingTop: 20,
