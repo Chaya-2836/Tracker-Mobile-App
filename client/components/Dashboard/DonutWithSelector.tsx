@@ -5,7 +5,7 @@ import DonutChartWithLegend from '../Donut/DonutChartWithLegend';
 import { getAgentStatsByGroup, AgentItem } from '../../api/getAgentStatsByGroup';
 import styles from '../../styles/DonutWithSelectorStyle';
 
-export default function DonutWithSelector() {
+export default function DonutWithSelector({ Title }: { Title:  string }) {
   const [groupBy, setGroupBy] = useState('media_source');
   const [data, setData] = useState<AgentItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,7 +27,7 @@ export default function DonutWithSelector() {
     platform: 'Platform',
   };
 
-  const title = `Traffic Distribution by ${groupByLabels[groupBy] || 'Group'} (Last Week)`;
+  const title = `Traffic Distribution by ${groupByLabels[groupBy] || 'Group'} ${Title}`;
 
   return (
     <View >

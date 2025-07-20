@@ -43,7 +43,7 @@ export function useDashboardData() {
     await Promise.all([
       fetchTodayStats(),
       fetchTrends(selectedFilters),
-      
+
     ]);
   }
 
@@ -69,10 +69,10 @@ export function useDashboardData() {
 
       // Add fromDate and toDate from state directly
       if (fromDate) {
-        filtersAsQuery['from_date'] = fromDate;
+        filtersAsQuery['fromDate'] = fromDate;
       }
       if (toDate) {
-        filtersAsQuery['to_date'] = toDate;
+        filtersAsQuery['toDate'] = toDate;
       }
 
       const { clicks = [], impressions = [], granularity } = await getWeeklyTrends(filtersAsQuery);
@@ -105,12 +105,14 @@ export function useDashboardData() {
     setToDate('');
     fetchTrends({});
   };
+  useEffect(() => {
+    if (fromDate || toDate) {
+      fetchTrends(selectedFilters);
+      
+    }
+  }, [fromDate, toDate]); 
 
-  const handleDateChange = (newFromDate: string, newToDate: string) => {
-    setFromDate(newFromDate);
-    setToDate(newToDate);
-    fetchTrends(selectedFilters);
-  };
+
 
   const toggleExpand = (label: string) => {
     setExpandedSections(prev => ({
@@ -123,14 +125,13 @@ export function useDashboardData() {
     return new Date(iso).toLocaleDateString('en-CA');
   };
 
-  const getChartTitle = () => {
-    const type = index === 0 ? 'Clicks' : 'Impressions';
+  const getTitle = () => {
     if (fromDate && toDate) {
-      return `${type} Volume Trend (${formatDate(fromDate)} → ${formatDate(toDate)})`;
+      return ` (${formatDate(fromDate)} → ${formatDate(toDate)})`;
     } else if (fromDate) {
-      return `${type} Volume Trend (${formatDate(fromDate)} → ${new Date().toLocaleDateString('en-CA')})`;
+      return ` (${formatDate(fromDate)} → ${new Date().toLocaleDateString('en-CA')})`;
     }
-    return `${type} Volume Trend (Last 7 Days)`;
+    return ` (Last 7 Days)`;
   };
 
   return {
@@ -151,9 +152,8 @@ export function useDashboardData() {
     setSearchTexts,
     handleApply,
     handleClear,
-    handleDateChange,
     toggleExpand,
-    getChartTitle,
+    getTitle,
     initialLayout,
     granularity,
     fromDate,

@@ -46,13 +46,13 @@ export default function App() {
     handleApply,
     handleClear,
     toggleExpand,
-    getChartTitle,
+    getTitle,
     initialLayout,
     granularity,
      fromDate,
     setFromDate,
     toDate,
-    setToDate
+    setToDate,
   } = useDashboardData();
 
   useEffect(() => {
@@ -98,17 +98,18 @@ export default function App() {
               <Spinner /> // Show spinner only for partial loading (e.g., data refresh)
             ) : (
               <TrendChart
-                chartTitle={getChartTitle()}
+                chartTitle={route.title + " trends volume" + getTitle()}
                 data={isClicks ? clickTrend : impressionTrend}
                 granularity={granularity}
               />
             )}
           </View>
           <View style={styles.container}>
-            <DonutWithSelector />
+            <DonutWithSelector Title={getTitle()} />
           </View>
           <View style={styles.container}>
-            <TopDashboard scene={route.key} />
+            <TopDashboard Title={getTitle()}
+            scene={route.key} />
           </View>
         </View>
       </ScrollView>
