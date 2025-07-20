@@ -13,12 +13,13 @@ import { TabView, TabBar } from 'react-native-tab-view';
 import styles from '../../styles/appStyles';
 import { useDashboardData } from '../../hooks/dashboard/useDashboardData';
 import SuspiciousPanel from '../../components/Dashboard/SuspiciousPanel';
-import FiltersPanel from '../../components/Dashboard/FiltersPanel';
+import FilterBar from '../../components/Dashboard/FilterBar';
 import Spinner from '../../components/Spinner';
 import TrendChart from '../../components/Dashboard/TrendChart';
 import TopDashboard from '../../components/Dashboard/TopDashboard';
 import StatCard from '../../components/Dashboard/statCard';
-import DonutWithSelector from '@/components/Dashboard/DonutWithSelector';
+import DonutWithSelector from '../../components/Dashboard/DonutWithSelector';
+import DateRangePickerSection from '../../components/FilterBar/DateRangePickerSection';
 
 const screenWidth = Dimensions.get('window').width;
 const isLargeScreen = screenWidth >= 768;
@@ -45,9 +46,13 @@ export default function App() {
     handleApply,
     handleClear,
     toggleExpand,
-    getChartTitle,
+    getTitle,
     initialLayout,
     granularity,
+     fromDate,
+    setFromDate,
+    toDate,
+    setToDate,
   } = useDashboardData();
 
   useEffect(() => {
@@ -71,12 +76,18 @@ export default function App() {
               impressionsToday={impressionsToday}
             />
           </View>
+          <DateRangePickerSection 
+           fromDate={fromDate}
+           toDate={toDate}
+           onFromDateChange={setFromDate}
+           onToDateChange={setToDate}
+         />
           <View style={styles.container}>
-            <FiltersPanel
-              filterOptions={filterOptions}
-              selectedFilters={selectedFilters}
-              expandedSections={expandedSections}
-              searchTexts={searchTexts}
+            <FilterBar
+              options={filterOptions}
+              selected={selectedFilters}
+              expanded={expandedSections}
+              searchText={searchTexts}
               onSelect={setSelectedFilters}
               onToggleExpand={toggleExpand}
               onSearchTextChange={setSearchTexts}
@@ -87,17 +98,18 @@ export default function App() {
               <Spinner /> // Show spinner only for partial loading (e.g., data refresh)
             ) : (
               <TrendChart
-                chartTitle={getChartTitle(selectedFilters)}
+                chartTitle={route.title + " trends volume" + getTitle()}
                 data={isClicks ? clickTrend : impressionTrend}
                 granularity={granularity}
               />
             )}
           </View>
           <View style={styles.container}>
-            <DonutWithSelector />
+            <DonutWithSelector Title={getTitle()} />
           </View>
           <View style={styles.container}>
-            <TopDashboard scene={route.key} />
+            <TopDashboard Title={getTitle()}
+            scene={route.key} />
           </View>
         </View>
       </ScrollView>

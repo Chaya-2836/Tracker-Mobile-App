@@ -19,51 +19,48 @@ export default function TabLayout() {
           <View
             style={{
               backgroundColor: Colors[colorScheme ?? 'light'].background,
-              // הסרנו padding ו-margin מיותרים
               padding: 0,
               margin: 0,
-              height: isLargeScreen ? 100 : 80, // גובה ה-Header מוגדל
-              justifyContent: 'center',
+              height: isLargeScreen ? 120 : 90, // Responsive height
+              overflow: 'hidden', // Prevents clipping
+              flexDirection: 'row',
               alignItems: 'center',
+              justifyContent: 'space-between', // Logo on the left, button on the right
+              paddingHorizontal: 10, // Minimal spacing on sides
             }}
           >
-            <View
+            <Image
+              source={require('../../assets/images/engagement_tracker_logo_transparent.png')}
               style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                width: '100%',
-                paddingHorizontal: isLargeScreen ? 20 : 10, // מרווח מינימלי בצדדים
+                width: isLargeScreen ? 400 : 250, // Responsive width
+                height: '80%', // Height relative to the header
+              }}
+              resizeMode="contain"
+            />
+
+            <TouchableOpacity
+              onPress={() => console.log('Logout pressed')}
+              style={{
+              padding: isLargeScreen ? 20 : 10, // Responsive padding
               }}
             >
-              <Image
-                source={require('../../assets/images/engagement_tracker_logo_transparent.png')}
-                style={{
-                  width: isLargeScreen ? 300 : 220, // רוחב גדול יותר
-                  height: isLargeScreen ? 80 : 60,  // גובה גדול יותר
-                }}
-                resizeMode="contain"
+              <Ionicons
+                name="log-out-outline"
+                size={isLargeScreen ? 30 : 24}
+                color={Colors[colorScheme ?? 'light'].tint}
               />
-
-              <TouchableOpacity onPress={() => console.log('Logout pressed')}>
-                <Ionicons
-                  name="log-out-outline"
-                  size={isLargeScreen ? 32 : 28} // מעט גדול יותר
-                  color={Colors[colorScheme ?? 'light'].tint}
-                />
-              </TouchableOpacity>
-            </View>
+            </TouchableOpacity>
           </View>
         ),
         headerShown: true,
-        tabBarStyle: { display: 'none' }, // Hide the bottom tab bar
+        tabBarStyle: { display: 'none' },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
           title: 'Home',
-          tabBarButton: () => null, // Prevents rendering of the tab button
+          tabBarButton: () => null,
         }}
       />
     </Tabs>

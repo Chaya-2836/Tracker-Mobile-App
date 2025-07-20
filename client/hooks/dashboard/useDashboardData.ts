@@ -8,9 +8,8 @@ interface TrendPoint {
   value: number;
 }
 
-const FILTER_ORDER = ['Campaign', 'Platform', 'Media Source', 'Agency', 'Date Range'];
+const FILTER_ORDER = ['Campaign', 'Platform', 'Media Source', 'Agency'];
 const initialLayout = { width: Dimensions.get('window').width };
-
 
 export function useDashboardData() {
   const [granularity, setGranularity] = useState<Granularity>('day' as Granularity);
@@ -33,14 +32,22 @@ export function useDashboardData() {
   );
   const [searchTexts, setSearchTexts] = useState<{ [label: string]: string }>({});
 
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+
   useEffect(() => {
-    fetchData();
-    fetchTrends({});
-    fetchFilterData();
-    // eslint-disable-next-line
+    fetchInitialData();
   }, []);
 
-  async function fetchData() {
+  async function fetchInitialData() {
+    await Promise.all([
+      fetchTodayStats(),
+      fetchTrends(selectedFilters),
+
+    ]);
+  }
+
+  async function fetchTodayStats() {
     try {
       const { clicks, impressions } = await getTodayStats();
       setClicksToday(clicks);
@@ -55,38 +62,34 @@ export function useDashboardData() {
     try {
       const filtersAsQuery = Object.fromEntries(
         Object.entries(filters).map(([key, val]) => {
-          const keyNormalized = key === 'fromDate' || key === 'toDate'
-            ? key
-            : key.toLowerCase().replace(/\s+/g, '_');
+          const keyNormalized = key.toLowerCase().replace(/\s+/g, '_');
           return [keyNormalized, val.join(',')];
         })
       );
 
-const { clicks = [], impressions = [], granularity } = await getWeeklyTrends(filtersAsQuery);
+      // Add fromDate and toDate from state directly
+      if (fromDate) {
+        filtersAsQuery['fromDate'] = fromDate;
+      }
+      if (toDate) {
+        filtersAsQuery['toDate'] = toDate;
+      }
 
-const toPoints = (arr: any[]) =>
-  arr.map(item => ({
-    label: new Date(item.label),
-    value: Number(item.value || 0),
-  }));
+      const { clicks = [], impressions = [], granularity } = await getWeeklyTrends(filtersAsQuery);
 
-setClickTrend(toPoints(clicks));
-setImpressionTrend(toPoints(impressions));
-setGranularity(granularity);
+      const toPoints = (arr: any[]) =>
+        arr.map(item => ({
+          label: new Date(item.label),
+          value: Number(item.value || 0),
+        }));
 
+      setClickTrend(toPoints(clicks));
+      setImpressionTrend(toPoints(impressions));
+      setGranularity(granularity);
     } catch (err) {
-      console.error('❌ Failed to fetch weekly trends:', err);
+      console.error('Failed to fetch weekly trends:', err);
     } finally {
       setLoading(false);
-    }
-  }
-
-  async function fetchFilterData() {
-    try {
-      const allFilters = await fetchAllFilters();
-      setFilterOptions(allFilters);
-    } catch (err) {
-      console.error('❌ Failed to fetch filters:', err);
     }
   }
 
@@ -96,11 +99,20 @@ setGranularity(granularity);
   };
 
   const handleClear = () => {
-    const cleared = {};
-    setSelectedFilters(cleared);
-    setSearchTexts(cleared);
-    handleApply(cleared);
+    setSelectedFilters({});
+    setSearchTexts({});
+    setFromDate('');
+    setToDate('');
+    fetchTrends({});
   };
+  useEffect(() => {
+    if (fromDate || toDate) {
+      fetchTrends(selectedFilters);
+      
+    }
+  }, [fromDate, toDate]); 
+
+
 
   const toggleExpand = (label: string) => {
     setExpandedSections(prev => ({
@@ -113,18 +125,13 @@ setGranularity(granularity);
     return new Date(iso).toLocaleDateString('en-CA');
   };
 
-  const getChartTitle = (filters: { [key: string]: string[] }) => {
-    const from = filters.fromDate?.[0];
-    const to = filters.toDate?.[0];
-    const type = index === 0 ? 'Clicks' : 'Impressions';
-
-    if (from && to) {
-      return `${type} Volume Trend (${formatDate(from)} → ${formatDate(to)})`;
+  const getTitle = () => {
+    if (fromDate && toDate) {
+      return ` (${formatDate(fromDate)} → ${formatDate(toDate)})`;
+    } else if (fromDate) {
+      return ` (${formatDate(fromDate)} → ${new Date().toLocaleDateString('en-CA')})`;
     }
-    else if (from) {
-      return `${type} Volume Trend (${formatDate(from)} → ${new Date().toLocaleDateString('en-CA')})`;
-    }
-    return `${type} Volume Trend (Last 7 Days)`;
+    return ` (Last 7 Days)`;
   };
 
   return {
@@ -146,8 +153,12 @@ setGranularity(granularity);
     handleApply,
     handleClear,
     toggleExpand,
-    getChartTitle,
+    getTitle,
     initialLayout,
     granularity,
+    fromDate,
+    setFromDate,
+    toDate,
+    setToDate,
   };
 }
