@@ -4,7 +4,7 @@ const BASE_URL = CONFIG.BASE_URL + "/events_summary/";
 
 export type Granularity = 'daily' | 'weekly' | 'monthly' | 'yearly';
 
-type DaysMode = 'day' | 'week';
+type DaysMode = 'day' | 'week' | 'month' | 'year';
 type Filters = Record<string, string>;
 export type TrendPoint = {
   label: Date;
@@ -44,41 +44,56 @@ export function fillMissingPointsByGranularity(
 ): { filled: TrendPoint[], granularity: Granularity } {
   const filled: TrendPoint[] = [];
 
-  const start = from ?? new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const start = from ?? new Date(Date.now() - 7 * 24 * 60 * 60 * 1000); // ברירת מחדל: 7 ימים אחורה
   const end = to ?? new Date();
 
   const daysDiff = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
 
-  let step: number;
   let granularity: Granularity;
   if (daysDiff > 1095) {
-    step = 365;
     granularity = 'yearly';
   } else if (daysDiff > 365) {
-    step = 30;
     granularity = 'monthly';
   } else if (daysDiff > 30) {
-    step = 7;
     granularity = 'weekly';
   } else {
-    step = 1;
     granularity = 'daily';
   }
 
   const cursor = new Date(start);
   while (cursor <= end) {
-    const existing = data.find(item =>
-      step === 30
-        ? item.label.getFullYear() === cursor.getFullYear() && item.label.getMonth() === cursor.getMonth()
-        : item.label.toISOString().slice(0, 10) === cursor.toISOString().slice(0, 10)
-    );
+    const existing = data.find(item => {
+      const itemDate = item.label;
+
+      switch (granularity) {
+        case 'yearly':
+          return itemDate.getFullYear() === cursor.getFullYear();
+        case 'monthly':
+          return itemDate.getFullYear() === cursor.getFullYear() &&
+                 itemDate.getMonth() === cursor.getMonth();
+        case 'weekly':
+        case 'daily':
+        default:
+          return itemDate.toISOString().slice(0, 10) === cursor.toISOString().slice(0, 10);
+      }
+    });
 
     filled.push(existing || { label: new Date(cursor), value: 0 });
 
-    if (step === 30) {
-      cursor.setMonth(cursor.getMonth() + 1); // ✅ fixes duplicate months
-    } else {
-      cursor.setDate(cursor.getDate() + step);
+    switch (granularity) {
+      case 'yearly':
+        cursor.setFullYear(cursor.getFullYear() + 1);
+        break;
+      case 'monthly':
+        cursor.setMonth(cursor.getMonth() + 1);
+        break;
+      case 'weekly':
+        cursor.setDate(cursor.getDate() + 7);
+        break;
+      case 'daily':
+      default:
+        cursor.setDate(cursor.getDate() + 1);
+        break;
     }
   }
 
@@ -105,17 +120,23 @@ export async function getWeeklyTrends(filters: Filters = {}): Promise<{
   impressions: TrendPoint[],
   granularity: Granularity
 }> {
-  const from = filters.fromDate ? new Date(filters.fromDate) : undefined;
-  const to = filters.toDate ? new Date(filters.toDate) : undefined;
+  const from = filters.fromDate ? new Date(filters.fromDate) : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const to = filters.toDate ? new Date(filters.toDate) : new Date();
+  const daysDiff = Math.floor((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24));
 
-  if (from && to && from > to) {
-    console.warn("Invalid date range: fromDate is after toDate");
-    return { clicks: [], impressions: [], granularity: 'daily' };
+  // 🔍 נחשב daysMode לפי אורך הטווח
+  let daysMode: DaysMode = 'day';
+  if (daysDiff > 1095) {
+    daysMode = 'year'; // ⬅️ התיקון הקריטי!
+  } else if (daysDiff > 365) {
+    daysMode = 'month';
+  } else if (daysDiff > 30) {
+    daysMode = 'week';
   }
 
   const [clicksRowResult, impressionsRowResult] = await Promise.all([
-    fetchEventSummary('click', 'week', filters),
-    fetchEventSummary('impression', 'week', filters)
+    fetchEventSummary('click', daysMode, filters),
+    fetchEventSummary('impression', daysMode, filters)
   ]);
 
   const emptyResult = { filled: [] as TrendPoint[], granularity: 'daily' as Granularity };
@@ -134,5 +155,3 @@ export async function getWeeklyTrends(filters: Filters = {}): Promise<{
     granularity: clicksProcessed.granularity
   };
 }
-
-
