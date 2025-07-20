@@ -8,9 +8,8 @@ interface TrendPoint {
   value: number;
 }
 
-const FILTER_ORDER = ['Campaign', 'Platform', 'Media Source', 'Agency', 'Date Range'];
+const FILTER_ORDER = ['Campaign', 'Platform', 'Media Source', 'Agency'];
 const initialLayout = { width: Dimensions.get('window').width };
-
 
 export function useDashboardData() {
   const [granularity, setGranularity] = useState<Granularity>('day' as Granularity);
@@ -32,15 +31,22 @@ export function useDashboardData() {
     Object.fromEntries(FILTER_ORDER.map(label => [label, false]))
   );
   const [searchTexts, setSearchTexts] = useState<{ [label: string]: string }>({});
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
 
   useEffect(() => {
-    fetchData();
-    fetchTrends({});
-    fetchFilterData();
-    // eslint-disable-next-line
+    fetchInitialData();
   }, []);
 
-  async function fetchData() {
+  async function fetchInitialData() {
+    await Promise.all([
+      fetchTodayStats(),
+      fetchTrends(selectedFilters),
+      fetchFilterOptions(),
+    ]);
+  }
+
+  async function fetchTodayStats() {
     try {
       const { clicks, impressions } = await getTodayStats();
       setClicksToday(clicks);
@@ -64,24 +70,28 @@ async function fetchTrends(filters: { [key: string]: string[] }) {
       })
     );
 
-    let fromDate: Date | null = null;
-    let toDate: Date | null = null;
+    // ✅ Add fromDate & toDate from state if present
+    if (fromDate) filtersAsQuery['fromDate'] = fromDate;
+    if (toDate) filtersAsQuery['toDate'] = toDate;
+
+    let dateFrom: Date | null = null;
+    let dateTo: Date | null = null;
 
     if (filtersAsQuery.fromDate && filtersAsQuery.toDate) {
-      fromDate = new Date(filtersAsQuery.fromDate);
-      toDate = new Date(filtersAsQuery.toDate);
+      dateFrom = new Date(filtersAsQuery.fromDate);
+      dateTo = new Date(filtersAsQuery.toDate);
     }
 
-    let daysDiff = 7; // default to 7 days
-    if (fromDate && toDate) {
+    let daysDiff = 7; // default if dates are missing
+    if (dateFrom && dateTo) {
       daysDiff = Math.floor(
-        (toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24)
+        (dateTo.getTime() - dateFrom.getTime()) / (1000 * 60 * 60 * 24)
       );
     }
 
-    // 🧩 Decide granularity
-    const useYearly = daysDiff > 1095;      // >3 years
-    const useMonthly = daysDiff > 90 && daysDiff <= 1095; // >3 months but <=3 years
+    // Decide granularity
+    const useYearly = daysDiff > 1095;
+    const useMonthly = daysDiff > 90 && daysDiff <= 1095;
 
     let trendsResult;
 
@@ -113,12 +123,12 @@ async function fetchTrends(filters: { [key: string]: string[] }) {
 }
 
 
-  async function fetchFilterData() {
+  async function fetchFilterOptions() {
     try {
       const allFilters = await fetchAllFilters();
       setFilterOptions(allFilters);
     } catch (err) {
-      console.error('❌ Failed to fetch filters:', err);
+      console.error(' Failed to fetch filters:', err);
     }
   }
 
@@ -128,10 +138,11 @@ async function fetchTrends(filters: { [key: string]: string[] }) {
   };
 
   const handleClear = () => {
-    const cleared = {};
-    setSelectedFilters(cleared);
-    setSearchTexts(cleared);
-    handleApply(cleared);
+    setSelectedFilters({});
+    setSearchTexts({});
+    setFromDate('');
+    setToDate('');
+    fetchTrends({});
   };
 
   const toggleExpand = (label: string) => {
@@ -140,23 +151,24 @@ async function fetchTrends(filters: { [key: string]: string[] }) {
       [label]: !prev[label],
     }));
   };
+  useEffect(() => {
+  if (fromDate || toDate) {
+    fetchTrends(selectedFilters);
+  }
+}, [fromDate, toDate]);
 
   const formatDate = (iso: string) => {
     return new Date(iso).toLocaleDateString('en-CA');
   };
 
-  const getChartTitle = (filters: { [key: string]: string[] }) => {
-    const from = filters.fromDate?.[0];
-    const to = filters.toDate?.[0];
-    const type = index === 0 ? 'Clicks' : 'Impressions';
 
-    if (from && to) {
-      return `${type} Volume Trend (${formatDate(from)} → ${formatDate(to)})`;
+  const getTitle = () => {
+    if (fromDate && toDate) {
+      return ` (${formatDate(fromDate)} → ${formatDate(toDate)})`;
+    } else if (fromDate) {
+      return `(${formatDate(fromDate)} → ${new Date().toLocaleDateString('en-CA')})`;
     }
-    else if (from) {
-      return `${type} Volume Trend (${formatDate(from)} → ${new Date().toLocaleDateString('en-CA')})`;
-    }
-    return `${type} Volume Trend (Last 7 Days)`;
+    return ` (Last 7 Days)`;
   };
 
   return {
@@ -178,8 +190,12 @@ async function fetchTrends(filters: { [key: string]: string[] }) {
     handleApply,
     handleClear,
     toggleExpand,
-    getChartTitle,
     initialLayout,
     granularity,
+    fromDate,
+    setFromDate,
+    toDate,
+    setToDate,
+    getTitle,
   };
 }

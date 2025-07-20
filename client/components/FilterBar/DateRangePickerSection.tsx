@@ -18,7 +18,7 @@ export default function DateRangePickerSection({
   onToDateChange,
 }: Props) {
   return (
-    <View style={styles.dropdownScroll}>
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 , padding: 10 }}>
       <Text style={styles.filterLabel}>From:</Text>
       <DatePickerInput
         locale="en"

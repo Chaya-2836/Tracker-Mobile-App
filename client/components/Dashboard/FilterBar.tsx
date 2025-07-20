@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   ScrollView,
@@ -7,15 +7,14 @@ import {
   TouchableOpacity,
   Text,
   Pressable,
-  StyleSheet,
 } from 'react-native';
 import styles from '../../styles/filterMenuStyles';
-import FilterDropdownButton from './FilterDropdownButton';
-import FilterSection from './FilterSection';
-import SidebarModal from './SidebarModal';
+import FilterDropdownButton from '../FilterBar/FilterDropdownButton';
+import FilterSection from '../FilterBar/FilterSection';
+import SidebarModal from '../FilterBar/SidebarModal';
 import { Ionicons } from '@expo/vector-icons';
 
-const FILTER_ORDER = ['Campaign', 'Platform', 'Media Source', 'Agency', 'Date Range'];
+const FILTER_ORDER = ['Campaign', 'Platform', 'Media Source', 'Agency'];
 const filterKeys: { [label: string]: string } = {
   Campaign: 'campaign_name',
   Platform: 'platform',
@@ -26,73 +25,51 @@ const filterKeys: { [label: string]: string } = {
 type Props = {
   options: { [label: string]: string[] };
   selected: { [label: string]: string[] };
-  onSelect: (s: { [key: string]: string[] }) => void;
+  onSelect: (updated: { [key: string]: string[] }) => void;
   expanded: { [label: string]: boolean };
   onToggleExpand: (label: string) => void;
   searchText: { [label: string]: string };
-  onSearchTextChange: (t: { [label: string]: string }) => void;
+  onSearchTextChange: (text: { [label: string]: string }) => void;
   onClear: () => void;
-  onApply: (mapped: { [key: string]: string[] }) => void;
+  onApply: (filters: { [key: string]: string[] }) => void;
 };
 
 export default function FilterBar({
   options,
   selected,
-  onSelect,
   expanded,
-  onToggleExpand,
   searchText,
+  onSelect,
+  onToggleExpand,
   onSearchTextChange,
   onClear,
   onApply,
 }: Props) {
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
-  const [pending, setPending] = useState<{ [key: string]: string[] }>({ ...selected });
   const [buttonLayouts, setButtonLayouts] = useState<{ [label: string]: LayoutRectangle }>({});
   const [showSidebar, setShowSidebar] = useState(false);
-  const [fromDate, setFromDate] = useState('');
-  const [toDate, setToDate] = useState('');
-  const [mobileExpanded, setMobileExpanded] = useState<{ [label: string]: boolean }>({});
   const screenWidth = Dimensions.get('window').width;
   const isSmallScreen = screenWidth < 500;
 
-  useEffect(() => {
-    const from = selected.fromDate?.[0];
-    const to = selected.toDate?.[0];
-    setFromDate(from ? new Date(from).toISOString().slice(0, 10) : '');
-    setToDate(to ? new Date(to).toISOString().slice(0, 10) : '');
-    setPending({ ...selected });
-  }, [selected]);
-
   const toggleOption = (label: string, option: string) => {
-    const already = pending[label]?.includes(option);
+    const already = selected[label]?.includes(option);
     const updated = {
-      ...pending,
+      ...selected,
       [label]: already
-        ? pending[label].filter(o => o !== option)
-        : [...(pending[label] || []), option],
+        ? selected[label].filter(o => o !== option)
+        : [...(selected[label] || []), option],
     };
-    setPending(updated);
+    onSelect(updated);
   };
 
   const handleApply = () => {
-    const updated = { ...pending };
-    if (fromDate) updated.fromDate = [new Date(fromDate).toISOString()];
-    if (toDate) updated.toDate = [new Date(toDate).toISOString()];
-
-    onSelect(updated);
-
     const mapped: { [key: string]: string[] } = {};
-    Object.entries(updated).forEach(([label, val]) => {
+    Object.entries(selected).forEach(([label, val]) => {
       const param = filterKeys[label];
       if (param && val.length > 0) {
         mapped[param] = val;
       }
     });
-
-    if (fromDate) mapped.fromDate = [fromDate];
-    if (toDate) mapped.toDate = [toDate];
-
     onApply(mapped);
     setActiveFilter(null);
     setShowSidebar(false);
@@ -100,13 +77,6 @@ export default function FilterBar({
 
   const handleLayout = (label: string, layout: LayoutRectangle) => {
     setButtonLayouts(prev => ({ ...prev, [label]: layout }));
-  };
-
-  const toggleMobileExpand = (label: string) => {
-    setMobileExpanded(prev => ({
-      ...prev,
-      [label]: !prev[label],
-    }));
   };
 
   const renderFilterSection = (
@@ -135,18 +105,15 @@ export default function FilterBar({
         isExpanded={isExpanded}
         searchText={searchText[label] || ''}
         options={options[label] || []}
-        selected={pending[label] || []}
+        selected={selected[label] || []}
         onSearchTextChange={(text: string) =>
           onSearchTextChange({ ...searchText, [label]: text })
         }
         onToggleOption={(option: string) => toggleOption(label, option)}
-        fromDate={fromDate}
-        toDate={toDate}
-        onFromDateChange={setFromDate}
-        onToDateChange={setToDate}
       />
     </View>
   );
+
   const anchor = activeFilter ? buttonLayouts[activeFilter] : null;
 
   if (isSmallScreen) {
@@ -154,12 +121,15 @@ export default function FilterBar({
       <View style={{ padding: 10 }}>
         <TouchableOpacity
           onPress={() => setShowSidebar(true)}
-          style={[styles.dropdownHeader, {
-            width: 100,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between'
-          }]}
+          style={[
+            styles.dropdownHeader,
+            {
+              width: 100,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            },
+          ]}
         >
           <Text style={styles.dropdownText}>Filters</Text>
           <Ionicons name="funnel-outline" size={16} color="#2c3e50" />
@@ -172,7 +142,7 @@ export default function FilterBar({
           onApply={handleApply}
         >
           {FILTER_ORDER.map(label =>
-            renderFilterSection(label, !!mobileExpanded[label], () => toggleMobileExpand(label))
+            renderFilterSection(label, !!expanded[label], () => onToggleExpand(label))
           )}
         </SidebarModal>
       </View>
@@ -181,7 +151,6 @@ export default function FilterBar({
 
   return (
     <View style={styles.overlayContainer}>
-      {/* שכבת רקע שמאזינה ללחיצות מחוץ לדראופדאון בלבד */}
       {activeFilter && (
         <Pressable
           onPress={() => setActiveFilter(null)}
@@ -236,7 +205,7 @@ export default function FilterBar({
             },
           ]}
         >
-          {renderFilterSection(activeFilter, true, () => { }, true)}
+          {renderFilterSection(activeFilter, true, () => {}, true)}
         </View>
       )}
     </View>

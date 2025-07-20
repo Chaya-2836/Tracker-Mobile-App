@@ -8,7 +8,7 @@ import TopTable from "../TopTable";
 import {fetchTopAgencies,fetchTopApps,fetchTopMediaSources,} from "../../api/trafficAnalyticsAPI";
 import Spinner from "../Spinner";
 
-export default function TopDashboard({ scene }: { scene: string }) {
+export default function TopDashboard({ scene, Title }: { scene: string, Title:  string }) {
   const [topN, setTopN] = useState(9);
   const [mediaData, setMediaData] = useState([]);
   const [agencyData, setAgencyData] = useState([]);
