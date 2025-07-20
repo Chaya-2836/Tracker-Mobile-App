@@ -115,6 +115,12 @@ export function useDashboardData() {
       [label]: !prev[label],
     }));
   };
+  useEffect(() => {
+  if (fromDate || toDate) {
+    fetchTrends(selectedFilters);
+  }
+}, [fromDate, toDate]);
+עןא 
 
   const formatDate = (iso: string) => {
     return new Date(iso).toLocaleDateString('en-CA');
