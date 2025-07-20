@@ -24,7 +24,7 @@ describe('🧪 Alert Controller Tests', () => {
       const mockRows = [
         { media_source: 'facebook', app_id: 'com.app', clicks: 40000000000, impressions: 40000000000 }
       ];
-      const { bigquery } = require('../config/bigqueryConfig.js');
+      const { bigquery } = require('../config/bigQueryConfig.js');
       bigquery.query.mockResolvedValueOnce([mockRows]);
 
       const res = await request(app).get('/alert/high-traffic');
@@ -36,7 +36,7 @@ describe('🧪 Alert Controller Tests', () => {
     });
 
     it('✅ should return alert false if no rows found', async () => {
-      const { bigquery } = require('../config/bigqueryConfig.js');
+      const { bigquery } = require('../config/bigQueryConfig.js');
       bigquery.query.mockResolvedValueOnce([[]]);
 
       const res = await request(app).get('/alert/high-traffic');
@@ -48,7 +48,7 @@ describe('🧪 Alert Controller Tests', () => {
     });
 
     it('❌ should handle internal server error', async () => {
-      const { bigquery } = require('../config/bigqueryConfig.js');
+      const { bigquery } = require('../config/bigQueryConfig.js');
       bigquery.query.mockRejectedValueOnce(new Error('Query error'));
 
       const res = await request(app).get('/alert/high-traffic');
@@ -64,7 +64,7 @@ describe('🧪 Alert Controller Tests', () => {
       const mockRows = [
         { media_source: 'networkX', app_id: 'com.app', clicks: 90000000000, conversions: 2, CVR: 0.00001 }
       ];
-      const { bigquery } = require('../config/bigqueryConfig.js');
+      const { bigquery } = require('../config/bigQueryConfig.js');
       bigquery.query.mockResolvedValueOnce([mockRows]);
 
       const res = await request(app).get('/alert/suspicious?minTraffic=100000000&minConversions=3&limit=10');
@@ -75,7 +75,7 @@ describe('🧪 Alert Controller Tests', () => {
     });
 
     it('❌ should handle query error', async () => {
-      const { bigquery } = require('../config/bigqueryConfig.js');
+      const { bigquery } = require('../config/bigQueryConfig.js');
       bigquery.query.mockRejectedValueOnce(new Error('Join failed'));
 
       const res = await request(app).get('/alert/suspicious');

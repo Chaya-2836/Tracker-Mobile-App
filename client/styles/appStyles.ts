@@ -10,7 +10,7 @@ interface AppStyles {
   tabBarLabel: TextStyle;
 }
 
-const styles = StyleSheet.create<AppStyles>({
+const   styles = StyleSheet.create<AppStyles>({
 headerContainer: {
   paddingHorizontal: 16,
   paddingTop: 20,

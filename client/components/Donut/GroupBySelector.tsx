@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Platform } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import styles from '../../app/styles/GroupBySelectorStyle';
+import styles from '../../styles/GroupBySelectorStyle';
 
 interface Props {
   value: string;

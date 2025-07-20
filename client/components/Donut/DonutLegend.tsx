@@ -10,7 +10,8 @@ interface DonutLegendProps {
   toggleAgent: (name: string) => void;
   width: number;
   styles: any;
-  getPercent: (clicks: number, total: number) => number;
+  getPercent: (value: number, total: number) => number;
+  viewMode: 'clicks' | 'impressions'; 
 }
 
 export default function DonutLegend({
@@ -22,15 +23,16 @@ export default function DonutLegend({
   width,
   styles,
   getPercent,
+  viewMode, 
 }: DonutLegendProps) {
   return (
     <View style={styles.legendItemsWrapper}>
       {data
-        .filter(item => Number(item.clicks) > 0 || visibleAgents.includes(item.name))
+        .filter(item => Number(item[viewMode]) > 0 || visibleAgents.includes(item.name)) // ✅ גם פה נשתמש ב־viewMode
         .map((item) => {
           const isVisible = visibleAgents.includes(item.name);
-          const filteredClicks = filteredData.find(f => f.name === item.name)?.clicks ?? 0;
-          const percent = total > 0 ? getPercent(filteredClicks, total).toFixed(0) : '0';
+          const filteredValue = filteredData.find(f => f.name === item.name)?.[viewMode] ?? 0;
+          const percent = total > 0 ? getPercent(filteredValue, total).toFixed(0) : '0';
 
           return (
             <TouchableOpacity

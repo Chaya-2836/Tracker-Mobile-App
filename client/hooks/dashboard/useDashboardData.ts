@@ -24,6 +24,8 @@ export function useDashboardData() {
     { key: 'impressions', title: 'Impressions' },
   ]);
 
+  const [groupBy, setGroupBy] = useState('media_source'); 
+
   const [filterOptions, setFilterOptions] = useState<{ [label: string]: string[] }>({});
   const [selectedFilters, setSelectedFilters] = useState<{ [label: string]: string[] }>({});
   const [expandedSections, setExpandedSections] = useState<{ [label: string]: boolean }>(
@@ -144,5 +146,8 @@ export function useDashboardData() {
     toggleExpand,
     getChartTitle,
     initialLayout,
+    formatDate,
+    groupBy,        
+    setGroupBy,     
   };
 }

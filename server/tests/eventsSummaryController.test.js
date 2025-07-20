@@ -24,8 +24,8 @@ describe('🧪 Filters Controller Tests', () => {
   });
 
   it('✅ should return campaign names', async () => {
-    const { bigquery } = require('../config/bigqueryConfig.js');
-    bigquery.createQueryJob.mockResolvedValueOnce([mockJob([{ campaign_name: 'Campaign A' }])]);
+    const { bigQuery } = require('../config/bigQueryConfig.js');
+    bigQuery.createQueryJob.mockResolvedValueOnce([mockJob([{ campaign_name: 'Campaign A' }])]);
 
     const res = await request(app).get('/filters/campaigns');
     console.log('🎯 SUCCESS: Campaigns returned');
@@ -34,8 +34,8 @@ describe('🧪 Filters Controller Tests', () => {
   });
 
   it('✅ should return platforms', async () => {
-    const { bigquery } = require('../config/bigqueryConfig.js');
-    bigquery.createQueryJob.mockResolvedValueOnce([mockJob([{ platform: 'android' }])]);
+    const { bigQuery } = require('../config/bigQueryConfig.js');
+    bigQuery.createQueryJob.mockResolvedValueOnce([mockJob([{ platform: 'android' }])]);
 
     const res = await request(app).get('/filters/platforms');
     console.log('📱 SUCCESS: Platforms returned');
@@ -44,8 +44,8 @@ describe('🧪 Filters Controller Tests', () => {
   });
 
   it('✅ should return media sources', async () => {
-    const { bigquery } = require('../config/bigqueryConfig.js');
-    bigquery.createQueryJob.mockResolvedValueOnce([mockJob([{ media_source: 'facebook' }])]);
+    const { bigQuery } = require('../config/bigQueryConfig.js');
+    bigQuery.createQueryJob.mockResolvedValueOnce([mockJob([{ media_source: 'facebook' }])]);
 
     const res = await request(app).get('/filters/media-sources');
     console.log('📡 SUCCESS: Media sources returned');
@@ -54,8 +54,8 @@ describe('🧪 Filters Controller Tests', () => {
   });
 
   it('✅ should return agencies', async () => {
-    const { bigquery } = require('../config/bigqueryConfig.js');
-    bigquery.createQueryJob.mockResolvedValueOnce([mockJob([{ agency: 'AgencyX' }])]);
+    const { bigQuery } = require('../config/bigQueryConfig.js');
+    bigQuery.createQueryJob.mockResolvedValueOnce([mockJob([{ agency: 'AgencyX' }])]);
 
     const res = await request(app).get('/filters/agencies');
     console.log('🏢 SUCCESS: Agencies returned');
@@ -71,8 +71,8 @@ describe('🧪 Filters Controller Tests', () => {
   });
 
   it('❌ should handle BigQuery error in campaigns', async () => {
-    const { bigquery } = require('../config/bigqueryConfig.js');
-    bigquery.createQueryJob.mockRejectedValueOnce(new Error('BigQuery crash'));
+    const { bigQuery } = require('../config/bigQueryConfig.js');
+    bigQuery.createQueryJob.mockRejectedValueOnce(new Error('BigQuery crash'));
 
     const res = await request(app).get('/filters/campaigns');
     console.error('💥 ERROR: Failed to fetch campaigns');

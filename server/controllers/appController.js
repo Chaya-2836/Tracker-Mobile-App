@@ -25,11 +25,11 @@ export const getTopApps = async (req, res) => {
       endDate: to,
       sortBy
     });
-
     res.json(results);
-  } catch (err) {
+  } 
+  catch (err) {
     console.error('❌ Error in getTopApps:', err);
-    res.status(500).json({ error: err.message }); 
+    res.status(500).json({ error: err.message });
   }
 };
 
@@ -58,12 +58,13 @@ export const getAppsTrafficBreakdown = async (req, res) => {
   `;
 
   try {
-
-    const [rows] = await bigQuery.query({ query, params: { appId } }); 
+    const [rows] = await bigQuery.query({ query, params: { appId } });
     res.json(rows);
-  } catch (error) {
+  } 
+  catch (error) {
     console.error('❌ Error fetching traffic breakdown:', err);
-    res.status(500).json({ error: err.message });  }
+    res.status(500).json({ error: err.message });
+  }
 };
 
 /**
@@ -113,9 +114,9 @@ export const getAppsTrafficConversions = async (req, res) => {
 
   try {
 
-    const [rows] = await bigQuery.query({ query, params: { appId } }); 
+    const [rows] = await bigQuery.query({ query, params: { appId } });
     res.json(rows);
   } catch (error) {
-    res.status(500).send(error.message); 
+    res.status(500).send(error.message);
   }
 };

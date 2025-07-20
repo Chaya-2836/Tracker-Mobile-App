@@ -1,7 +1,7 @@
 // components/StatCard.tsx
 import React from 'react';
 import { View, Text } from 'react-native';
-import styles from '../app/styles/statCardStyles';
+import styles from '../styles/statCardStyles';
 
 interface StatCardProps {
   title: string;

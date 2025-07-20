@@ -12,10 +12,14 @@ interface TooltipBoxProps {
   left: number;
   top: number;
   styles: any;
+  viewMode: 'clicks' | 'impressions';
 }
 
-export default function TooltipBox({ tooltip, left, top, styles }: TooltipBoxProps) {
+export default function TooltipBox({ tooltip, left, top, styles, viewMode }: TooltipBoxProps) {
   if (!tooltip) return null;
+
+  const value = tooltip.agent[viewMode];
+
   return (
     <View
       style={[
@@ -30,7 +34,7 @@ export default function TooltipBox({ tooltip, left, top, styles }: TooltipBoxPro
       <View style={[styles.tooltipColor, { backgroundColor: tooltip.agent.color }]} />
       <Text style={styles.tooltipText}>{tooltip.agent.name}</Text>
       <Text style={styles.tooltipPercent}>
-        {tooltip.percent.toFixed(1)}% ({tooltip.agent.clicks})
+        {tooltip.percent.toFixed(1)}% ({value})
       </Text>
     </View>
   );

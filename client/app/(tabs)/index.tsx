@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { TabView, TabBar } from 'react-native-tab-view';
 
-import styles from '../styles/appStyles';
+import styles from '../../styles/appStyles';
 import { useDashboardData } from '../../hooks/dashboard/useDashboardData';
 import SuspiciousPanel from '../../components/Dashboard/SuspiciousPanel';
 import StatsPanel from '../../components/Dashboard/StatsPanel';
@@ -74,12 +74,16 @@ export default function App() {
             />
           </View>
           <View style={styles.container}>
+            <DonutPanel 
+              selectedFilters={selectedFilters}
+              index={index}
+            />
+          </View>
+          <View style={styles.container}>
             <DashboardPanel scene={route.key} />
           </View>
         </View>
-        <View style={styles.container}>
-          <DonutPanel />
-        </View>
+
       </ScrollView>
     );
   };

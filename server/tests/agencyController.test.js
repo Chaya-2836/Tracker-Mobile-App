@@ -25,7 +25,7 @@ describe('🧪 Agency Controller Tests', () => {
       const mockData = [
         { agency: 'SuperAds', app_id: 'com.app', clicks: 100, impressions: 500 }
       ];
-      const { bigquery } = require('../config/bigqueryConfig.js');
+      const { bigquery } = require('../config/bigQueryConfig.js');
       bigquery.query.mockResolvedValueOnce([mockData]);
 
       const res = await request(app).get('/agency/top?limit=1');
@@ -37,7 +37,7 @@ describe('🧪 Agency Controller Tests', () => {
     });
 
     it('❌ should return 500 if BigQuery fails', async () => {
-      const { bigquery } = require('../config/bigqueryConfig.js');
+      const { bigquery } = require('../config/bigQueryConfig.js');
       bigquery.query.mockRejectedValueOnce(new Error('BigQuery error'));
 
       const res = await request(app).get('/agency/top');
@@ -48,7 +48,7 @@ describe('🧪 Agency Controller Tests', () => {
       expect(res.body).toEqual({ error: 'BigQuery error' });
     });
     it('✅ should accept startDate, endDate, and sortBy params', async () => {
-      const { bigquery } = require('../config/bigqueryConfig.js');
+      const { bigquery } = require('../config/bigQueryConfig.js');
       const mockData = [{ agency: 'MockAgency', clicks: 50, impressions: 100 }];
       bigquery.query.mockResolvedValueOnce([mockData]);
     
@@ -65,7 +65,7 @@ describe('🧪 Agency Controller Tests', () => {
       const mockData = [
         { app_id: 'com.app', clicks: 70, impressions: 120, conversions: 4, CVR: 0.057 }
       ];
-      const { bigquery } = require('../config/bigqueryConfig.js');
+      const { bigquery } = require('../config/bigQueryConfig.js');
       bigquery.query.mockResolvedValueOnce([mockData]);
 
       const res = await request(app).get('/agency/apps?agency=SuperAds');
@@ -86,7 +86,7 @@ describe('🧪 Agency Controller Tests', () => {
     });
 
     it('❌ should return 500 if query fails', async () => {
-      const { bigquery } = require('../config/bigqueryConfig.js');
+      const { bigquery } = require('../config/bigQueryConfig.js');
       bigquery.query.mockRejectedValueOnce(new Error('DB error'));
 
       const res = await request(app).get('/agency/apps?agency=SuperAds');

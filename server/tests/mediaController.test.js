@@ -27,7 +27,7 @@ describe('🧪 Media Controller Tests', () => {
       const mockData = [
         { media_source: 'facebook', app_id: 'com.app', clicks: 100, impressions: 200 }
       ];
-      const { bigquery } = require('../config/bigqueryConfig.js');
+      const { bigquery } = require('../config/bigQueryConfig.js');
       bigquery.query.mockResolvedValueOnce([mockData]);
 
       const res = await request(app).get('/media/top?limit=1');
@@ -39,7 +39,7 @@ describe('🧪 Media Controller Tests', () => {
     });
 
     it('❌ should return 500 if BigQuery query fails', async () => {
-      const { bigquery } = require('../config/bigqueryConfig.js');
+      const { bigquery } = require('../config/bigQueryConfig.js');
       bigquery.query.mockRejectedValueOnce(new Error('Query failed'));
 
       const res = await request(app).get('/media/top');
@@ -56,7 +56,7 @@ describe('🧪 Media Controller Tests', () => {
       const mockData = [
         { app_id: 'com.app', clicks: 50, impressions: 100, conversions: 5, CVR: 0.1 }
       ];
-      const { bigquery } = require('../config/bigqueryConfig.js');
+      const { bigquery } = require('../config/bigQueryConfig.js');
       bigquery.query.mockResolvedValueOnce([mockData]);
 
       const res = await request(app).get('/media/apps?mediaSource=facebook');
@@ -77,7 +77,7 @@ describe('🧪 Media Controller Tests', () => {
     });
 
     it('❌ should return 500 if BigQuery query fails', async () => {
-      const { bigquery } = require('../config/bigqueryConfig.js');
+      const { bigquery } = require('../config/bigQueryConfig.js');
       bigquery.query.mockRejectedValueOnce(new Error('DB crashed'));
 
       const res = await request(app).get('/media/apps?mediaSource=facebook');

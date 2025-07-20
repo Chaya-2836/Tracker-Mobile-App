@@ -26,7 +26,7 @@ describe('🧪 App Controller Tests', () => {
       const mockData = [
         { app_id: 'com.app', clicks: 100, impressions: 300 }
       ];
-      const { bigquery } = require('../config/bigqueryConfig.js');
+      const { bigquery } = require('../config/bigQueryConfig.js');
       bigquery.query.mockResolvedValueOnce([mockData]);
 
       const res = await request(app).get('/apps/top');
@@ -37,7 +37,7 @@ describe('🧪 App Controller Tests', () => {
     });
 
     it('❌ should return 500 if BigQuery fails', async () => {
-      const { bigquery } = require('../config/bigqueryConfig.js');
+      const { bigquery } = require('../config/bigQueryConfig.js');
       bigquery.query.mockRejectedValueOnce(new Error('BigQuery failure'));
 
       const res = await request(app).get('/apps/top');
@@ -51,7 +51,7 @@ describe('🧪 App Controller Tests', () => {
   describe('GET /apps/breakdown', () => {
     it('✅ should return breakdown by appId (status 200)', async () => {
       const mockData = [{ media_source: 'facebook', agency: 'X', clicks: 90 }];
-      const { bigquery } = require('../config/bigqueryConfig.js');
+      const { bigquery } = require('../config/bigQueryConfig.js');
       bigquery.query.mockResolvedValueOnce([mockData]);
 
       const res = await request(app).get('/apps/breakdown?appId=com.example.app');
@@ -70,7 +70,7 @@ describe('🧪 App Controller Tests', () => {
     });
 
     it('❌ should return 500 if query fails', async () => {
-      const { bigquery } = require('../config/bigqueryConfig.js');
+      const { bigquery } = require('../config/bigQueryConfig.js');
       bigquery.query.mockRejectedValueOnce(new Error('Breakdown error'));
 
       const res = await request(app).get('/apps/breakdown?appId=some.id');
@@ -84,7 +84,7 @@ describe('🧪 App Controller Tests', () => {
   describe('GET /apps/conversions', () => {
     it('✅ should return conversion data by appId (status 200)', async () => {
       const mockData = [{ media_source: 'google', CVR: 0.12 }];
-      const { bigquery } = require('../config/bigqueryConfig.js');
+      const { bigquery } = require('../config/bigQueryConfig.js');
       bigquery.query.mockResolvedValueOnce([mockData]);
 
       const res = await request(app).get('/apps/conversions?appId=com.app');
@@ -103,7 +103,7 @@ describe('🧪 App Controller Tests', () => {
     });
 
     it('❌ should return 500 if query fails', async () => {
-      const { bigquery } = require('../config/bigqueryConfig.js');
+      const { bigquery } = require('../config/bigQueryConfig.js');
       bigquery.query.mockRejectedValueOnce(new Error('Conversion query failed'));
 
       const res = await request(app).get('/apps/conversions?appId=com.app');

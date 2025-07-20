@@ -6,10 +6,24 @@ const BASE_URL = CONFIG.BASE_URL + "/trafficAnalytics";
 
 // General type for responses from the server – can be replaced in the future according to the real data
 type ApiResponse<T = any> = T;
-
+type DateParams = {
+  limit?: number;
+  startDate?: string;
+  endDate?: string;
+};
 // Media sources
-export const fetchTopMediaSources = async (limit: number = 10): Promise<ApiResponse> => {
-  const { data } = await axios.get(`${BASE_URL}/media/top`, { params: { limit } });
+export const fetchTopMediaSources = async ({
+  limit = 10,
+  startDate,
+  endDate,
+}: DateParams): Promise<ApiResponse> => {
+  const params: any = { limit };
+  if (startDate && endDate) {
+    params.startDate = startDate;
+    params.endDate = endDate;
+  }
+
+  const { data } = await axios.get(`${BASE_URL}/media/top`, { params });
   return data;
 };
 export const fetchAppsByMediaSource = async (mediaSource: string): Promise<ApiResponse> => {
@@ -18,8 +32,18 @@ export const fetchAppsByMediaSource = async (mediaSource: string): Promise<ApiRe
 };
 
 // Advertising agencies
-export const fetchTopAgencies = async (limit: number = 10): Promise<ApiResponse> => {
-  const { data } = await axios.get(`${BASE_URL}/agency/top`, { params: { limit } });
+export const fetchTopAgencies = async ({
+  limit = 10,
+  startDate,
+  endDate,
+}: DateParams): Promise<ApiResponse> => {
+  const params: any = { limit };
+  if (startDate && endDate) {
+    params.startDate = startDate;
+    params.endDate = endDate;
+  }
+
+  const { data } = await axios.get(`${BASE_URL}/agency/top`, { params });
   return data;
 };
 
@@ -31,8 +55,18 @@ export const fetchAppsByAgency = async (agency: string, limit: number = 10): Pro
 };
 
 // apps
-export const fetchTopApps = async (limit: number = 10): Promise<ApiResponse> => {
-  const { data } = await axios.get(`${BASE_URL}/apps/top`, { params: { limit } });
+export const fetchTopApps = async ({
+  limit = 10,
+  startDate,
+  endDate,
+}: DateParams): Promise<ApiResponse> => {
+  const params: any = { limit };
+  if (startDate && endDate) {
+    params.startDate = startDate;
+    params.endDate = endDate;
+  }
+
+  const { data } = await axios.get(`${BASE_URL}/apps/top`, { params });
   return data;
 };
 
@@ -47,10 +81,21 @@ export const fetchAppTrafficConversions = async (appId: string, limit: number = 
 };
 
 // Platforms
-export const fetchTopPlatforms = async (): Promise<ApiResponse> => {
-  const { data } = await axios.get(`${BASE_URL}/platforms/top`);
+export const fetchTopPlatforms = async ({
+  limit = 10,
+  startDate,
+  endDate,
+}: DateParams): Promise<ApiResponse> => {
+  const params: any = { limit };
+  if (startDate && endDate) {
+    params.startDate = startDate;
+    params.endDate = endDate;
+  }
+
+  const { data } = await axios.get(`${BASE_URL}/platforms/top-platforms`, { params });
   return data;
 };
+
 
 //Alerts
 export const fetchHighTrafficAlerts = async (): Promise<ApiResponse> => {

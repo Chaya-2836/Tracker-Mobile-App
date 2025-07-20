@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { View, Text, TextInput } from "react-native";
-import styles from "@/app/styles/topStyles";
+import styles from "../styles/topStyles";
 
 interface TopSelectorProps {
   value: number;

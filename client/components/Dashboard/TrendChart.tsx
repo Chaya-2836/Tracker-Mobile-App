@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 
-import Chartstyles, { chartConfig } from '../../app/styles/trendChartStyles';
+import Chartstyles, { chartConfig } from '../../styles/trendChartStyles';
 import TooltipForChart from '../TooltipForChart';
 import { Granularity } from '../../api/analytics';
 
