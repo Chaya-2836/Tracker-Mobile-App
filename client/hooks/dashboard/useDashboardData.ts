@@ -125,6 +125,7 @@ export function useDashboardData() {
     return new Date(iso).toLocaleDateString('en-CA');
   };
 
+  
   const getTitle = () => {
     const type = index === 0 ? 'Clicks' : 'Impressions';
     if (fromDate && toDate) {
