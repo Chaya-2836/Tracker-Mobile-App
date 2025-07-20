@@ -16,10 +16,9 @@ import { Granularity } from '../../api/analytics';
 interface TrendChartProps {
   data: { label: Date; value: number }[];
   granularity: Granularity;
-  chartTitle?: string;
 }
 
-const TrendChart: React.FC<TrendChartProps> = ({ chartTitle, data, granularity }) => {
+const TrendChart: React.FC<TrendChartProps> = ({ data, granularity }) => {
   const { width: screenWidth } = useWindowDimensions();
   const scrollRef = useRef<ScrollView>(null);
   const [scrollX, setScrollX] = useState(0);
@@ -77,7 +76,6 @@ const TrendChart: React.FC<TrendChartProps> = ({ chartTitle, data, granularity }
 
   return (
     <View style={{ padding: 16, backgroundColor: '#fff' }}>
-      {chartTitle && <Text style={Chartstyles.title}>{chartTitle}</Text>}
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <View style={{ position: 'relative', flex: 1 }}>
           {enableScroll && (
