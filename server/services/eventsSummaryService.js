@@ -1,10 +1,13 @@
 import { bigQuery, nameDB } from '../config/bigQueryConfig.js';
-import { parseISO, isAfter } from 'date-fns';
+import { parseISO, isAfter, differenceInDays } from 'date-fns';
 
 export async function getEventsSummaryService(queryParams) {
   const nameTable = `${nameDB}.attribution_end_user_events.end_user_events`;
   const filters = [];
   const params = {};
+  let selectClause = '';
+  let groupClause = '';
+
   const {
     campaign_name, platform, media_source, agency, engagement_type,
     daysMode = 'week', date, unified_app_id, fromDate, toDate
@@ -27,36 +30,82 @@ export async function getEventsSummaryService(queryParams) {
         useCurrentDate = false;
         params.date = date;
       }
-    } catch (e) {
-      console.warn('⚠️ Invalid date format. Falling back to current date.');
+    } catch {
+      console.warn('⚠️ תאריך לא תקין, שימוש בתאריך נוכחי');
     }
   }
 
+  // טווח תאריכים מותאם אישית
   if (fromDate && toDate) {
+    const from = parseISO(fromDate);
+    const to = parseISO(toDate);
+    const daysDiff = differenceInDays(to, from);
+
     filters.push(`DATE(event_time) BETWEEN DATE(@fromDate) AND DATE(@toDate)`);
     params.fromDate = fromDate;
     params.toDate = toDate;
-  } else if (daysMode === 'day') {
-    if (useCurrentDate) {
-      filters.push(`DATE(event_time, "Asia/Jerusalem") = CURRENT_DATE("Asia/Jerusalem")`);
+
+    // התאמת ה־SELECT לפי אורך הטווח
+    if (daysDiff > 1095) {
+      selectClause = `
+        SELECT FORMAT_DATE('%Y', DATE_TRUNC(DATE(event_time), YEAR)) AS event_date,
+        COUNT(*) AS count
+      `;
+    } else if (daysDiff > 365) {
+      selectClause = `
+        SELECT FORMAT_DATE('%Y-%m', DATE_TRUNC(DATE(event_time), MONTH)) AS event_date,
+        COUNT(*) AS count
+      `;
+    } else if (daysDiff > 30) {
+      selectClause = `
+        SELECT FORMAT_DATE('%Y-%m-%d', DATE_TRUNC(DATE(event_time), WEEK(SUNDAY))) AS event_date,
+        COUNT(*) AS count
+      `;
     } else {
-      filters.push(`DATE(event_time) = DATE(@date)`);
+      selectClause = `
+        SELECT DATE(event_time, "Asia/Jerusalem") AS event_date,
+        COUNT(*) AS count
+      `;
     }
-  } else {
-    filters.push(useCurrentDate ?
-      `DATE(event_time) BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY) AND DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY)` :
-      `DATE(event_time) BETWEEN DATE_SUB(DATE(@date), INTERVAL 7 DAY) AND DATE_SUB(DATE(@date), INTERVAL 1 DAY)`);
+
+    groupClause = `GROUP BY event_date ORDER BY event_date`;
+  }
+
+  // לפי daysMode בלבד
+  else if (daysMode === 'day') {
+    const dateFilter = useCurrentDate
+      ? `DATE(event_time, "Asia/Jerusalem") = CURRENT_DATE("Asia/Jerusalem")`
+      : `DATE(event_time) = DATE(@date)`;
+    filters.push(dateFilter);
+
+    selectClause = `
+      SELECT DATE(event_time, "Asia/Jerusalem") AS event_date,
+      COUNT(*) AS count
+    `;
+    groupClause = `GROUP BY event_date ORDER BY event_date`;
+  }
+
+  // שבוע אחרון (ברירת מחדל)
+  else {
+    const dateRange = useCurrentDate
+      ? `DATE(event_time) BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY) AND DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY)`
+      : `DATE(event_time) BETWEEN DATE_SUB(DATE(@date), INTERVAL 7 DAY) AND DATE_SUB(DATE(@date), INTERVAL 1 DAY)`;
+    filters.push(dateRange);
+
+    selectClause = `
+      SELECT FORMAT_TIMESTAMP('%Y-%m-%d', event_time) AS event_date,
+      COUNT(*) AS count
+    `;
+    groupClause = `GROUP BY event_date ORDER BY event_date`;
   }
 
   const whereClause = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
-  const selectClause = daysMode === 'day'
-    ? `SELECT DATE(event_time, "Asia/Jerusalem") AS event_date, COUNT(*) AS count`
-    : `SELECT FORMAT_TIMESTAMP('%Y-%m-%d', event_time) AS event_date, COUNT(*) AS count`;
-  const groupClause = `GROUP BY event_date ORDER BY event_date`;
-
   const query = `${selectClause} FROM ${nameTable} ${whereClause} ${groupClause}`;
 
-  Object.entries(params).forEach(([k, v]) => { if (v === undefined) delete params[k]; });
+  // ניקוי פרמטרים ריקים
+  Object.entries(params).forEach(([key, val]) => {
+    if (val === undefined) delete params[key];
+  });
 
   const [job] = await bigQuery.createQueryJob({ query, location: 'US', params });
   const [rows] = await job.getQueryResults();
