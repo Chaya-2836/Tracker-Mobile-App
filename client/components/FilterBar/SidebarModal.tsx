@@ -8,7 +8,7 @@ import {
   Text,
   StyleSheet,
 } from 'react-native';
-import styles from '../../app/styles/filterMenuStyles';
+import styles from '../../styles/filterMenuStyles';
 
 type Props = {
   visible: boolean;

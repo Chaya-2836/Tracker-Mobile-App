@@ -9,7 +9,7 @@ import {
   Pressable,
   StyleSheet,
 } from 'react-native';
-import styles from '../../app/styles/filterMenuStyles';
+import styles from '../../styles/filterMenuStyles';
 import FilterDropdownButton from './FilterDropdownButton';
 import FilterSection from './FilterSection';
 import SidebarModal from './SidebarModal';
