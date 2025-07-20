@@ -25,58 +25,51 @@ const filterKeys: { [label: string]: string } = {
 type Props = {
   options: { [label: string]: string[] };
   selected: { [label: string]: string[] };
-  onSelect: (s: { [key: string]: string[] }) => void;
+  onSelect: (updated: { [key: string]: string[] }) => void;
   expanded: { [label: string]: boolean };
   onToggleExpand: (label: string) => void;
   searchText: { [label: string]: string };
-  onSearchTextChange: (t: { [key: string]: string }) => void;
+  onSearchTextChange: (text: { [label: string]: string }) => void;
   onClear: () => void;
-  onApply: (mapped: { [key: string]: string[] }) => void;
+  onApply: (filters: { [key: string]: string[] }) => void;
 };
 
 export default function FilterBar({
   options,
   selected,
-  onSelect,
   expanded,
-  onToggleExpand,
   searchText,
+  onSelect,
+  onToggleExpand,
   onSearchTextChange,
   onClear,
   onApply,
 }: Props) {
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
-  const [pending, setPending] = useState<{ [key: string]: string[] }>({ ...selected });
   const [buttonLayouts, setButtonLayouts] = useState<{ [label: string]: LayoutRectangle }>({});
   const [showSidebar, setShowSidebar] = useState(false);
-
   const screenWidth = Dimensions.get('window').width;
   const isSmallScreen = screenWidth < 500;
 
   const toggleOption = (label: string, option: string) => {
-    const already = pending[label]?.includes(option);
+    const already = selected[label]?.includes(option);
     const updated = {
-      ...pending,
+      ...selected,
       [label]: already
-        ? pending[label].filter(o => o !== option)
-        : [...(pending[label] || []), option],
+        ? selected[label].filter(o => o !== option)
+        : [...(selected[label] || []), option],
     };
-    setPending(updated);
+    onSelect(updated);
   };
 
   const handleApply = () => {
-    const updated = { ...pending };
-
-    onSelect(updated);
-
     const mapped: { [key: string]: string[] } = {};
-    Object.entries(updated).forEach(([label, val]) => {
+    Object.entries(selected).forEach(([label, val]) => {
       const param = filterKeys[label];
       if (param && val.length > 0) {
         mapped[param] = val;
       }
     });
-
     onApply(mapped);
     setActiveFilter(null);
     setShowSidebar(false);
@@ -112,7 +105,7 @@ export default function FilterBar({
         isExpanded={isExpanded}
         searchText={searchText[label] || ''}
         options={options[label] || []}
-        selected={pending[label] || []}
+        selected={selected[label] || []}
         onSearchTextChange={(text: string) =>
           onSearchTextChange({ ...searchText, [label]: text })
         }
@@ -120,6 +113,8 @@ export default function FilterBar({
       />
     </View>
   );
+
+  const anchor = activeFilter ? buttonLayouts[activeFilter] : null;
 
   if (isSmallScreen) {
     return (
@@ -180,7 +175,7 @@ export default function FilterBar({
           <Text style={styles.filterByText}>Filter By:</Text>
         </View>
 
-            {FILTER_ORDER.map(label => (
+        {FILTER_ORDER.map(label => (
           <FilterDropdownButton
             key={label}
             label={label}
@@ -197,6 +192,22 @@ export default function FilterBar({
           <Text style={styles.btnText}>Apply</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {activeFilter && anchor && (
+        <View
+          style={[
+            styles.floatingDropdown,
+            {
+              position: 'absolute',
+              top: anchor.y + anchor.height + 6,
+              left: anchor.x,
+              width: anchor.width + 20,
+            },
+          ]}
+        >
+          {renderFilterSection(activeFilter, true, () => {}, true)}
+        </View>
+      )}
     </View>
   );
 }

@@ -31,7 +31,6 @@ export function useDashboardData() {
     Object.fromEntries(FILTER_ORDER.map(label => [label, false]))
   );
   const [searchTexts, setSearchTexts] = useState<{ [label: string]: string }>({});
-
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
 
@@ -43,7 +42,7 @@ export function useDashboardData() {
     await Promise.all([
       fetchTodayStats(),
       fetchTrends(selectedFilters),
-
+      fetchFilterOptions(),
     ]);
   }
 
@@ -67,13 +66,8 @@ export function useDashboardData() {
         })
       );
 
-      // Add fromDate and toDate from state directly
-      if (fromDate) {
-        filtersAsQuery['fromDate'] = fromDate;
-      }
-      if (toDate) {
-        filtersAsQuery['toDate'] = toDate;
-      }
+      if (fromDate) filtersAsQuery['fromDate'] = fromDate;
+      if (toDate) filtersAsQuery['toDate'] = toDate;
 
       const { clicks = [], impressions = [], granularity } = await getWeeklyTrends(filtersAsQuery);
 
@@ -93,6 +87,15 @@ export function useDashboardData() {
     }
   }
 
+  async function fetchFilterOptions() {
+    try {
+      const allFilters = await fetchAllFilters();
+      setFilterOptions(allFilters);
+    } catch (err) {
+      console.error(' Failed to fetch filters:', err);
+    }
+  }
+
   const handleApply = (filters: { [key: string]: string[] }) => {
     setSelectedFilters(filters);
     fetchTrends(filters);
@@ -105,14 +108,6 @@ export function useDashboardData() {
     setToDate('');
     fetchTrends({});
   };
-  useEffect(() => {
-    if (fromDate || toDate) {
-      fetchTrends(selectedFilters);
-      
-    }
-  }, [fromDate, toDate]); 
-
-
 
   const toggleExpand = (label: string) => {
     setExpandedSections(prev => ({
@@ -126,12 +121,13 @@ export function useDashboardData() {
   };
 
   const getTitle = () => {
+    const type = index === 0 ? 'Clicks' : 'Impressions';
     if (fromDate && toDate) {
-      return ` (${formatDate(fromDate)} → ${formatDate(toDate)})`;
+      return `${type} Volume Trend (${formatDate(fromDate)} → ${formatDate(toDate)})`;
     } else if (fromDate) {
-      return ` (${formatDate(fromDate)} → ${new Date().toLocaleDateString('en-CA')})`;
+      return `${type} Volume Trend (${formatDate(fromDate)} → ${new Date().toLocaleDateString('en-CA')})`;
     }
-    return ` (Last 7 Days)`;
+    return `${type} Volume Trend (Last 7 Days)`;
   };
 
   return {
@@ -153,12 +149,12 @@ export function useDashboardData() {
     handleApply,
     handleClear,
     toggleExpand,
-    getTitle,
     initialLayout,
     granularity,
     fromDate,
     setFromDate,
     toDate,
     setToDate,
+    getTitle,
   };
 }
