@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getTodayStats, getWeeklyTrends, Granularity } from '../../api/analytics';
+import { getTodayStats, getWeeklyTrends, getMonthlyTrends, getYearlyTrends, Granularity } from '../../api/analytics';
 import { fetchAllFilters } from '../../api/filters';
 import { Dimensions } from 'react-native';
 
@@ -50,36 +50,68 @@ export function useDashboardData() {
     }
   }
 
-  async function fetchTrends(filters: { [key: string]: string[] }) {
-    setLoading(true);
-    try {
-      const filtersAsQuery = Object.fromEntries(
-        Object.entries(filters).map(([key, val]) => {
-          const keyNormalized = key === 'fromDate' || key === 'toDate'
+
+async function fetchTrends(filters: { [key: string]: string[] }) {
+  setLoading(true);
+  try {
+    const filtersAsQuery = Object.fromEntries(
+      Object.entries(filters).map(([key, val]) => {
+        const keyNormalized =
+          key === 'fromDate' || key === 'toDate'
             ? key
             : key.toLowerCase().replace(/\s+/g, '_');
-          return [keyNormalized, val.join(',')];
-        })
-      );
+        return [keyNormalized, val.join(',')];
+      })
+    );
 
-const { clicks = [], impressions = [], granularity } = await getWeeklyTrends(filtersAsQuery);
+    let fromDate: Date | null = null;
+    let toDate: Date | null = null;
 
-const toPoints = (arr: any[]) =>
-  arr.map(item => ({
-    label: new Date(item.label),
-    value: Number(item.value || 0),
-  }));
-
-setClickTrend(toPoints(clicks));
-setImpressionTrend(toPoints(impressions));
-setGranularity(granularity);
-
-    } catch (err) {
-      console.error('❌ Failed to fetch weekly trends:', err);
-    } finally {
-      setLoading(false);
+    if (filtersAsQuery.fromDate && filtersAsQuery.toDate) {
+      fromDate = new Date(filtersAsQuery.fromDate);
+      toDate = new Date(filtersAsQuery.toDate);
     }
+
+    let daysDiff = 7; // default to 7 days
+    if (fromDate && toDate) {
+      daysDiff = Math.floor(
+        (toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24)
+      );
+    }
+
+    // 🧩 Decide granularity
+    const useYearly = daysDiff > 1095;      // >3 years
+    const useMonthly = daysDiff > 90 && daysDiff <= 1095; // >3 months but <=3 years
+
+    let trendsResult;
+
+    if (useYearly) {
+      trendsResult = await getYearlyTrends(filtersAsQuery);
+    } else if (useMonthly) {
+      trendsResult = await getMonthlyTrends(filtersAsQuery);
+    } else {
+      trendsResult = await getWeeklyTrends(filtersAsQuery);
+    }
+
+    const { clicks = [], impressions = [], granularity } = trendsResult;
+
+    const toPoints = (arr: any[]) =>
+      arr.map(item => ({
+        label: new Date(item.label),
+        value: Number(item.value || 0),
+      }));
+
+    setClickTrend(toPoints(clicks));
+    setImpressionTrend(toPoints(impressions));
+    setGranularity(granularity);
+
+  } catch (err) {
+    console.error('❌ Failed to fetch trends:', err);
+  } finally {
+    setLoading(false);
   }
+}
+
 
   async function fetchFilterData() {
     try {

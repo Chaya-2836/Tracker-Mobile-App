@@ -20,9 +20,6 @@ import TopDashboard from '../../components/Dashboard/TopDashboard';
 import StatCard from '../../components/Dashboard/statCard';
 import DonutWithSelector from '@/components/Dashboard/DonutWithSelector';
 
-const screenWidth = Dimensions.get('window').width;
-const isLargeScreen = screenWidth >= 768;
-
 export default function App() {
   // State to track if it's the initial loading of the page
   const [initialLoading, setInitialLoading] = useState(true);
