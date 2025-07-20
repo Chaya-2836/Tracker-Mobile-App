@@ -120,7 +120,6 @@ export function useDashboardData() {
     fetchTrends(selectedFilters);
   }
 }, [fromDate, toDate]);
-עןא 
 
   const formatDate = (iso: string) => {
     return new Date(iso).toLocaleDateString('en-CA');
