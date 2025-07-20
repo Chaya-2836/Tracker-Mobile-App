@@ -66,7 +66,7 @@ export function fillMissingPointsByGranularity(
 
   const cursor = new Date(start);
   if (granularity === 'weekly') {
-    cursor.setDate(cursor.getDate() - ((cursor.getDay() + 6) % 7)); // Monday
+    cursor.setDate(cursor.getDate());
   }
 
   while (cursor <= end) {
@@ -174,6 +174,7 @@ export async function getMonthlyTrends(filters: Filters = {}): Promise<{
   impressions: TrendPoint[],
   granularity: 'monthly'
 }> {
+  console.log("IN MONTHLY TRENDS");
   const from = filters.fromDate ? new Date(filters.fromDate) : undefined;
   const to = filters.toDate ? new Date(filters.toDate) : undefined;
 
@@ -186,6 +187,8 @@ export async function getMonthlyTrends(filters: Filters = {}): Promise<{
     fetchEventSummary('click', 'month', filters),  // request monthly granularity directly
     fetchEventSummary('impression', 'month', filters)
   ]);
+  console.log("RAW DATA:");
+  console.log('clicksRowResult', clicksRowResult);
 
   const emptyResult: TrendPoint[] = [];
 
@@ -196,6 +199,8 @@ export async function getMonthlyTrends(filters: Filters = {}): Promise<{
         to
       )
     : { filled: emptyResult, granularity: 'monthly' };
+  console.log("PROCESSED DATA:");
+  console.log('clicksProcessed', clicksProcessed);
   const impressionsProcessed = Array.isArray(impressionsRowResult)
     ? fillMissingPointsByGranularity(
         convertToTrendPoints(impressionsRowResult),

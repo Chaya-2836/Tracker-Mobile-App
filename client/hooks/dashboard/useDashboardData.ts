@@ -88,7 +88,6 @@ async function fetchTrends(filters: { [key: string]: string[] }) {
         (dateTo.getTime() - dateFrom.getTime()) / (1000 * 60 * 60 * 24)
       );
     }
-
     // Decide granularity
     const useYearly = daysDiff > 1095;
     const useMonthly = daysDiff > 90 && daysDiff <= 1095;
