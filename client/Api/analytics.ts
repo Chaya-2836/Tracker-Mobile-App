@@ -80,7 +80,7 @@ export function fillMissingPointsByGranularity(
       );
       value = monthPoints.reduce((sum, item) => sum + item.value, 0);
     } else if (granularity === 'weekly') {
-      // sum all points in the same week (ISO week starts Monday)
+      // sum all points in the same week
       const weekStart = new Date(cursor);
       weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 6) % 7));
       const weekEnd = new Date(weekStart);
