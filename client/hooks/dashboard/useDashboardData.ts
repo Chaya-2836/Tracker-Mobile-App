@@ -90,7 +90,7 @@ async function fetchTrends(filters: { [key: string]: string[] }) {
     }
     // Decide granularity
     const useYearly = daysDiff > 1095;
-    const useMonthly = daysDiff > 365 && daysDiff <= 1095;
+    const useMonthly = daysDiff > 150 && daysDiff <= 1095;
 
     let trendsResult;
 

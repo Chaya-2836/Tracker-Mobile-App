@@ -53,7 +53,7 @@ export function fillMissingPointsByGranularity(
   if (daysDiff > 1095) {
     step = 365;
     granularity = 'yearly';
-  } else if (daysDiff > 365) {
+  } else if (daysDiff > 150) {
     step = 30;
     granularity = 'monthly';
   } else if (daysDiff > 30) {
