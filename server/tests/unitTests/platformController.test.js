@@ -1,6 +1,6 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { getTopPlatforms } from './controllers/platformController.js';
-import * as platformService from '../services/platformService.js';
+import * as platformService from '../../services/platformService.js';
 
 describe('getTopPlatforms controller', () => {
   const req = {
@@ -36,7 +36,7 @@ describe('getTopPlatforms controller', () => {
 
     await getTopPlatforms(req, res);
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith('💥 Error in getTopPlatforms:', error);
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Error in getTopPlatforms:', error);
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith({ error: 'Error while running the platforms query' });
 

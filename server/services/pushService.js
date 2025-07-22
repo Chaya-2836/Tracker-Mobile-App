@@ -24,14 +24,14 @@ if (fs.existsSync(serviceAccountPath)) {
 
   admin = firebaseAdmin;
   firebaseReady = true;
-  console.log('✅ Firebase initialized');
+  console.log('Firebase initialized');
 } else {
-  console.warn('⚠️ firebase-service-account.json not found — Push notifications disabled');
+  console.warn('firebase-service-account.json not found — Push notifications disabled');
 }
 
 function registerToken(token) {
   currentDeviceToken = token;
-  console.log('📲 Token registered:', token);
+  console.log('Token registered:', token);
 }
 
 async function sendPush(token, title, body) {
@@ -43,9 +43,9 @@ async function sendPush(token, title, body) {
       notification: { title, body },
     };
     const response = await admin.messaging().send(message);
-    console.log('✅ Push sent:', response);
+    console.log('Push sent:', response);
   } catch (error) {
-    console.error('❌ Failed to send push:', error);
+    console.error('Failed to send push:', error);
   }
 }
 
@@ -58,7 +58,7 @@ function scheduleDailyCheck() {
   cron.schedule(
     '0 10 * * *', // 10:00 Israel time
     async () => {
-      console.log('⏰ Running daily engagement check...');
+      console.log('Running daily engagement check...');
 
       try {
         const { total_clicks_and_impressions } = await getTodayStats();
@@ -71,11 +71,11 @@ function scheduleDailyCheck() {
           await checkAndSendTrafficAlert(message);
 
           if (currentDeviceToken) {
-            await sendPush(currentDeviceToken, '📢 Traffic Alert', message);
+            await sendPush(currentDeviceToken, 'Traffic Alert', message);
           }
         }
       } catch (err) {
-        console.error('❌ Error in daily check:', err);
+        console.error('Error in daily check:', err);
       }
     },
     {

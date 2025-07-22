@@ -11,6 +11,17 @@ interface TrendPoint {
 const FILTER_ORDER = ['Campaign', 'Platform', 'Media Source', 'Agency', 'Date Range'];
 const initialLayout = { width: Dimensions.get('window').width };
 
+const getDefaultDateRange = (): { fromDate: string; toDate: string } => {
+  const today = new Date();
+  const past = new Date();
+  past.setDate(today.getDate() - 6);
+  const format = (d: Date) => d.toISOString().split('T')[0];
+  return {
+    fromDate: format(past),
+    toDate: format(today),
+  };
+};
+
 export function useDashboardData() {
   const [clicksToday, setClicksToday] = useState(0);
   const [impressionsToday, setImpressionsToday] = useState(0);
@@ -24,7 +35,15 @@ export function useDashboardData() {
     { key: 'impressions', title: 'Impressions' },
   ]);
 
-  const [groupBy, setGroupBy] = useState('media_source'); 
+  const [groupBy, setGroupBy] = useState('media_source');
+  const [topTabIndex, setTopTabIndex] = useState(0);
+  const [topN, setTopN] = useState(9);
+  const [topMediaData, setTopMediaData] = useState([]);
+  const [topAgencyData, setTopAgencyData] = useState([]);
+  const [topAppData, setTopAppData] = useState([]);
+
+  const [fromDate, setFromDate] = useState(getDefaultDateRange().fromDate);
+  const [toDate, setToDate] = useState(getDefaultDateRange().toDate);
 
   const [filterOptions, setFilterOptions] = useState<{ [label: string]: string[] }>({});
   const [selectedFilters, setSelectedFilters] = useState<{ [label: string]: string[] }>({});
@@ -37,7 +56,6 @@ export function useDashboardData() {
     fetchData();
     fetchTrends({});
     fetchFilterData();
-    // eslint-disable-next-line
   }, []);
 
   async function fetchData() {
@@ -73,7 +91,7 @@ export function useDashboardData() {
       setClickTrend(toPoints(clicks));
       setImpressionTrend(toPoints(impressions));
     } catch (err) {
-      console.error('❌ Failed to fetch weekly trends:', err);
+      console.error('Failed to fetch weekly trends:', err);
     } finally {
       setLoading(false);
     }
@@ -84,7 +102,7 @@ export function useDashboardData() {
       const allFilters = await fetchAllFilters();
       setFilterOptions(allFilters);
     } catch (err) {
-      console.error('❌ Failed to fetch filters:', err);
+      console.error('Failed to fetch filters:', err);
     }
   }
 
@@ -97,7 +115,17 @@ export function useDashboardData() {
     const cleared = {};
     setSelectedFilters(cleared);
     setSearchTexts(cleared);
-    handleApply(cleared);
+
+    const { fromDate: defFrom, toDate: defTo } = getDefaultDateRange();
+    setFromDate(defFrom);
+    setToDate(defTo);
+
+    const filtersWithDefaultDates = {
+      ...cleared,
+      fromDate: [defFrom],
+      toDate: [defTo],
+    };
+    handleApply(filtersWithDefaultDates);
   };
 
   const toggleExpand = (label: string) => {
@@ -112,15 +140,14 @@ export function useDashboardData() {
   };
 
   const getChartTitle = (filters: { [key: string]: string[] }) => {
-    const from = filters.fromDate?.[0];
-    const to = filters.toDate?.[0];
+    const from = filters.fromDate?.[0] || fromDate;
+    const to = filters.toDate?.[0] || toDate;
     const type = index === 0 ? 'Clicks' : 'Impressions';
 
     if (from && to) {
       return `${type} Volume Trend (${formatDate(from)} → ${formatDate(to)})`;
-    }
-    else if (from) {
-      return `${type} Volume Trend (${formatDate(from)} → ${new Date().toLocaleDateString('en-CA')})`;
+    } else if (from) {
+      return `${type} Volume Trend (${formatDate(from)} → ${formatDate(new Date().toISOString())})`;
     }
     return `${type} Volume Trend (Last 7 Days)`;
   };
@@ -147,7 +174,21 @@ export function useDashboardData() {
     getChartTitle,
     initialLayout,
     formatDate,
-    groupBy,        
-    setGroupBy,     
+    groupBy,
+    setGroupBy,
+    fromDate,
+    toDate,
+    setFromDate,
+    setToDate,
+    topTabIndex,
+    setTopTabIndex,
+    topN,
+    setTopN,
+    topMediaData,
+    topAgencyData,
+    topAppData,
+    setTopMediaData,
+    setTopAgencyData,
+    setTopAppData,
   };
 }

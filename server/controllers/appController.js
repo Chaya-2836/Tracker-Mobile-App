@@ -28,7 +28,7 @@ export const getTopApps = async (req, res) => {
     res.json(results);
   } 
   catch (err) {
-    console.error('❌ Error in getTopApps:', err);
+    console.error('Error in getTopApps:', err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -62,7 +62,7 @@ export const getAppsTrafficBreakdown = async (req, res) => {
     res.json(rows);
   } 
   catch (error) {
-    console.error('❌ Error fetching traffic breakdown:', err);
+    console.error('Error fetching traffic breakdown:', err);
     res.status(500).json({ error: err.message });
   }
 };

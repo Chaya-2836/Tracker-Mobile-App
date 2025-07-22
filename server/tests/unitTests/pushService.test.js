@@ -6,7 +6,7 @@ import {
   __setFirebaseReady,
   __setAdmin,
   __setCurrentToken,
-} from './pushService.js';
+} from '../../services/pushService.js';
 
 // Mock external modules
 vi.mock('./statsService.js', () => ({
@@ -21,8 +21,8 @@ vi.mock('node-cron', () => ({
   },
 }));
 
-import { getTodayStats } from './statsService.js';
-import { checkAndSendTrafficAlert } from '../controllers/alertSlackController.js';
+import { getTodayStats } from '../../services/statsService.js';
+import { checkAndSendTrafficAlert } from '../../controllers/alertSlackController.js';
 import cron from 'node-cron';
 
 describe('registerToken', () => {

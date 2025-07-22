@@ -28,7 +28,7 @@ export async function getEventsSummaryService(queryParams) {
         params.date = date;
       }
     } catch (e) {
-      console.warn('⚠️ Invalid date format. Falling back to current date.');
+      console.warn('Invalid date format. Falling back to current date.');
     }
   }
 

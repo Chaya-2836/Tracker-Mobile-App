@@ -3,41 +3,32 @@ import { View, Text, ActivityIndicator } from 'react-native';
 import GroupBySelector from './GroupBySelector';
 import DonutChartWithLegend from './DonutChartWithLegend';
 import { getAgentStatsByGroup, AgentItem } from '../../api/getAgentStatsByGroup';
-import { useDashboardData } from '../../hooks/dashboard/useDashboardData';
+import { useDashboard } from '../../hooks/dashboard/DashboardContext';
 import styles from '../../styles/DonutWithSelectorStyle';
 
 interface DonutWithSelectorProps {
-  dateRange?: { fromDate: string; toDate: string };
   viewMode: 'clicks' | 'impressions';
 }
 
-const getDefaultDateRange = (): { fromDate: string; toDate: string } => {
-  const today = new Date();
-  const past = new Date();
-  past.setDate(today.getDate() - 6);
-  const format = (d: Date) => d.toISOString().split('T')[0];
-  return {
-    fromDate: format(past),
-    toDate: format(today),
-  };
-};
-
-export default function DonutWithSelector({
-  dateRange = getDefaultDateRange(),
-  viewMode,
-}: DonutWithSelectorProps) {
+export default function DonutWithSelector({ viewMode }: DonutWithSelectorProps) {
   const [data, setData] = useState<AgentItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const { groupBy, setGroupBy, formatDate } = useDashboardData(); 
+  const {
+    groupBy,
+    setGroupBy,
+    formatDate,
+    fromDate,
+    toDate,
+  } = useDashboard();
 
   useEffect(() => {
-    if (!dateRange?.fromDate || !dateRange?.toDate) return;
+    if (!fromDate || !toDate) return;
 
     setLoading(true);
     getAgentStatsByGroup({
       groupBy,
-      fromDate: dateRange.fromDate,
-      toDate: dateRange.toDate,
+      fromDate,
+      toDate,
       metric: viewMode,
     })
       .then(setData)
@@ -46,7 +37,7 @@ export default function DonutWithSelector({
         setData([]);
       })
       .finally(() => setLoading(false));
-  }, [groupBy, dateRange, viewMode]);
+  }, [groupBy, fromDate, toDate, viewMode]);
 
   const groupByLabels: Record<string, string> = {
     media_source: 'Media Source',
@@ -55,14 +46,11 @@ export default function DonutWithSelector({
     platform: 'Platform',
   };
 
-  const from = dateRange?.fromDate;
-  const to = dateRange?.toDate;
-
   let title = `Traffic Distribution by ${groupByLabels[groupBy] || 'Group'}`;
-  if (from && to) {
-    title += ` (${formatDate(from)} → ${formatDate(to)})`;
-  } else if (from) {
-    title += ` (${formatDate(from)} → ${formatDate(new Date().toISOString())})`;
+  if (fromDate && toDate) {
+    title += ` (${formatDate(fromDate)} → ${formatDate(toDate)})`;
+  } else if (fromDate) {
+    title += ` (${formatDate(fromDate)} → ${formatDate(new Date().toISOString())})`;
   } else {
     title += ` (Last 7 Days)`;
   }

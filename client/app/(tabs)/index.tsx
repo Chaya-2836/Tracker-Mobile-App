@@ -9,17 +9,19 @@ import {
 import { TabView, TabBar } from 'react-native-tab-view';
 
 import styles from '../../styles/appStyles';
-import { useDashboardData } from '../../hooks/dashboard/useDashboardData';
+import { DashboardProvider, useDashboard } from '../../hooks/dashboard/DashboardContext';
+
 import SuspiciousPanel from '../../components/Dashboard/SuspiciousPanel';
 import StatsPanel from '../../components/Dashboard/StatsPanel';
 import ChartPanel from '../../components/Dashboard/ChartPanel';
 import FiltersPanel from '../../components/Dashboard/FiltersPanel';
-import DashboardPanel from '../../components/Dashboard/DashboardPanel';
 import DonutPanel from '../../components/Dashboard/DonutPanel';
 import Spinner from '../../components/Spinner';
+import TopDashboard from '../../components/Dashboard/TopDashboard';
+
 const initialLayout = { width: Dimensions.get('window').width };
 
-export default function App() {
+function InnerApp() {
   const {
     clicksToday,
     impressionsToday,
@@ -40,7 +42,19 @@ export default function App() {
     toggleExpand,
     getChartTitle,
     initialLayout,
-  } = useDashboardData();
+    setFromDate,
+    setToDate, 
+  } = useDashboard();
+
+  const handleApplyWithDates = (filters: { [key: string]: string[] }) => {
+    const from = filters.fromDate?.[0];
+    const to = filters.toDate?.[0];
+
+    if (from) setFromDate(from);
+    if (to) setToDate(to);
+
+    handleApply(filters);
+  };
 
   const renderScene = ({ route }: any) => {
     if (loading) return <Spinner />;
@@ -51,10 +65,13 @@ export default function App() {
         <SuspiciousPanel />
         <View style={{ paddingTop: 12 }}>
           <View style={styles.container}>
-            <StatsPanel isClicks={isClicks} clicksToday={clicksToday} impressionsToday={impressionsToday} />
+            <StatsPanel
+              isClicks={isClicks}
+              clicksToday={clicksToday}
+              impressionsToday={impressionsToday}
+            />
           </View>
           <View style={styles.container}>
-
             <FiltersPanel
               filterOptions={filterOptions}
               selectedFilters={selectedFilters}
@@ -64,7 +81,7 @@ export default function App() {
               onToggleExpand={toggleExpand}
               onSearchTextChange={setSearchTexts}
               onClear={handleClear}
-              onApply={handleApply}
+              onApply={handleApplyWithDates} 
             />
             <ChartPanel
               isClicks={isClicks}
@@ -74,16 +91,12 @@ export default function App() {
             />
           </View>
           <View style={styles.container}>
-            <DonutPanel 
-              selectedFilters={selectedFilters}
-              index={index}
-            />
+            <DonutPanel selectedFilters={selectedFilters} index={index} />
           </View>
           <View style={styles.container}>
-            <DashboardPanel scene={route.key} />
+            <TopDashboard scene={route.key} />
           </View>
         </View>
-
       </ScrollView>
     );
   };
@@ -114,5 +127,13 @@ export default function App() {
         />
       </View>
     </SafeAreaView>
+  );
+}
+
+export default function App() {
+  return (
+    <DashboardProvider>
+      <InnerApp />
+    </DashboardProvider>
   );
 }
