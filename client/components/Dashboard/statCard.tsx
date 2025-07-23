@@ -1,0 +1,20 @@
+// components/StatCard.tsx
+import React from 'react';
+import { View, Text } from 'react-native';
+import styles from '../../styles/statCardStyles';
+
+interface StatCardProps {
+  title: string;
+  value: number | string;
+}
+
+const StatCard: React.FC<StatCardProps> = ({ title, value }) => {
+  return (
+    <View>
+      <Text style={styles.title}>{title}</Text>
+      <Text style={styles.value}>{value}</Text>
+    </View>
+  );
+};
+
+export default StatCard;

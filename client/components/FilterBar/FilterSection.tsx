@@ -5,11 +5,11 @@ import {
   TextInput,
   ScrollView,
   TouchableOpacity,
-  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import styles from '../../styles/filterMenuStyles';
 import DateRangePickerSection from './DateRangePickerSection';
+
 
 type Props = {
   label: string;
@@ -19,10 +19,6 @@ type Props = {
   selected: string[];
   onSearchTextChange: (text: string) => void;
   onToggleOption: (option: string) => void;
-  fromDate?: string;
-  toDate?: string;
-  onFromDateChange?: (val: string) => void;
-  onToDateChange?: (val: string) => void;
 };
 
 export default function FilterSection({
@@ -33,23 +29,8 @@ export default function FilterSection({
   selected,
   onSearchTextChange,
   onToggleOption,
-  fromDate,
-  toDate,
-  onFromDateChange,
-  onToDateChange,
 }: Props) {
   if (!isExpanded) return null;
-
-  if (label === 'Date Range') {
-    return (
-      <DateRangePickerSection
-        fromDate={fromDate}
-        toDate={toDate}
-        onFromDateChange={onFromDateChange}
-        onToDateChange={onToDateChange}
-      />
-    );
-  }
 
   return (
     <View>

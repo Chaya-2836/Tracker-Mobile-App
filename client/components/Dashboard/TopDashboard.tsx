@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { View, Dimensions } from "react-native";
+import { View, Dimensions, Text } from "react-native";
 import { TabView, TabBar, SceneMap } from "react-native-tab-view";
 import { useDashboard } from "../../hooks/dashboard/DashboardContext";
 
@@ -47,9 +47,21 @@ export default function TopDashboard({ scene }: { scene: string }) {
 
       setLoading(true);
       try {
-        const media = await fetchTopMediaSources({ startDate: fromDate, endDate: toDate, limit: topN });
-        const agencies = await fetchTopAgencies({ startDate: fromDate, endDate: toDate, limit: topN });
-        const apps = await fetchTopApps({ startDate: fromDate, endDate: toDate, limit: topN });
+        const media = await fetchTopMediaSources({
+          startDate: fromDate,
+          endDate: toDate,
+          limit: topN,
+        });
+        const agencies = await fetchTopAgencies({
+          startDate: fromDate,
+          endDate: toDate,
+          limit: topN,
+        });
+        const apps = await fetchTopApps({
+          startDate: fromDate,
+          endDate: toDate,
+          limit: topN,
+        });
 
         setTopMediaData(media);
         setTopAgencyData(agencies);
@@ -64,22 +76,36 @@ export default function TopDashboard({ scene }: { scene: string }) {
     fetchData();
   }, [fromDate, toDate, topN]);
 
-  const renderScene = SceneMap({
-    media: () => (
+  const MediaScene = () =>
+    topMediaData?.length ? (
       <TopTable title="Top Media Sources" data={topMediaData} sortBy={scene} topN={topN} />
-    ),
-    agencies: () => (
+    ) : (
+      <View><Text>No media data</Text></View>
+    );
+
+  const AgenciesScene = () =>
+    topAgencyData?.length ? (
       <TopTable title="Top Agencies" data={topAgencyData} sortBy={scene} topN={topN} />
-    ),
-    apps: () => (
+    ) : (
+      <View><Text>No agency data</Text></View>
+    );
+
+  const AppsScene = () =>
+    topAppData?.length ? (
       <TopTable title="Top Applications" data={topAppData} sortBy={scene} topN={topN} />
-    ),
+    ) : (
+      <View><Text>No app data</Text></View>
+    );
+
+  const renderScene = SceneMap({
+    media: MediaScene,
+    agencies: AgenciesScene,
+    apps: AppsScene,
   });
 
   return (
     <View>
       <TopSelector value={topN} onChange={setTopN} />
-
       {loading ? (
         <Spinner />
       ) : (

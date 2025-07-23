@@ -28,7 +28,7 @@ export default function DonutLegend({
   return (
     <View style={styles.legendItemsWrapper}>
       {data
-        .filter(item => Number(item[viewMode]) > 0 || visibleAgents.includes(item.name)) // ✅ גם פה נשתמש ב־viewMode
+        .filter(item => Number(item[viewMode]) > 0 || visibleAgents.includes(item.name)) 
         .map((item) => {
           const isVisible = visibleAgents.includes(item.name);
           const filteredValue = filteredData.find(f => f.name === item.name)?.[viewMode] ?? 0;

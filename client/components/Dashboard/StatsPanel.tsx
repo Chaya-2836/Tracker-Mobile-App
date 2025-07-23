@@ -1,5 +1,5 @@
 import React from 'react';
-import StatCard from '../../components/statCard';
+import StatCard from './statCard';
 
 interface StatsPanelProps {
   isClicks: boolean;

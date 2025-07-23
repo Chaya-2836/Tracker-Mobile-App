@@ -9,15 +9,16 @@ import {
 import { TabView, TabBar } from 'react-native-tab-view';
 
 import styles from '../../styles/appStyles';
-import { DashboardProvider, useDashboard } from '../../hooks/dashboard/DashboardContext';
-
 import SuspiciousPanel from '../../components/Dashboard/SuspiciousPanel';
-import StatsPanel from '../../components/Dashboard/StatsPanel';
-import ChartPanel from '../../components/Dashboard/ChartPanel';
-import FiltersPanel from '../../components/Dashboard/FiltersPanel';
-import DonutPanel from '../../components/Dashboard/DonutPanel';
+import DashboardPanel from '../../components/Dashboard/DashboardPanel';
 import Spinner from '../../components/Spinner';
-import TopDashboard from '../../components/Dashboard/TopDashboard';
+import DonutWithSelector from '../../components/Dashboard/DonutWithSelector';
+import TrendChart from '../../components/Dashboard/TrendChart';
+import DateRangePickerSection from '../../components/FilterBar/DateRangePickerSection';
+import StatCard from '../../components/Dashboard/statCard';
+import FilterBar from '@/components/Dashboard/FilterBar';
+
+import { DashboardProvider, useDashboard } from '../../hooks/dashboard/DashboardContext';
 
 const initialLayout = { width: Dimensions.get('window').width };
 
@@ -40,21 +41,11 @@ function InnerApp() {
     handleApply,
     handleClear,
     toggleExpand,
-    getChartTitle,
     initialLayout,
-    setFromDate,
-    setToDate, 
+    granularity,
+    getTitle,
+    groupBy, 
   } = useDashboard();
-
-  const handleApplyWithDates = (filters: { [key: string]: string[] }) => {
-    const from = filters.fromDate?.[0];
-    const to = filters.toDate?.[0];
-
-    if (from) setFromDate(from);
-    if (to) setToDate(to);
-
-    handleApply(filters);
-  };
 
   const renderScene = ({ route }: any) => {
     if (loading) return <Spinner />;
@@ -62,39 +53,51 @@ function InnerApp() {
 
     return (
       <ScrollView>
-        <SuspiciousPanel />
-        <View style={{ paddingTop: 12 }}>
-          <View style={styles.container}>
-            <StatsPanel
-              isClicks={isClicks}
-              clicksToday={clicksToday}
-              impressionsToday={impressionsToday}
+        <View>
+          <SuspiciousPanel />
+
+          <View style={{ ...styles.container, paddingTop: 12 }}>
+            <StatCard
+              title={isClicks ? 'Clicks Recorded Today' : 'Impressions Recorded Today'}
+              value={isClicks ? clicksToday : impressionsToday}
             />
           </View>
+
+          <DateRangePickerSection />
+
           <View style={styles.container}>
-            <FiltersPanel
-              filterOptions={filterOptions}
-              selectedFilters={selectedFilters}
-              expandedSections={expandedSections}
-              searchTexts={searchTexts}
+            <Text style={styles.DateTitle}>
+             Traffic Trend {getTitle()}
+            </Text>
+            <FilterBar
+              options={filterOptions}
+              selected={selectedFilters}
+              expanded={expandedSections}
+              searchText={searchTexts}
               onSelect={setSelectedFilters}
               onToggleExpand={toggleExpand}
               onSearchTextChange={setSearchTexts}
               onClear={handleClear}
-              onApply={handleApplyWithDates} 
+              onApply={handleApply}
             />
-            <ChartPanel
-              isClicks={isClicks}
-              clickTrend={clickTrend}
-              impressionTrend={impressionTrend}
-              chartTitle={getChartTitle(selectedFilters)}
+            <TrendChart
+              data={isClicks ? clickTrend : impressionTrend}
+              granularity={granularity}
             />
           </View>
+
           <View style={styles.container}>
-            <DonutPanel selectedFilters={selectedFilters} index={index} />
+            <Text style={styles.DateTitle}>
+              Traffic Distribution by {groupBy} {getTitle()}
+            </Text>
+            <DonutWithSelector viewMode={isClicks ? 'clicks' : 'impressions'} />
           </View>
+
           <View style={styles.container}>
-            <TopDashboard scene={route.key} />
+            <Text style={styles.DateTitle}>
+              Top Channels {getTitle()}
+            </Text>
+            <DashboardPanel scene={route.key} />
           </View>
         </View>
       </ScrollView>
@@ -103,10 +106,6 @@ function InnerApp() {
 
   return (
     <SafeAreaView style={styles.containerpage}>
-      <View style={styles.headerRow}>
-        <Text style={styles.header}>Engagement Tracker</Text>
-      </View>
-
       <View style={{ flex: 1 }}>
         <TabView
           navigationState={{ index, routes }}

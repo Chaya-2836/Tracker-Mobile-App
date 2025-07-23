@@ -2,6 +2,7 @@ import { useState } from "react";
 import { View, Text, TextInput } from "react-native";
 import styles from "../styles/topStyles";
 
+
 interface TopSelectorProps {
   value: number;
   onChange: (value: number) => void;

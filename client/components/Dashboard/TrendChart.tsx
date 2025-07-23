@@ -76,67 +76,68 @@ const TrendChart: React.FC<TrendChartProps> = ({ data, granularity }) => {
     tooltipPos.y < 40 ? tooltipPos.y + 30 : tooltipPos.y - 30;
 
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-      <View style={{ position: 'relative', flex: 1 }}>
-        {enableScroll && (
-          <>
-            <TouchableOpacity style={Chartstyles.leftArrow} onPress={scrollLeft}>
-              <Text style={Chartstyles.arrowIcon}>‹</Text>
-            </TouchableOpacity>
+    <View style={{ padding: 16, backgroundColor: '#fff' }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <View style={{ position: 'relative', flex: 1 }}>
+          {enableScroll && (
+            <>
+              <TouchableOpacity style={Chartstyles.leftArrow} onPress={scrollLeft}>
+                <Text style={Chartstyles.arrowIcon}>‹</Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity style={Chartstyles.rightArrow} onPress={scrollRight}>
-              <Text style={Chartstyles.arrowIcon}>›</Text>
-            </TouchableOpacity>
-          </>
-        )}
-<ScrollView
-  horizontal
-  ref={scrollRef}
-  onScroll={handleScroll}
-  scrollEventThrottle={16}
-  showsHorizontalScrollIndicator={false}
-  contentContainerStyle={{ width: chartWidth }}
->
-  <View style={Chartstyles.chartContainer}>
-    <LineChart
-      data={{ labels, datasets: [{ data: values }] }}
-      width={chartWidth}
-      height={220}
-      withDots
-      withInnerLines={false}
-      withOuterLines={false}
-      chartConfig={chartConfig}
-      style={Chartstyles.chart}
-      onDataPointClick={({ index, value, x, y }) => {
-        const label = labels[index];
-        setTooltipPos({ x, y, value, label, visible: true });
-        setTimeout(
-          () => setTooltipPos(p => ({ ...p, visible: false })),
-          3000
-        );
-      }}
-    />
-    {tooltipPos.visible && (
-      <View
-        style={{
-          position: 'absolute',
-          zIndex: 9999,
-        }}
-      >
-        <TooltipForChart
-          x={tooltipX}
-          y={tooltipY}
-          value={tooltipPos.value}
-          label={tooltipPos.label}
-        />
-      </View>
-    )}
-  </View>
-</ScrollView>
+              <TouchableOpacity style={Chartstyles.rightArrow} onPress={scrollRight}>
+                <Text style={Chartstyles.arrowIcon}>›</Text>
+              </TouchableOpacity>
+            </>
+          )}
+          <ScrollView
+            horizontal
+            ref={scrollRef}
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ width: chartWidth }}
+          >
+            <View style={Chartstyles.chartContainer}>
+              <LineChart
+                data={{ labels, datasets: [{ data: values }] }}
+                width={chartWidth}
+                height={220}
+                withDots
+                withInnerLines={false}
+                withOuterLines={false}
+                chartConfig={chartConfig}
+                style={Chartstyles.chart}
+                onDataPointClick={({ index, value, x, y }) => {
+                  const label = labels[index];
+                  setTooltipPos({ x, y, value, label, visible: true });
+                  setTimeout(
+                    () => setTooltipPos(p => ({ ...p, visible: false })),
+                    3000
+                  );
+                }}
+              />
+              {tooltipPos.visible && (
+                <View
+                  style={{
+                    position: 'absolute',
+                    zIndex: 9999,
+                  }}
+                >
+                  <TooltipForChart
+                    x={tooltipX}
+                    y={tooltipY}
+                    value={tooltipPos.value}
+                    label={tooltipPos.label}
+                  />
+                </View>
+              )}
+            </View>
+          </ScrollView>
 
 
-      </View>
-    </View>
+        </View>
+      </View> </View>
   );
 };
 

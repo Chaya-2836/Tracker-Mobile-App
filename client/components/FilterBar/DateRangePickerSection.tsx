@@ -1,51 +1,44 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import { DatePickerInput } from 'react-native-paper-dates';
-import { format } from 'date-fns';
-import styles from '../../styles/filterMenuStyles';
+import { useDashboard } from '../../hooks/dashboard/DashboardContext';
+import styles from '../../styles/appStyles';
+// import { enGB } from 'date-fns/locale'; // Not needed for DatePickerInput
 
-type Props = {
-  fromDate?: string;
-  toDate?: string;
-  onFromDateChange?: (val: string) => void;
-  onToDateChange?: (val: string) => void;
-};
+export default function DateRangePickerSection() {
+  const { fromDate, toDate, setFromDate, setToDate } = useDashboard();
 
-export default function DateRangePickerSection({
-  fromDate,
-  toDate,
-  onFromDateChange,
-  onToDateChange,
-}: Props) {
+  const parseDate = (dateStr: string | undefined): Date | undefined => {
+    return dateStr ? new Date(dateStr) : undefined;
+  };
+
+  const formatDate = (date: Date | undefined): string => {
+    return date ? date.toISOString().split('T')[0] : '';
+  };
+
   return (
-    <View style={styles.dropdownScroll}>
-      <Text style={styles.filterLabel}>From:</Text>
-      <DatePickerInput
-        locale="en"
-        label="Start date"
-        value={fromDate ? new Date(fromDate) : undefined}
-        onChange={(date) => {
-          if (date) {
-            onFromDateChange?.(format(date, 'yyyy-MM-dd'));
-          }
-        }}
-        inputMode="start"
-        style={styles.searchInput}
-      />
+    <View style={{ flexDirection: 'row', alignItems: 'center', padding: 10 }}>
+      <View style={{ marginRight: 16 }}>
+        <Text style={{ marginBottom: 4 }}>From:</Text>
+        <DatePickerInput
+          locale="en-GB"
+          inputMode="start"
+          mode="outlined"
+          value={parseDate(fromDate)}
+          onChange={(date) => setFromDate(formatDate(date))}
+        />
+      </View>
 
-      <Text style={styles.filterLabel}>To:</Text>
-      <DatePickerInput
-        locale="en"
-        label="End date"
-        value={toDate ? new Date(toDate) : undefined}
-        onChange={(date) => {
-          if (date) {
-            onToDateChange?.(format(date, 'yyyy-MM-dd'));
-          }
-        }}
-        inputMode="end"
-        style={styles.searchInput}
-      />
+      <View>
+        <Text style={{ marginBottom: 4 }}>To:</Text>
+        <DatePickerInput
+          locale="en-GB"
+          inputMode="end"
+          mode="outlined"
+          value={parseDate(toDate)}
+          onChange={(date) => setToDate(formatDate(date))}
+        />
+      </View>
     </View>
   );
 }

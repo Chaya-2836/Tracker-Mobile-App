@@ -1,5 +1,11 @@
 import { useState, useEffect } from 'react';
-import { getTodayStats, getWeeklyTrends, Granularity } from '../../api/analytics';
+import {
+  getTodayStats,
+  getWeeklyTrends,
+  getMonthlyTrends,
+  getYearlyTrends,
+  Granularity,
+} from '../../api/analytics';
 import { fetchAllFilters } from '../../api/filters';
 import { Dimensions } from 'react-native';
 
@@ -8,7 +14,7 @@ interface TrendPoint {
   value: number;
 }
 
-const FILTER_ORDER = ['Campaign', 'Platform', 'Media Source', 'Agency', 'Date Range'];
+const FILTER_ORDER = ['Campaign', 'Platform', 'Media Source', 'Agency'];
 const initialLayout = { width: Dimensions.get('window').width };
 
 const getDefaultDateRange = (): { fromDate: string; toDate: string } => {
@@ -23,6 +29,7 @@ const getDefaultDateRange = (): { fromDate: string; toDate: string } => {
 };
 
 export function useDashboardData() {
+  const [granularity, setGranularity] = useState<Granularity>('daily');
   const [clicksToday, setClicksToday] = useState(0);
   const [impressionsToday, setImpressionsToday] = useState(0);
   const [clickTrend, setClickTrend] = useState<TrendPoint[]>([]);
@@ -53,12 +60,29 @@ export function useDashboardData() {
   const [searchTexts, setSearchTexts] = useState<{ [label: string]: string }>({});
 
   useEffect(() => {
-    fetchData();
-    fetchTrends({});
-    fetchFilterData();
+    fetchInitialData();
   }, []);
 
-  async function fetchData() {
+  async function fetchInitialData() {
+    await Promise.all([
+      fetchTodayStats(),
+      fetchTrends(selectedFilters),
+      fetchFilterOptions(),
+    ]);
+  }
+
+
+  const getTitle = () => {
+    if (fromDate && toDate) {
+      return ` (${formatDate(fromDate)} → ${formatDate(toDate)})`;
+    } else if (fromDate) {
+      return `(${formatDate(fromDate)} → ${new Date().toLocaleDateString('en-CA')})`;
+    }
+    return ` (Last 7 Days)`;
+  };
+
+
+  async function fetchTodayStats() {
     try {
       const { clicks, impressions } = await getTodayStats();
       setClicksToday(clicks);
@@ -73,14 +97,31 @@ export function useDashboardData() {
     try {
       const filtersAsQuery = Object.fromEntries(
         Object.entries(filters).map(([key, val]) => {
-          const keyNormalized = key === 'fromDate' || key === 'toDate'
-            ? key
-            : key.toLowerCase().replace(/\s+/g, '_');
+          const keyNormalized =
+            key === 'fromDate' || key === 'toDate'
+              ? key
+              : key.toLowerCase().replace(/\s+/g, '_');
           return [keyNormalized, val.join(',')];
         })
       );
 
-      const { clicks = [], impressions = [] } = await getWeeklyTrends(filtersAsQuery);
+      if (fromDate) filtersAsQuery['fromDate'] = fromDate;
+      if (toDate) filtersAsQuery['toDate'] = toDate;
+
+      let dateFrom = new Date(fromDate);
+      let dateTo = new Date(toDate);
+      let daysDiff = Math.floor((dateTo.getTime() - dateFrom.getTime()) / (1000 * 60 * 60 * 24));
+
+      let trendsResult;
+      if (daysDiff > 1095) {
+        trendsResult = await getYearlyTrends(filtersAsQuery);
+      } else if (daysDiff > 90) {
+        trendsResult = await getMonthlyTrends(filtersAsQuery);
+      } else {
+        trendsResult = await getWeeklyTrends(filtersAsQuery);
+      }
+
+      const { clicks = [], impressions = [], granularity } = trendsResult;
 
       const toPoints = (arr: any[]) =>
         arr.map(item => ({
@@ -90,14 +131,15 @@ export function useDashboardData() {
 
       setClickTrend(toPoints(clicks));
       setImpressionTrend(toPoints(impressions));
+      setGranularity(granularity);
     } catch (err) {
-      console.error('Failed to fetch weekly trends:', err);
+      console.error('Failed to fetch trends:', err);
     } finally {
       setLoading(false);
     }
   }
 
-  async function fetchFilterData() {
+  async function fetchFilterOptions() {
     try {
       const allFilters = await fetchAllFilters();
       setFilterOptions(allFilters);
@@ -135,22 +177,16 @@ export function useDashboardData() {
     }));
   };
 
+  useEffect(() => {
+    if (fromDate || toDate) {
+      fetchTrends(selectedFilters);
+    }
+  }, [fromDate, toDate]);
+
   const formatDate = (iso: string) => {
     return new Date(iso).toLocaleDateString('en-CA');
   };
 
-  const getChartTitle = (filters: { [key: string]: string[] }) => {
-    const from = filters.fromDate?.[0] || fromDate;
-    const to = filters.toDate?.[0] || toDate;
-    const type = index === 0 ? 'Clicks' : 'Impressions';
-
-    if (from && to) {
-      return `${type} Volume Trend (${formatDate(from)} → ${formatDate(to)})`;
-    } else if (from) {
-      return `${type} Volume Trend (${formatDate(from)} → ${formatDate(new Date().toISOString())})`;
-    }
-    return `${type} Volume Trend (Last 7 Days)`;
-  };
 
   return {
     clicksToday,
@@ -171,7 +207,6 @@ export function useDashboardData() {
     handleApply,
     handleClear,
     toggleExpand,
-    getChartTitle,
     initialLayout,
     formatDate,
     groupBy,
@@ -190,5 +225,7 @@ export function useDashboardData() {
     setTopMediaData,
     setTopAgencyData,
     setTopAppData,
+    granularity,
+    getTitle
   };
 }

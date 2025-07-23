@@ -1,3 +1,4 @@
+
 import React from "react";
 import { ActivityIndicator, View, StyleSheet } from "react-native";
 
@@ -16,3 +17,4 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 });
+

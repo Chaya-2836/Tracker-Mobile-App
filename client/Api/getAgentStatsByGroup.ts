@@ -32,7 +32,6 @@ const normalize = (
   for (const item of data) {
     const rawName = item[key] || 'Unnamed';
     const normName = normalizeKey(rawName);
-    console.log(`[normalize] rawName="${rawName}", normKey="${normName}"`, item);
 
     const current = mergedMap.get(normName);
     if (current) {
@@ -73,7 +72,6 @@ export async function getAgentStatsByGroup(params: {
   switch (groupBy) {
     case 'media_source': {
       const data = await fetchTopMediaSources(filters);
-      console.log('[API] media_source raw data:', data);
       return normalize(data, 'media_source', metric);
     }
     case 'agency': {
