@@ -5,8 +5,6 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { Colors } from '../../constants/Colors';
 import { useColorScheme } from '../../hooks/useColorScheme';
-import { useAuth } from '../../components/AuthProvider';
-  const { logout } = useAuth();
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -41,7 +39,6 @@ export default function TabLayout() {
             />
 
             <TouchableOpacity
-              onPress={logout}
               style={{
               padding: isLargeScreen ? 20 : 10, // Responsive padding
               }}
