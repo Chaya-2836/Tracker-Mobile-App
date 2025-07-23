@@ -104,8 +104,6 @@ export function useDashboardData() {
   const handleClear = () => {
     setSelectedFilters({});
     setSearchTexts({});
-    setFromDate('');
-    setToDate('');
     fetchTrends({});
   };
 

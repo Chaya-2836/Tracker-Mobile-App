@@ -121,7 +121,7 @@ export default function Dashboard() {
 
   return (
     <SafeAreaView style={styles.containerpage}>
-      <Header />
+      <Header  />
       <View style={{ flex: 1 }}>
         {initialLoading ? (
           <Spinner /> // Show full-screen spinner only during initial page load

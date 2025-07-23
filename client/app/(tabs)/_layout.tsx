@@ -51,12 +51,12 @@ export default function TabLayout() {
             </TouchableOpacity>
           </View>
         ),
-        headerShown: true,
+        headerShown: false,
         tabBarStyle: { display: 'none' },
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="Dashboard"
         options={{
           title: 'Home',
           tabBarButton: () => null,

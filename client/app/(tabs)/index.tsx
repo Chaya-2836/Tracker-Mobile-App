@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Button, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ActivityIndicator,
+  StyleSheet,
+  Image,
+  Dimensions,
+} from 'react-native';
 import * as AuthSession from 'expo-auth-session';
 import { useRouter } from 'expo-router';
 
@@ -27,22 +35,84 @@ export default function Login() {
 
   useEffect(() => {
     if (response?.type === 'success' && response.authentication?.accessToken) {
-      router.replace('/Dashboard'); // Navigate to Dashboard after login
+      router.replace('/Dashboard');
     }
   }, [response]);
 
-  if (isLoading) {
-    return (
-      <View>
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  }
-
   return (
-    <View>
-      <Text>Welcome to Engagement Tracker</Text>
-      <Button title="Login with Auth0" onPress={() => promptAsync()} disabled={!request} />
+    <View style={styles.container}>
+      {/* Logo */}
+      <Image
+        source={require('../../assets/images/engagement_tracker_logo_transparent.png')}
+        style={styles.logo}
+        resizeMode="contain"
+      />
+
+      {/* Welcome Text */}
+      <Text style={styles.title}>Welcome to Engagement Tracker</Text>
+      <Text style={styles.subtitle}>Log in to continue</Text>
+
+      {/* Button */}
+      {isLoading ? (
+        <ActivityIndicator size="large" color="#2c62b4" />
+      ) : (
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => promptAsync()}
+          disabled={!request}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.buttonText}>Login with SSO</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
+
+const { width, height } = Dimensions.get('window');
+const isSmallScreen = width < 375;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#eef4fb',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  logo: {
+    width: isSmallScreen ? width * 0.7 : width * 0.5,
+    height: isSmallScreen ? height * 0.15 : height * 0.2,
+    marginBottom: isSmallScreen ? 30 : 50,
+  },
+  title: {
+    fontSize: isSmallScreen ? 22 : 28,
+    fontWeight: '700',
+    color: '#2c62b4',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: isSmallScreen ? 14 : 16,
+    color: '#6c7a89',
+    marginBottom: isSmallScreen ? 30 : 40,
+    textAlign: 'center',
+    paddingHorizontal: 10,
+  },
+  button: {
+    backgroundColor: '#2c62b4',
+    paddingVertical: isSmallScreen ? 12 : 15,
+    paddingHorizontal: isSmallScreen ? 40 : 50,
+    borderRadius: 30,
+    elevation: 3, // Android shadow
+    shadowColor: '#000', // iOS shadow
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 5,
+  },
+  buttonText: {
+    color: '#ffffff',
+    fontSize: isSmallScreen ? 16 : 18,
+    fontWeight: '600',
+  },
+});
