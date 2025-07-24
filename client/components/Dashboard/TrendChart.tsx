@@ -73,7 +73,7 @@ const TrendChart: React.FC<TrendChartProps> = ({ data, granularity }) => {
 
   const tooltipX = Math.min(Math.max(tooltipPos.x, 5), chartWidth - 80);
   const tooltipY =
-    tooltipPos.y < 40 ? tooltipPos.y + 30 : tooltipPos.y - 30;
+    tooltipPos.y < 60 ? tooltipPos.y + 30 : tooltipPos.y - 30;
 
   return (
     <View style={{ padding: 16, backgroundColor: '#fff' }}>

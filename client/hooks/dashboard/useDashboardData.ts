@@ -71,7 +71,6 @@ export function useDashboardData() {
     ]);
   }
 
-
   const getTitle = () => {
     if (fromDate && toDate) {
       return ` (${formatDate(fromDate)} → ${formatDate(toDate)})`;
@@ -80,7 +79,6 @@ export function useDashboardData() {
     }
     return ` (Last 7 Days)`;
   };
-
 
   async function fetchTodayStats() {
     try {
@@ -108,14 +106,17 @@ export function useDashboardData() {
       if (fromDate) filtersAsQuery['fromDate'] = fromDate;
       if (toDate) filtersAsQuery['toDate'] = toDate;
 
-      let dateFrom = new Date(fromDate);
-      let dateTo = new Date(toDate);
-      let daysDiff = Math.floor((dateTo.getTime() - dateFrom.getTime()) / (1000 * 60 * 60 * 24));
+      const dateFrom = new Date(fromDate);
+      const dateTo = new Date(toDate);
+      const daysDiff = Math.floor((dateTo.getTime() - dateFrom.getTime()) / (1000 * 60 * 60 * 24));
+
+      const useYearly = daysDiff > 1095;
+      const useMonthly = daysDiff > 150 && daysDiff <= 1095;
 
       let trendsResult;
-      if (daysDiff > 1095) {
+      if (useYearly) {
         trendsResult = await getYearlyTrends(filtersAsQuery);
-      } else if (daysDiff > 90) {
+      } else if (useMonthly) {
         trendsResult = await getMonthlyTrends(filtersAsQuery);
       } else {
         trendsResult = await getWeeklyTrends(filtersAsQuery);
@@ -186,7 +187,6 @@ export function useDashboardData() {
   const formatDate = (iso: string) => {
     return new Date(iso).toLocaleDateString('en-CA');
   };
-
 
   return {
     clicksToday,
