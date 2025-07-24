@@ -22,12 +22,10 @@ export default function SidebarModal({ visible, onClose, onClear, onApply, child
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <View style={modalStyles.overlay}>
-        {/* אזור שמסביב למודאל – סוגר את המודאל בלחיצה */}
         <TouchableWithoutFeedback onPress={onClose}>
           <View style={modalStyles.backdrop} />
         </TouchableWithoutFeedback>
 
-        {/* אזור המודאל עצמו – חוסם לחיצות מלצאת */}
         <TouchableWithoutFeedback>
           <View style={modalStyles.modalContent}>
             <ScrollView

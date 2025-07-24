@@ -9,25 +9,34 @@ interface AppStyles {
   tabBarStyle: ViewStyle;
   tabBarLabel: TextStyle;
   title: TextStyle;
+  DateTitle: TextStyle;
 }
 
 const styles = StyleSheet.create<AppStyles>({
-   title:{
-        fontSize: 16,
+  title: {
+    fontSize: 16,
     fontWeight: '600',
     marginBottom: 10,
     color: '#34495e',
     textAlign: 'center'
   },
-headerContainer: {
-  paddingHorizontal: 16,
-  paddingTop: 20,
-  paddingBottom: 16, 
-  alignItems: 'center',
-  position: 'relative',
-},  
-container: {
-   alignSelf: "center",
+   DateTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 12,
+    color: '#34495e',
+    textAlign: 'center',
+  },
+
+  headerContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 20,
+    paddingBottom: 16,
+    alignItems: 'center',
+    position: 'relative',
+  },
+  container: {
+    alignSelf: "center",
     backgroundColor: '#fff',
     marginHorizontal: 20,
     marginBottom: 20,
@@ -38,22 +47,21 @@ container: {
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 8,
     elevation: 2,
-    width:"95%",
-        overflow: 'hidden',
-        ...Platform.select({
-          ios: {
-            shadowColor: '#000',
-            shadowOpacity: 0.05,
-            shadowOffset: { width: 0, height: 2 },
-            shadowRadius: 8,
-          },
-          android: {
-            elevation: 3,
-          },
-        }),
-    
-  },
+    width: "95%",
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOpacity: 0.05,
+        shadowOffset: { width: 0, height: 2 },
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
 
+  },
   containerpage: {
     flex: 1,
     backgroundColor: '#f7f9fc',
@@ -66,13 +74,13 @@ container: {
     paddingHorizontal: 16,
     marginBottom: 8,
   },
-header: {
-  fontSize: 26,
-  fontWeight: '700',
-  textAlign: 'center',
-  color: '#2c3e50',
-  marginBottom: 4,
-},
+  header: {
+    fontSize: 26,
+    fontWeight: '700',
+    textAlign: 'center',
+    color: '#2c3e50',
+    marginBottom: 4,
+  },
 
 
   tabBarIndicator: {

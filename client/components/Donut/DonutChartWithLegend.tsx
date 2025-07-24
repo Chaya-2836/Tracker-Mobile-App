@@ -16,18 +16,26 @@ export type AgentItem = {
 
 interface Props {
   data: AgentItem[];
+  viewMode: 'clicks' | 'impressions';
 }
 
-export default function DonutChartWithLegend({ data }: Props) {
+export default function DonutChartWithLegend({ data, viewMode }: Props) {
   const [visibleAgents, setVisibleAgents] = useState<string[]>([]);
   const { width } = useWindowDimensions();
 
   useEffect(() => {
-    setVisibleAgents(data.filter(agent => agent.clicks > 0).map(agent => agent.name));
-  }, [data]);
+    setVisibleAgents(data.filter(agent => agent[viewMode] > 0).map(agent => agent.name));
+  }, [data, viewMode]);
 
-  const filteredData = useMemo(() => filterAgentsByVisibility(data, visibleAgents), [data, visibleAgents]);
-  const total = useMemo(() => filteredData.reduce((sum, item) => sum + item.clicks, 0), [filteredData]);
+  const filteredData = useMemo(
+    () => filterAgentsByVisibility(data, visibleAgents),
+    [data, visibleAgents]
+  );
+
+  const total = useMemo(
+    () => filteredData.reduce((sum, item) => sum + item[viewMode], 0),
+    [filteredData, viewMode]
+  );
 
   const radius = 95;
   const strokeWidth = 15;
@@ -41,7 +49,7 @@ export default function DonutChartWithLegend({ data }: Props) {
     setTooltip,
     setHoverXY,
     handleHover,
-  } = useDonutTooltip(center, innerRadius, outerRadius, filteredData, total, polarToCartesian);
+  } = useDonutTooltip(center, innerRadius, outerRadius, filteredData, total, polarToCartesian, viewMode);
 
   const toggleAgent = useCallback((name: string) => {
     setVisibleAgents(prev =>
@@ -58,13 +66,15 @@ export default function DonutChartWithLegend({ data }: Props) {
   }, [handleHover]);
 
   let startAngle = 0;
+  const isSingleSlice = filteredData.length === 1;
 
   const svgContent = (
     <Svg width={size} height={size}>
       <G>
         {filteredData.map((item, index) => {
-          const percent = item.clicks / total;
-          const sweepAngle = percent * 360;
+          const value = item[viewMode];
+          const percent = value / total;
+          const sweepAngle = isSingleSlice ? 359.999 : percent * 360;
           const endAngle = startAngle + sweepAngle;
 
           const path = createArcPath(
@@ -85,7 +95,7 @@ export default function DonutChartWithLegend({ data }: Props) {
                 const { locationX, locationY } = e.nativeEvent;
                 const midAngle = startAngle + sweepAngle / 2;
                 const midPoint = polarToCartesian(center, center, outerRadius + 10, midAngle);
-                showTooltip(item, getPercent(item.clicks, total), midPoint.x, midPoint.y);
+                showTooltip(item, getPercent(value, total), midPoint.x, midPoint.y);
               }}
             />
           );
@@ -107,7 +117,12 @@ export default function DonutChartWithLegend({ data }: Props) {
     <View style={styles.wrapper}>
       {Platform.OS === 'web' ? (
         <div
-          style={{ position: 'relative', width: size, height: size }}
+          style={{
+            position: 'relative',
+            width: size,
+            height: size,
+            margin: '0 auto',
+          }}
           onMouseMove={(e) => {
             const rect = e.currentTarget.getBoundingClientRect();
             const x = e.clientX - rect.left;
@@ -116,12 +131,28 @@ export default function DonutChartWithLegend({ data }: Props) {
           }}
         >
           {svgContent}
-          {tooltip && <TooltipBox tooltip={tooltip} left={tooltipLeft} top={tooltipTop} styles={styles} />}
+          {tooltip && (
+            <TooltipBox
+              tooltip={tooltip}
+              viewMode={viewMode}
+              left={tooltipLeft}
+              top={tooltipTop}
+              styles={styles}
+            />
+          )}
         </div>
       ) : (
         <View style={{ position: 'relative' }}>
           {svgContent}
-          {tooltip && <TooltipBox tooltip={tooltip} left={tooltipLeft} top={tooltipTop} styles={styles} />}
+          {tooltip && (
+            <TooltipBox
+              tooltip={tooltip}
+              viewMode={viewMode}
+              left={tooltipLeft}
+              top={tooltipTop}
+              styles={styles}
+            />
+          )}
         </View>
       )}
       <DonutLegend
@@ -133,6 +164,7 @@ export default function DonutChartWithLegend({ data }: Props) {
         width={width}
         styles={styles}
         getPercent={getPercent}
+        viewMode={viewMode}
       />
     </View>
   );

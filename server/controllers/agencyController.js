@@ -29,7 +29,7 @@ export const getTopAgencies = async (req, res) => {
 
     res.json(results);
   } catch (err) {
-    console.error('❌ Error in getTopAgencies:', err);
+    console.error('Error in getTopAgencies:', err);
     res.status(500).json({ error: err.message }); 
   }
 };
@@ -75,6 +75,6 @@ export const getAppsByAgency = async (req, res) => {
     const [rows] = await bigQuery.query({ query, params: { agency, limit } }); 
     res.json(rows); 
   } catch (err) {
-    console.error('❌ Error fetching apps by agency:', err);
+    console.error('Error fetching apps by agency:', err);
     res.status(500).json({ error: err.message });  }
 };

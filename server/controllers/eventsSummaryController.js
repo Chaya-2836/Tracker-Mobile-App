@@ -14,6 +14,6 @@ export async function getEventsSummary(req, res) {
       res.status(200).json(rows);
     }
   } catch (err) {
-    console.error('💥 Error in getEventsSummary:', err);
+    console.error('Error in getEventsSummary:', err);
     res.status(500).json({ error: 'Error while running the summary query' });  }
 }
