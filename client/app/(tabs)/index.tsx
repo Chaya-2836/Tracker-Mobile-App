@@ -14,6 +14,11 @@ import { useRouter } from 'expo-router';
 const auth0Domain = 'https://dev-ygpkcykyx3jnljrc.us.auth0.com';
 const clientId = 'AImF7UlzPmK9f73OXBe6Is7muwL9Atsz';
 
+const redirectUri = AuthSession.makeRedirectUri({
+  scheme: 'engagementtracker',
+});
+
+
 const discovery = {
   authorizationEndpoint: `${auth0Domain}/authorize`,
   tokenEndpoint: `${auth0Domain}/oauth/token`,
@@ -21,44 +26,78 @@ const discovery = {
 };
 
 export default function Login() {
+  console.log("Redirect URI actually being used:", redirectUri);
+
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
   const [request, response, promptAsync] = AuthSession.useAuthRequest(
     {
+
       clientId,
       scopes: ['openid', 'profile', 'email'],
-      redirectUri: AuthSession.makeRedirectUri(),
+      responseType: 'code',
+      redirectUri,
+      //   extraParams: {
+      //   audience: 'https://engagement-tracker/api', // in your company, add your API to set permissions
+      // },
+
     },
+
     discovery
   );
+console.log('Redirect URI:', redirectUri);
 
   useEffect(() => {
-    if (response?.type === 'success' && response.authentication?.accessToken) {
-      router.replace('/Dashboard');
-    }
+    const fetchToken = async () => {
+      console.log('Auth request:', request);
+      console.log('Auth response:', response);
+
+      if (response?.type === 'success' && request?.codeVerifier && response.params?.code) {
+        console.log('Exchanging code for tokens...');
+        const tokenResult = await AuthSession.exchangeCodeAsync(
+          {
+            clientId,
+            code: response.params.code,
+            redirectUri,
+            extraParams: {
+              code_verifier: request.codeVerifier,
+            },
+          },
+          discovery
+        );
+
+
+        console.log('Access Token:', tokenResult.accessToken);
+        // You can now use tokenResult to navigate or fetch profile info
+        router.replace('/Dashboard');
+      }
+    };
+
+    fetchToken();
   }, [response]);
 
   return (
     <View style={styles.container}>
-      {/* Logo */}
+
       <Image
         source={require('../../assets/images/engagement_tracker_logo_transparent.png')}
         style={styles.logo}
         resizeMode="contain"
       />
 
-      {/* Welcome Text */}
       <Text style={styles.title}>Welcome to Engagement Tracker</Text>
       <Text style={styles.subtitle}>Log in to continue</Text>
 
-      {/* Button */}
       {isLoading ? (
         <ActivityIndicator size="large" color="#2c62b4" />
       ) : (
         <TouchableOpacity
           style={styles.button}
-          onPress={() => promptAsync()}
+          onPress={() => {
+            setIsLoading(true);
+            promptAsync().finally(() => setIsLoading(false));
+          }}
           disabled={!request}
           activeOpacity={0.8}
         >
@@ -104,8 +143,8 @@ const styles = StyleSheet.create({
     paddingVertical: isSmallScreen ? 12 : 15,
     paddingHorizontal: isSmallScreen ? 40 : 50,
     borderRadius: 30,
-    elevation: 3, // Android shadow
-    shadowColor: '#000', // iOS shadow
+    elevation: 3,
+    shadowColor: '#000',
     shadowOpacity: 0.2,
     shadowOffset: { width: 0, height: 3 },
     shadowRadius: 5,
@@ -116,3 +155,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
+

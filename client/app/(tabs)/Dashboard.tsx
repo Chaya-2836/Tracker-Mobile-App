@@ -18,6 +18,7 @@ import StatCard from '../../components/Dashboard/statCard';
 import DonutWithSelector from '../../components/Dashboard/DonutWithSelector';
 import DateRangePickerSection from '../../components/FilterBar/DateRangePickerSection';
 import Header from '../../components/Dashboard/Header';
+import {useAuth0, Auth0Provider} from 'react-native-auth0';
 
 
 
@@ -26,6 +27,19 @@ export default function Dashboard() {
 
   // State to track if it's the initial loading of the page
   const [initialLoading, setInitialLoading] = useState(true);
+
+  useEffect(() => {
+    const isManualNavigation =
+      !document.referrer || document.referrer === '' || document.referrer === window.location.href;
+
+
+    if (isManualNavigation) {
+      console.warn('Blocked direct access, redirecting to Login...');
+      setTimeout(() => {
+        router.replace('/');
+      }, 0);
+    }
+  }, []);
 
   const {
     clicksToday,
@@ -114,14 +128,13 @@ export default function Dashboard() {
     );
   };
 
-  const handleLogout = () => {
-    // Clear any session data if needed
-    router.replace('/Login'); // Navigate back to login
-  };
+
 
   return (
+        <Auth0Provider domain={"dev-ygpkcykyx3jnljrc.us.auth0.com"} clientId={"AImF7UlzPmK9f73OXBe6Is7muwL9Atsz"}>
+
     <SafeAreaView style={styles.containerpage}>
-      <Header  />
+      <Header />
       <View style={{ flex: 1 }}>
         {initialLoading ? (
           <Spinner /> // Show full-screen spinner only during initial page load
@@ -146,5 +159,7 @@ export default function Dashboard() {
         )}
       </View>
     </SafeAreaView>
+        </Auth0Provider>
+
   );
 }
