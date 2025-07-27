@@ -5,10 +5,14 @@ import { TabView, TabBar, SceneMap } from "react-native-tab-view";
 import styles from '../../styles/appStyles';
 import TopSelector from "../TopSelector";
 import TopTable from "../TopTable";
-import {fetchTopAgencies,fetchTopApps,fetchTopMediaSources,} from "../../api/trafficAnalyticsAPI";
+import {
+  fetchTopAgencies,
+  fetchTopApps,
+  fetchTopMediaSources,
+} from "../../api/trafficAnalyticsAPI";
 import Spinner from "../Spinner";
 
-export default function TopDashboard({ scene, Title }: { scene: string, Title:  string }) {
+export default function TopDashboard({ scene, Title }: { scene: string, Title: string }) {
   const [topN, setTopN] = useState(9);
   const [mediaData, setMediaData] = useState([]);
   const [agencyData, setAgencyData] = useState([]);
@@ -43,16 +47,16 @@ export default function TopDashboard({ scene, Title }: { scene: string, Title:  
     fetchData();
   }, [topN]);
 
-  const renderScene = SceneMap({
-    media: () => <TopTable title="Top Media Sources" data={mediaData} topN={topN} sortBy={scene} />,
-    agencies: () => <TopTable title="Top Agencies" data={agencyData} topN={topN} sortBy={scene} />,
-    apps: () => <TopTable title="Top Applications" data={appData} topN={topN} sortBy={scene} />,
-  });
-
   const initialLayout = { width: Dimensions.get("window").width };
 
+  const renderScene = SceneMap({
+    media: () => <TopTable title="Top Media Sources" data={mediaData} topN={topN} sortBy={scene} scene="media" />,
+    agencies: () => <TopTable title="Top Agencies" data={agencyData} topN={topN} sortBy={scene} scene="agencies" />,
+    apps: () => <TopTable title="Top Applications" data={appData} topN={topN} sortBy={scene} scene="apps" />,
+  });
+
   return (
-    <View >
+    <View>
       <TopSelector value={topN} onChange={setTopN} />
 
       {loading ? (
@@ -68,7 +72,6 @@ export default function TopDashboard({ scene, Title }: { scene: string, Title:  
               {...props}
               indicatorStyle={styles.tabBarIndicator}
               style={styles.tabBarStyle}
-              // labelStyle={styles.tabBarLabel}
               activeColor="#2c62b4"
               inactiveColor="#7f8c8d"
             />

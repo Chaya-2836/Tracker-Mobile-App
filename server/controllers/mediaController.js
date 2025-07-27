@@ -41,37 +41,26 @@ export const getTopMediaSources = async (req, res) => {
  * including traffic stats and conversion rate (CVR).
  * Query params: ?mediaSource=...&limit=10
  */
-// The function is currently not in use.
 export const getAppsByMediaSource = async (req, res) => {
   const { mediaSource, limit = 10 } = req.query;
-
   if (!mediaSource) return res.status(400).json({ error: 'Missing mediaSource param' });
 
   const query = `
-    WITH events AS (
-      SELECT customer_user_id,
-             sub_param_1 AS app_id,
+WITH events AS (
+      SELECT sub_param_1 AS app_id,
              engagement_type
       FROM \`${eventsTable}\`
       WHERE media_source = @mediaSource 
-    ),
-    conversions AS (
-      SELECT customer_user_id,
-             unified_app_id AS app_id,
-             event_time AS conversion_time
-      FROM \`${conversionsTable}\`
     )
     SELECT app_id,
            COUNTIF(engagement_type = 'click') AS clicks,               
            COUNTIF(engagement_type = 'impression') AS impressions,    
-           COUNT(DISTINCT conversion_time) AS conversions,             
-           SAFE_DIVIDE(COUNT(DISTINCT conversion_time), COUNTIF(engagement_type = 'click')) AS CVR
+           COUNTIF(engagement_type = 'click') + COUNTIF(engagement_type = 'impression') AS conversions,             
     FROM events
-    LEFT JOIN conversions
-    USING (customer_user_id)
     GROUP BY app_id
-    ORDER BY clicks + impressions DESC 
+    ORDER BY conversions DESC 
     LIMIT @limit
+  
   `;
   try {
 

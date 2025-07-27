@@ -40,41 +40,41 @@ export const getTopAgencies = async (req, res) => {
  * Required query param: ?agency=...
  * Optional: &limit=10
  */
-// The function is currently not in use.
 export const getAppsByAgency = async (req, res) => {
   const { agency, limit = 10 } = req.query;
 
   if (!agency || typeof agency !== 'string' || agency.trim() === '') {
     return res.status(400).json({ error: 'Missing or invalid agency param' });
   }
+
+  const parsedLimit = parseInt(limit, 10) || 10;
+
   const query = `
     WITH events AS (
-      SELECT customer_user_id, sub_param_1 AS app_id, engagement_type
+      SELECT sub_param_1 AS app_id, engagement_type
       FROM \`${eventsTable}\`
-      WHERE agency = @agency 
-    ),
-    conversions AS (
-      SELECT customer_user_id, unified_app_id AS app_id, event_time AS conversion_time
-      FROM \`${conversionsTable}\`
+      WHERE agency = @agency
     )
-    SELECT app_id,
-           COUNTIF(engagement_type = 'click') AS clicks,               
-           COUNTIF(engagement_type = 'impression') AS impressions,     
-           COUNT(DISTINCT conversion_time) AS conversions,             
-           SAFE_DIVIDE(COUNT(DISTINCT conversion_time), COUNTIF(engagement_type = 'click')) AS CVR
+    SELECT 
+      app_id,
+      COUNTIF(engagement_type = 'click') AS clicks,
+      COUNTIF(engagement_type = 'impression') AS impressions,
+      COUNTIF(engagement_type = 'click') + COUNTIF(engagement_type = 'impression') AS conversions
     FROM events
-    LEFT JOIN conversions
-    USING (customer_user_id) 
     GROUP BY app_id
-    ORDER BY clicks + impressions DESC 
+    ORDER BY conversions DESC
     LIMIT @limit
   `;
 
   try {
+    const [rows] = await bigQuery.query({
+      query,
+      params: { agency, limit: parsedLimit }
+    });
 
-    const [rows] = await bigQuery.query({ query, params: { agency, limit } }); 
-    res.json(rows); 
+    res.json(rows);
   } catch (err) {
-    console.error('❌ Error fetching apps by agency:', err);
-    res.status(500).json({ error: err.message });  }
+    console.error("❌ Error fetching apps by agency:", err);
+    res.status(500).send(err.message);
+  }
 };
