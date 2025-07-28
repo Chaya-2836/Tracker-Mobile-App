@@ -18,8 +18,8 @@ import DateRangePickerSection from '../../components/FilterBar/DateRangePickerSe
 import StatCard from '../../components/Dashboard/statCard';
 import FilterBar from '@/components/Dashboard/FilterBar';
 import { useRouter } from 'expo-router';
-
 import { DashboardProvider, useDashboard } from '../../hooks/dashboard/DashboardContext';
+import Header from '../../components/Dashboard/Header';
 
 const initialLayout = { width: Dimensions.get('window').width };
   const router = useRouter();
@@ -121,6 +121,7 @@ function InnerApp() {
 
   return (
     <SafeAreaView style={styles.containerpage}>
+      <Header />
       <View style={{ flex: 1 }}>
         <TabView
           navigationState={{ index, routes }}

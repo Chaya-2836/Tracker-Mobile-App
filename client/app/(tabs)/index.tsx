@@ -12,6 +12,8 @@ import {
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import { useRouter } from 'expo-router';
+import { Platform } from 'react-native';
+import * as SecureStore from 'expo-secure-store';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -24,14 +26,29 @@ export default function Login() {
     scopes: ['openid', 'profile', 'email'],
   });
 
-  useEffect(() => {
-    if (response?.type === 'success') {
-      const { authentication } = response;
-      console.log('Access Token:', authentication?.accessToken);
+useEffect(() => {
+  const storeTokenAndNavigate = async () => {
+    if (response?.type === 'success' && response.authentication?.accessToken) {
+      const token = response.authentication.accessToken;
+      console.log('Access Token:', token);
 
-router.replace('/Dashboard?fromLogin=true');
+      try {
+        if (Platform.OS === 'web') {
+          localStorage.setItem('access_token', token);
+        } else {
+          await SecureStore.setItemAsync('access_token', token);
+        }
+      } catch (err) {
+        console.error('Token storage error:', err);
+      }
+
+      router.replace('/Dashboard?fromLogin=true');
     }
-  }, [response]);
+  };
+
+  storeTokenAndNavigate();
+}, [response]);
+
 
   return (
     <View style={styles.container}>
