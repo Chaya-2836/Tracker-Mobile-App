@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   SafeAreaView,
   Text,
@@ -61,7 +61,16 @@ function InnerApp() {
     getTitle,
     groupBy, 
   } = useDashboard();
+    
+  const [initialLoading, setInitialLoading] = useState(true);
 
+  useEffect(() => {
+    // When the first loading finishes, remove the initial spinner
+    if (!loading && initialLoading) {
+      setInitialLoading(false);
+    }
+  }, [loading]);
+  
   const renderScene = ({ route }: any) => {
     if (loading) return <Spinner />;
     const isClicks = route.key === 'clicks';
