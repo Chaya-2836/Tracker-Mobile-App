@@ -62,7 +62,8 @@
     "react-native-tab-view": "^4.1.2",
     "react-native-web": "~0.20.0",
     "react-native-webview": "13.13.5",
-    "react-router-dom": "^7.6.3"
+    "react-router-dom": "^7.6.3",
+    "undefined": "expo-auth-session/providers/google"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
