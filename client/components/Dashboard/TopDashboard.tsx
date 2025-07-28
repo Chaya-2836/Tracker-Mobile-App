@@ -1,21 +1,22 @@
-import React, { useEffect } from "react";
-import { View, Dimensions, Text } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, Dimensions } from "react-native";
 import { TabView, TabBar, SceneMap } from "react-native-tab-view";
-import { useDashboard } from "../../hooks/dashboard/DashboardContext";
 
 import styles from "../../styles/appStyles";
 
 import TopTable from "../TopTable";
 import TopSelector from "../TopSelector";
+import Spinner from "../Spinner";
+
 import {
   fetchTopAgencies,
   fetchTopApps,
   fetchTopMediaSources,
 } from "../../api/trafficAnalyticsAPI";
 
-import Spinner from "../Spinner";
+import { useDashboard } from "../../hooks/dashboard/DashboardContext";
 
-export default function TopDashboard({ scene }: { scene: string }) {
+export default function TopDashboard({ scene, Title }: { scene: string; Title: string }) {
   const {
     fromDate,
     toDate,
@@ -31,7 +32,7 @@ export default function TopDashboard({ scene }: { scene: string }) {
     setTopN,
   } = useDashboard();
 
-  const [loading, setLoading] = React.useState(false);
+  const [loading, setLoading] = useState(false);
 
   const routes = [
     { key: "media", title: "Media Sources" },
@@ -47,21 +48,11 @@ export default function TopDashboard({ scene }: { scene: string }) {
 
       setLoading(true);
       try {
-        const media = await fetchTopMediaSources({
-          startDate: fromDate,
-          endDate: toDate,
-          limit: topN,
-        });
-        const agencies = await fetchTopAgencies({
-          startDate: fromDate,
-          endDate: toDate,
-          limit: topN,
-        });
-        const apps = await fetchTopApps({
-          startDate: fromDate,
-          endDate: toDate,
-          limit: topN,
-        });
+        const [media, agencies, apps] = await Promise.all([
+          fetchTopMediaSources({ startDate: fromDate, endDate: toDate, limit: topN }),
+          fetchTopAgencies({ startDate: fromDate, endDate: toDate, limit: topN }),
+          fetchTopApps({ startDate: fromDate, endDate: toDate, limit: topN }),
+        ]);
 
         setTopMediaData(media);
         setTopAgencyData(agencies);
@@ -76,31 +67,45 @@ export default function TopDashboard({ scene }: { scene: string }) {
     fetchData();
   }, [fromDate, toDate, topN]);
 
-  const MediaScene = () =>
-    topMediaData?.length ? (
-      <TopTable title="Top Media Sources" data={topMediaData} sortBy={scene} topN={topN} />
-    ) : (
-      <View><Text>No media data</Text></View>
-    );
-
-  const AgenciesScene = () =>
-    topAgencyData?.length ? (
-      <TopTable title="Top Agencies" data={topAgencyData} sortBy={scene} topN={topN} />
-    ) : (
-      <View><Text>No agency data</Text></View>
-    );
-
-  const AppsScene = () =>
-    topAppData?.length ? (
-      <TopTable title="Top Applications" data={topAppData} sortBy={scene} topN={topN} />
-    ) : (
-      <View><Text>No app data</Text></View>
-    );
-
   const renderScene = SceneMap({
-    media: MediaScene,
-    agencies: AgenciesScene,
-    apps: AppsScene,
+    media: () =>
+      topMediaData?.length ? (
+        <TopTable
+          title="Top Media Sources"
+          data={topMediaData}
+          topN={topN}
+          sortBy={scene}
+          scene="media"
+        />
+      ) : (
+        <View><Text>No media data</Text></View>
+      ),
+
+    agencies: () =>
+      topAgencyData?.length ? (
+        <TopTable
+          title="Top Agencies"
+          data={topAgencyData}
+          topN={topN}
+          sortBy={scene}
+          scene="agencies"
+        />
+      ) : (
+        <View><Text>No agency data</Text></View>
+      ),
+
+    apps: () =>
+      topAppData?.length ? (
+        <TopTable
+          title="Top Applications"
+          data={topAppData}
+          topN={topN}
+          sortBy={scene}
+          scene="apps"
+        />
+      ) : (
+        <View><Text>No app data</Text></View>
+      ),
   });
 
   return (
