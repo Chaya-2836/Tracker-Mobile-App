@@ -4,16 +4,15 @@ import { View, Text } from 'react-native';
 import styles from '../../styles/statCardStyles';
 
 interface StatCardProps {
-  isClicks: boolean;
-  clicksToday: number | string;
-  impressionsToday: number | string;
+  title: string;
+  value: number | string;
 }
 
-const StatCard: React.FC<StatCardProps> = ({  isClicks, clicksToday, impressionsToday }) => {
+const StatCard: React.FC<StatCardProps> = ({ title, value }) => {
   return (
     <View>
-      <Text style={styles.title}>{isClicks ? 'Clicks Recorded Today' : 'Impressions Recorded Today'}</Text>
-      <Text style={styles.value}>{isClicks ? clicksToday : impressionsToday}</Text>
+      <Text style={styles.title}>{title}</Text>
+      <Text style={styles.value}>{value}</Text>
     </View>
   );
 };

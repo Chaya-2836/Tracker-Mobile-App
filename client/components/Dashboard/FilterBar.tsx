@@ -12,6 +12,7 @@ import styles from '../../styles/filterMenuStyles';
 import FilterDropdownButton from '../FilterBar/FilterDropdownButton';
 import FilterSection from '../FilterBar/FilterSection';
 import SidebarModal from '../FilterBar/SidebarModal';
+
 import { Ionicons } from '@expo/vector-icons';
 
 const FILTER_ORDER = ['Campaign', 'Platform', 'Media Source', 'Agency'];

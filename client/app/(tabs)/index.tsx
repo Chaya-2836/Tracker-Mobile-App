@@ -1,36 +1,34 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   SafeAreaView,
   Text,
   View,
   Dimensions,
   ScrollView,
-  Image,
-  StyleSheet,
 } from 'react-native';
 import { TabView, TabBar } from 'react-native-tab-view';
 
 import styles from '../../styles/appStyles';
-import { useDashboardData } from '../../hooks/dashboard/useDashboardData';
 import SuspiciousPanel from '../../components/Dashboard/SuspiciousPanel';
-import FilterBar from '../../components/Dashboard/FilterBar';
+import DashboardPanel from '../../components/Dashboard/DashboardPanel';
 import Spinner from '../../components/Spinner';
-import TrendChart from '../../components/Dashboard/TrendChart';
-import TopDashboard from '../../components/Dashboard/TopDashboard';
-import StatCard from '../../components/Dashboard/statCard';
 import DonutWithSelector from '../../components/Dashboard/DonutWithSelector';
+import TrendChart from '../../components/Dashboard/TrendChart';
 import DateRangePickerSection from '../../components/FilterBar/DateRangePickerSection';
+import StatCard from '../../components/Dashboard/statCard';
+import FilterBar from '@/components/Dashboard/FilterBar';
 
-export default function App() {
-  // State to track if it's the initial loading of the page
-  const [initialLoading, setInitialLoading] = useState(true);
+import { DashboardProvider, useDashboard } from '../../hooks/dashboard/DashboardContext';
 
+const initialLayout = { width: Dimensions.get('window').width };
+
+function InnerApp() {
   const {
     clicksToday,
     impressionsToday,
     clickTrend,
     impressionTrend,
-    loading, // Indicates whether data is currently being fetched
+    loading,
     index,
     setIndex,
     routes,
@@ -43,44 +41,34 @@ export default function App() {
     handleApply,
     handleClear,
     toggleExpand,
-    getTitle,
     initialLayout,
     granularity,
-     fromDate,
-    setFromDate,
-    toDate,
-    setToDate,
-  } = useDashboardData();
-
-  useEffect(() => {
-    // When the first loading finishes, remove the initial spinner
-    if (!loading && initialLoading) {
-      setInitialLoading(false);
-    }
-  }, [loading]);
+    getTitle,
+    groupBy, 
+  } = useDashboard();
 
   const renderScene = ({ route }: any) => {
+    if (loading) return <Spinner />;
     const isClicks = route.key === 'clicks';
 
     return (
       <ScrollView>
-        <SuspiciousPanel />
-        <View style={{ paddingTop: 12 }}>
-          <View style={styles.container}>
+        <View>
+          <SuspiciousPanel />
+
+          <View style={{ ...styles.container, paddingTop: 12 }}>
             <StatCard
-              isClicks={isClicks}
-              clicksToday={clicksToday}
-              impressionsToday={impressionsToday}
+              title={isClicks ? 'Clicks Recorded Today' : 'Impressions Recorded Today'}
+              value={isClicks ? clicksToday : impressionsToday}
             />
           </View>
-          <DateRangePickerSection 
-           fromDate={fromDate}
-           toDate={toDate}
-           onFromDateChange={setFromDate}
-           onToDateChange={setToDate}
-         />
+
+          <DateRangePickerSection />
+
           <View style={styles.container}>
-            <Text style={styles.title}>{route.title} trends volume {getTitle()}</Text>
+            <Text style={styles.DateTitle}>
+             Traffic Trend {getTitle()}
+            </Text>
             <FilterBar
               options={filterOptions}
               selected={selectedFilters}
@@ -92,21 +80,24 @@ export default function App() {
               onClear={handleClear}
               onApply={handleApply}
             />
-            {loading ? (
-              <Spinner /> // Show spinner only for partial loading (e.g., data refresh)
-            ) : (
-              <TrendChart
-                data={isClicks ? clickTrend : impressionTrend}
-                granularity={granularity}
-              />
-            )}
+            <TrendChart
+              data={isClicks ? clickTrend : impressionTrend}
+              granularity={granularity}
+            />
           </View>
+
           <View style={styles.container}>
-            <DonutWithSelector Title={getTitle()} />
+            <Text style={styles.DateTitle}>
+              Traffic Distribution by {groupBy} {getTitle()}
+            </Text>
+            <DonutWithSelector viewMode={isClicks ? 'clicks' : 'impressions'} />
           </View>
+
           <View style={styles.container}>
-            <TopDashboard Title={getTitle()}
-            scene={route.key} />
+            <Text style={styles.DateTitle}>
+              Top Channels {getTitle()}
+            </Text>
+            <DashboardPanel scene={route.key} />
           </View>
         </View>
       </ScrollView>
@@ -116,28 +107,32 @@ export default function App() {
   return (
     <SafeAreaView style={styles.containerpage}>
       <View style={{ flex: 1 }}>
-        {initialLoading ? (
-          <Spinner /> // Show full-screen spinner only during initial page load
-        ) : (
-          <TabView
-            navigationState={{ index, routes }}
-            renderScene={renderScene}
-            onIndexChange={setIndex}
-            initialLayout={initialLayout}
-            swipeEnabled={false}
-            animationEnabled={false}
-            renderTabBar={props => (
-              <TabBar
-                {...props}
-                indicatorStyle={styles.tabBarIndicator}
-                style={styles.tabBarStyle}
-                activeColor="#2c62b4"
-                inactiveColor="#7f8c8d"
-              />
-            )}
-          />
-        )}
+        <TabView
+          navigationState={{ index, routes }}
+          renderScene={renderScene}
+          onIndexChange={setIndex}
+          initialLayout={initialLayout}
+          swipeEnabled={false}
+          animationEnabled={false}
+          renderTabBar={props => (
+            <TabBar
+              {...props}
+              indicatorStyle={styles.tabBarIndicator}
+              style={styles.tabBarStyle}
+              activeColor="#2c62b4"
+              inactiveColor="#7f8c8d"
+            />
+          )}
+        />
       </View>
     </SafeAreaView>
+  );
+}
+
+export default function App() {
+  return (
+    <DashboardProvider>
+      <InnerApp />
+    </DashboardProvider>
   );
 }

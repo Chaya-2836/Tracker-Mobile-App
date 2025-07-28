@@ -8,6 +8,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import styles from '../../styles/filterMenuStyles';
+import DateRangePickerSection from './DateRangePickerSection';
+
 
 type Props = {
   label: string;

@@ -2,7 +2,7 @@ import { BigQuery } from '@google-cloud/bigquery';
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 import fs from 'fs';
 
-const useSecretManager = false; // ⬅️ שנה ל־true בפרודקשן
+const useSecretManager = false; // ⬅️ Set to true in production
 
 export async function createBigQueryClient() {
   try {

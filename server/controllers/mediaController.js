@@ -31,7 +31,7 @@ export const getTopMediaSources = async (req, res) => {
 
     res.json(results);
   } catch (err) {
-    console.error('❌ Error in getTopMediaSources:', err);
+    console.error('Error in getTopMediaSources:', err);
     res.status(500).json({ error: err.message }); 
   }
 };

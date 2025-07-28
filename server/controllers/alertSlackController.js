@@ -13,6 +13,6 @@ export async function checkAndSendTrafficAlert(meassage) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text }),
     });
-    console.log("✅ Alert successfully sent to Slack:", text);
+    console.log("Alert successfully sent to Slack:", text);
 }
 

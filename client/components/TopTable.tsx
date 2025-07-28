@@ -7,7 +7,7 @@ import tableStyles from "../styles/tableStyles";
 import buttonStyles from "../styles/buttonStyles";
 type TopTableProps = {
   title: string;
-  data: Array<{ name: string; [key: string]: number | string }>;
+  data: Array<{ name: string;[key: string]: number | string }>;
   topN: number;
   sortBy: string;
   scene: "media" | "agencies" | "apps";

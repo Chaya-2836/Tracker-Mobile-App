@@ -1,73 +1,125 @@
-import style from "../../styles/topStyles";
-import { View, Text, ScrollView, Dimensions } from "react-native";
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { View, Text, Dimensions } from "react-native";
 import { TabView, TabBar, SceneMap } from "react-native-tab-view";
-import styles from '../../styles/appStyles';
-import TopSelector from "../TopSelector";
+
+import styles from "../../styles/appStyles";
+
 import TopTable from "../TopTable";
+import TopSelector from "../TopSelector";
+import Spinner from "../Spinner";
+
 import {
   fetchTopAgencies,
   fetchTopApps,
   fetchTopMediaSources,
 } from "../../api/trafficAnalyticsAPI";
-import Spinner from "../Spinner";
 
-export default function TopDashboard({ scene, Title }: { scene: string, Title: string }) {
-  const [topN, setTopN] = useState(9);
-  const [mediaData, setMediaData] = useState([]);
-  const [agencyData, setAgencyData] = useState([]);
-  const [appData, setAppData] = useState([]);
+import { useDashboard } from "../../hooks/dashboard/DashboardContext";
+
+export default function TopDashboard({ scene, Title }: { scene: string; Title: string }) {
+  const {
+    fromDate,
+    toDate,
+    topTabIndex,
+    setTopTabIndex,
+    topMediaData,
+    topAgencyData,
+    topAppData,
+    setTopMediaData,
+    setTopAgencyData,
+    setTopAppData,
+    topN,
+    setTopN,
+  } = useDashboard();
+
   const [loading, setLoading] = useState(false);
 
-  const [index, setIndex] = useState(0);
-  const [routes] = useState([
-    { key: 'media', title: 'Media Sources' },
-    { key: 'agencies', title: 'Agencies' },
-    { key: 'apps', title: 'Applications' },
-  ]);
+  const routes = [
+    { key: "media", title: "Media Sources" },
+    { key: "agencies", title: "Agencies" },
+    { key: "apps", title: "Applications" },
+  ];
+
+  const initialLayout = { width: Dimensions.get("window").width };
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!fromDate || !toDate) return;
+
       setLoading(true);
       try {
-        const media = await fetchTopMediaSources(topN);
-        const agencies = await fetchTopAgencies(topN);
-        const apps = await fetchTopApps(topN);
+        const [media, agencies, apps] = await Promise.all([
+          fetchTopMediaSources({ startDate: fromDate, endDate: toDate, limit: topN }),
+          fetchTopAgencies({ startDate: fromDate, endDate: toDate, limit: topN }),
+          fetchTopApps({ startDate: fromDate, endDate: toDate, limit: topN }),
+        ]);
 
-        setMediaData(media);
-        setAgencyData(agencies);
-        setAppData(apps);
-      } catch (err: any) {
-        console.error("Error loading data:", err);
+        setTopMediaData(media);
+        setTopAgencyData(agencies);
+        setTopAppData(apps);
+      } catch (err) {
+        console.error("Error loading top data:", err);
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [topN]);
-
-  const initialLayout = { width: Dimensions.get("window").width };
+  }, [fromDate, toDate, topN]);
 
   const renderScene = SceneMap({
-    media: () => <TopTable title="Top Media Sources" data={mediaData} topN={topN} sortBy={scene} scene="media" />,
-    agencies: () => <TopTable title="Top Agencies" data={agencyData} topN={topN} sortBy={scene} scene="agencies" />,
-    apps: () => <TopTable title="Top Applications" data={appData} topN={topN} sortBy={scene} scene="apps" />,
+    media: () =>
+      topMediaData?.length ? (
+        <TopTable
+          title="Top Media Sources"
+          data={topMediaData}
+          topN={topN}
+          sortBy={scene}
+          scene="media"
+        />
+      ) : (
+        <View><Text>No media data</Text></View>
+      ),
+
+    agencies: () =>
+      topAgencyData?.length ? (
+        <TopTable
+          title="Top Agencies"
+          data={topAgencyData}
+          topN={topN}
+          sortBy={scene}
+          scene="agencies"
+        />
+      ) : (
+        <View><Text>No agency data</Text></View>
+      ),
+
+    apps: () =>
+      topAppData?.length ? (
+        <TopTable
+          title="Top Applications"
+          data={topAppData}
+          topN={topN}
+          sortBy={scene}
+          scene="apps"
+        />
+      ) : (
+        <View><Text>No app data</Text></View>
+      ),
   });
 
   return (
     <View>
       <TopSelector value={topN} onChange={setTopN} />
-
       {loading ? (
         <Spinner />
       ) : (
         <TabView
-          navigationState={{ index, routes }}
+          navigationState={{ index: topTabIndex, routes }}
           renderScene={renderScene}
-          onIndexChange={setIndex}
+          onIndexChange={setTopTabIndex}
           initialLayout={initialLayout}
-          renderTabBar={props => (
+          renderTabBar={(props) => (
             <TabBar
               {...props}
               indicatorStyle={styles.tabBarIndicator}

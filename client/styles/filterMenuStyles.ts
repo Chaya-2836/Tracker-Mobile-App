@@ -5,7 +5,7 @@ const styles = StyleSheet.create({
     position: 'relative',
     zIndex: 10,
     backgroundColor: '#fff',
-    paddingTop: 6, 
+    paddingTop: 6,
   },
   scrollWrapper: {
     paddingHorizontal: 10,
@@ -23,6 +23,7 @@ const styles = StyleSheet.create({
     color: '#2c3e50',
     marginTop: 4,
   },
+
   dropdownWrapper: {
     marginRight: 12,
   },
@@ -61,13 +62,13 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     backgroundColor: '#f1f2f6',
-    height:30,
+    height: 30,
     borderRadius: 6,
     borderWidth: 1,
     borderColor: '#dfe6e9',
-    marginTop:2,
+    marginTop: 2,
     marginBottom: 8,
-    paddingLeft:6,
+    paddingLeft: 6,
     fontSize: 13,
   },
   optionItem: {
@@ -107,12 +108,12 @@ const styles = StyleSheet.create({
     color: '#2c3e50',
   },
   filterLabel: {
-  fontSize: 14,
-  fontWeight: '500',
-  color: '#2c3e50',
-  marginTop: 8,
-  marginBottom: 4,
-},
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#2c3e50',
+    marginTop: 8,
+    marginBottom: 4,
+  },
 });
 
 export default styles;

@@ -8,7 +8,7 @@ import mediaRoutes from './routes/mediaRoutes.js';
 import agencyRoutes from './routes/agencyRoutes.js';
 import appRoutes from './routes/appRoutes.js';
 import alertRoutes from './routes/alertRoutes.js';
-
+import platformRoutes from './routes/platformRoutes.js';
 
 import { scheduleDailyCheck } from './services/pushService.js';
 import { createBigQueryClient } from './config/bigQueryClient.js';
@@ -38,6 +38,7 @@ createBigQueryClient()
     app.use('/trafficAnalytics/agency', agencyRoutes);
     app.use('/trafficAnalytics/apps', appRoutes);
     app.use('/trafficAnalytics/alert', alertRoutes);
+    app.use('/trafficAnalytics/platforms', platformRoutes);
 
     // Start daily scheduled push check
     scheduleDailyCheck();

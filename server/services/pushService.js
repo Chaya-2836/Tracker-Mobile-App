@@ -4,16 +4,16 @@ import cron from 'node-cron';
 import { getTodayStats } from './statsService.js';
 
 import { checkAndSendTrafficAlert } from '../controllers/alertSlackController.js';
-import admin from 'firebase-admin';
 
 const __dirname = path.resolve();
 const serviceAccountPath = path.join(__dirname, 'firebase-service-account.json');
 
 let firebaseReady = false;
 let currentDeviceToken = null;
+let admin;
 
 if (fs.existsSync(serviceAccountPath)) {
-  const { default: firebaseAdmin } = await import('firebase-admin');
+  admin = (await import('firebase-admin')).default;
   const serviceAccount = await import('../firebase-service-account.json', {
     assert: { type: 'json' },
   });
@@ -24,14 +24,14 @@ if (fs.existsSync(serviceAccountPath)) {
 
   admin = firebaseAdmin;
   firebaseReady = true;
-  console.log('✅ Firebase initialized');
+  console.log('Firebase initialized');
 } else {
-  console.warn('⚠️ firebase-service-account.json not found — Push notifications disabled');
+  console.warn('firebase-service-account.json not found — Push notifications disabled');
 }
 
 function registerToken(token) {
   currentDeviceToken = token;
-  console.log('📲 Token registered:', token);
+  console.log('Token registered:', token);
 }
 
 async function sendPush(token, title, body) {
@@ -43,39 +43,39 @@ async function sendPush(token, title, body) {
       notification: { title, body },
     };
     const response = await admin.messaging().send(message);
-    console.log('✅ Push sent:', response);
+    console.log('Push sent:', response);
   } catch (error) {
-    console.error('❌ Failed to send push:', error);
+    console.error('Failed to send push:', error);
   }
 }
 
 function scheduleDailyCheck() {
   if (!firebaseReady) {
-    setInterval(() => {}, 1000 * 60 * 60); // מחזיק את התהליך בלי לעשות כלום
+    setInterval(() => {}, 1000 * 60 * 60); // Keeps the process alive without doing anything
     return;
   }
 
   cron.schedule(
-    '0 10 * * *', // 10:00 לפי זמן ישראל
+    '0 10 * * *', // 10:00 Israel time
     async () => {
-      console.log('⏰ Running daily engagement check...');
+      console.log('Running daily engagement check...');
 
       try {
         const { total_clicks_and_impressions } = await getTodayStats();
         console.log("Today's Clicks And Impressions:", total_clicks_and_impressions);
 
         const isHighTraffic = total_clicks_and_impressions > 70000000000;
-        const message = `High Traffic Alert! A total of ${total_clicks_and_impressions.toLocaleString()} clicks and impressions were recorded today.`;
+        const message = `High Traffic Alert! A total of ${total_clicks_and_impressions.toLocaleString()} clicks and impressions were recorded today!!`;
 
         if (isHighTraffic) {
           await checkAndSendTrafficAlert(message);
 
           if (currentDeviceToken) {
-            await sendPush(currentDeviceToken, '📢 Traffic Alert', message);
+            await sendPush(currentDeviceToken, 'Traffic Alert', message);
           }
         }
       } catch (err) {
-        console.error('❌ Error in daily check:', err);
+        console.error('Error in daily check:', err);
       }
     },
     {
@@ -86,4 +86,33 @@ function scheduleDailyCheck() {
 export {
   registerToken,
   scheduleDailyCheck,
+  sendPush,
+  __setFirebaseReady,
+  __setAdmin,
+  __getFirebaseReady,
+  __getCurrentToken,
+  __setCurrentToken,
 };
+
+
+function __setFirebaseReady(value) {
+  firebaseReady = value;
+}
+function __setAdmin(value) {
+  admin = value;
+}
+function __getFirebaseReady() {
+  return firebaseReady;
+}
+__setAdmin({
+  messaging: () => ({
+    send: sendMock,
+  }),
+});
+
+function __getCurrentToken() {
+  return currentDeviceToken;
+}
+function __setCurrentToken(value) {
+  currentDeviceToken = value;
+}
