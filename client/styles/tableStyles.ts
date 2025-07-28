@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+
 const tableStyles = StyleSheet.create({
   container: {
     marginTop: 8,
@@ -22,14 +23,14 @@ const tableStyles = StyleSheet.create({
     paddingHorizontal: 6,
   },
   colAppName: {
-    width: 130,
+    width: 100,
     fontSize: 13,
-    paddingVertical: 6,
+    paddingVertical: 4,
     paddingHorizontal: 8,
     textAlign: "left",
   },
   colSmall: {
-    width: 80,
+    width: 100,
     fontSize: 13,
     paddingVertical: 6,
     paddingHorizontal: 8,
