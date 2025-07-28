@@ -7,7 +7,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { TabView, TabBar } from 'react-native-tab-view';
-
+import {useEffect } from 'react';
 import styles from '../../styles/appStyles';
 import SuspiciousPanel from '../../components/Dashboard/SuspiciousPanel';
 import DashboardPanel from '../../components/Dashboard/DashboardPanel';
@@ -21,6 +21,19 @@ import FilterBar from '@/components/Dashboard/FilterBar';
 import { DashboardProvider, useDashboard } from '../../hooks/dashboard/DashboardContext';
 
 const initialLayout = { width: Dimensions.get('window').width };
+
+useEffect(() => {
+    const isManualNavigation =
+      !document.referrer || document.referrer === '' || document.referrer === window.location.href;
+
+
+    if (isManualNavigation) {
+      console.warn('Blocked direct access, redirecting to Login...');
+      setTimeout(() => {
+        router.replace('/');
+      }, 0);
+    }
+  }, []);
 
 function InnerApp() {
   const {
