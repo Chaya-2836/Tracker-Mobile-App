@@ -91,41 +91,39 @@ export default function TopTable({ title, data, topN, sortBy, scene }: TopTableP
                     <Text style={styles.value}>{formatNumber(item[sortBy])}</Text>
 
                     {scene !== "apps" && (
-<TouchableOpacity
-  onPress={() => onViewAppsAnalytics(item)}
-  style={buttonStyles.button}
->
-  <Text style={buttonStyles.icon}>
-    {expandedId === item.name ? "▼" : "▶"}
-  </Text>
-  <Text style={buttonStyles.label}>App Analytics</Text>
-</TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => onViewAppsAnalytics(item)}
+                        style={buttonStyles.button}
+                      >
+                        <Text style={buttonStyles.icon}>
+                          {expandedId === item.name ? "▼" : "▶"}
+                        </Text>
+                        <Text style={buttonStyles.label}>App Analytics</Text>
+                      </TouchableOpacity>
                     )}
                   </View>
                 </View>
 
                 {expandedId === item.name && (
                   <View style={tableStyles.container}>
-  {/* Header Row */}
-  <View style={tableStyles.row}>
-    <Text style={[tableStyles.header, tableStyles.colAppName]}>App Name</Text>
-    <Text style={[tableStyles.header, tableStyles.colSmall]}>Clicks</Text>
-    <Text style={[tableStyles.header, tableStyles.colSmall]}>Impressions</Text>
-    <Text style={[tableStyles.header, tableStyles.colSmall]}>Conversions</Text>
-  </View>
+                    {/* Header Row */}
+                    <View style={tableStyles.row}>
+                      <Text style={[tableStyles.header, tableStyles.colAppName]}>App Name</Text>
+                      <Text style={[tableStyles.header, tableStyles.colSmall]}>Clicks</Text>
+                      <Text style={[tableStyles.header, tableStyles.colSmall]}>Impressions</Text>
+                      <Text style={[tableStyles.header, tableStyles.colSmall]}>Conversions</Text>
+                    </View>
 
-  {/* Data Rows */}
-  {appsAnalytics[item.name]?.map((app, idx) => (
-    <View key={idx} style={tableStyles.row}>
-      <Text style={tableStyles.colAppName}>{app.app_id}</Text>
-      <Text style={tableStyles.colSmall}>{formatNumber(app.clicks)}</Text>
-      <Text style={tableStyles.colSmall}>{formatNumber(app.impressions)}</Text>
-      <Text style={tableStyles.colSmall}>{formatNumber(app.conversions)}</Text>
-    </View>
-  ))}
-</View>
-
-
+                    {/* Data Rows */}
+                    {appsAnalytics[item.name]?.map((app, idx) => (
+                      <View key={idx} style={tableStyles.row}>
+                        <Text style={tableStyles.colAppName}>{app.app_id}</Text>
+                        <Text style={tableStyles.colSmall}>{formatNumber(app.clicks)}</Text>
+                        <Text style={tableStyles.colSmall}>{formatNumber(app.impressions)}</Text>
+                        <Text style={tableStyles.colSmall}>{formatNumber(app.conversions)}</Text>
+                      </View>
+                    ))}
+                  </View>
                 )}
               </View>
             ))}
