@@ -4,20 +4,19 @@ import { formatNumber, safeName } from "../api/utils"
 
 type TopCardProps = {
   title: string;
-  data: Array<{ name: string; [key: string]: number | string }>;
+  data: Array<{ name: string;[key: string]: number | string }>;
   topN: number;
   sortBy: string;
 };
 
-export default function TopCard({ title, data, topN, sortBy }: TopCardProps) {
+export default function TopTable({ title, data, topN, sortBy }: TopCardProps) {
   const { width } = useWindowDimensions();
 
   const isLargeScreen = width >= 768;
-const topData = data
-  .filter(item => item && Object.keys(item).length > 0) 
-  .sort((a, b) => Number(b[sortBy]) - Number(a[sortBy]))
-  .slice(0, topN);
-
+  const topData = data
+    .filter(item => item && Object.keys(item).length > 0)
+    .sort((a, b) => Number(b[sortBy]) - Number(a[sortBy]))
+    .slice(0, topN);
 
   let columns: Array<typeof topData> = [];
 
@@ -34,7 +33,7 @@ const topData = data
 
   return (
     <View >
-      <Text style={[styles.title, {  paddingLeft: isLargeScreen ? 30 : 0  }]}>{title}</Text>
+      <Text style={[styles.title, { paddingLeft: isLargeScreen ? 30 : 0 }]}>{title}</Text>
       <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
         {columns.map((column, colIndex) => (
           <View

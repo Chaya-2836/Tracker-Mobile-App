@@ -4,10 +4,11 @@ import styles from "@/styles/topStyles";
 
 interface TopSelectorProps {
   value: number;
+  Title?: string;
   onChange: (value: number) => void;
 }
 
-function TopSelector({ value, onChange }: TopSelectorProps) {
+function TopSelector({ value, onChange, Title }: TopSelectorProps) {
   return (
     <View style={styles.selector}>
       <Text style={styles.selectorLabel}>Show Top:</Text>
@@ -17,6 +18,7 @@ function TopSelector({ value, onChange }: TopSelectorProps) {
         value={String(value)}
         onChangeText={(text) => onChange(Number(text))}
       />
+      <Text style={styles.selectorLabel}>{Title}</Text>
     </View>
   );
 }

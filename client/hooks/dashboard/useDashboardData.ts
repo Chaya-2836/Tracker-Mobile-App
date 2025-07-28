@@ -57,7 +57,6 @@ export function useDashboardData() {
   }
 
   async function fetchTrends(filters: { [key: string]: string[] }) {
-    setLoading(true);
     try {
       const filtersAsQuery = Object.fromEntries(
         Object.entries(filters).map(([key, val]) => {
@@ -122,7 +121,6 @@ export function useDashboardData() {
   const formatDate = (iso: string) => {
     return new Date(iso).toLocaleDateString('en-CA');
   };
-
 
   const getTitle = () => {
     if (fromDate && toDate) {

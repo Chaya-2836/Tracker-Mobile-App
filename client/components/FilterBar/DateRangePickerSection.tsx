@@ -32,7 +32,6 @@ export default function DateRangePickerSection({
         inputMode="start"
         style={styles.searchInput}
       />
-
       <Text style={styles.filterLabel}>To:</Text>
       <DatePickerInput
         locale="en"

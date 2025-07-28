@@ -131,8 +131,6 @@ export default function Dashboard() {
 
 
   return (
-        <Auth0Provider domain={"dev-ygpkcykyx3jnljrc.us.auth0.com"} clientId={"AImF7UlzPmK9f73OXBe6Is7muwL9Atsz"}>
-
     <SafeAreaView style={styles.containerpage}>
       <Header />
       <View style={{ flex: 1 }}>
@@ -159,7 +157,6 @@ export default function Dashboard() {
         )}
       </View>
     </SafeAreaView>
-        </Auth0Provider>
 
   );
 }

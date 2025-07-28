@@ -9,11 +9,11 @@ import {fetchTopAgencies,fetchTopApps,fetchTopMediaSources,} from "../../api/tra
 import Spinner from "../Spinner";
 
 export default function TopDashboard({ scene, Title }: { scene: string, Title:  string }) {
-  const [topN, setTopN] = useState(9);
+  const [topN, setTopN] = useState(10);
   const [mediaData, setMediaData] = useState([]);
   const [agencyData, setAgencyData] = useState([]);
   const [appData, setAppData] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const [index, setIndex] = useState(0);
   const [routes] = useState([
@@ -24,7 +24,6 @@ export default function TopDashboard({ scene, Title }: { scene: string, Title:  
 
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true);
       try {
         const media = await fetchTopMediaSources(topN);
         const agencies = await fetchTopAgencies(topN);
@@ -53,7 +52,7 @@ export default function TopDashboard({ scene, Title }: { scene: string, Title:  
 
   return (
     <View >
-      <TopSelector value={topN} onChange={setTopN} />
+      <TopSelector value={topN} onChange={setTopN} Title={Title} />
 
       {loading ? (
         <Spinner />
